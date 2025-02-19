@@ -1,0 +1,33 @@
+{
+    "name": "express-boilerplate",
+    "version": "1.0.0",
+    "main": "server.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "nodemon ./src/server.ts",
+        "typescript": "tsc --init"
+    },
+    "author": "Ahmad Albarasy",
+    "license": "MIT",
+    "description": "",
+    "dependencies": {
+        "colorette": "^2.0.20",
+        "cookie-parser": "^1.4.7",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.1",
+        "express-rate-limit": "^7.4.1",
+        "helmet": "^8.0.0",
+        "joi": "^17.13.3",
+        "morgan": "^1.10.0",
+        "typescript": "^5.6.3",
+        "winston": "^3.15.0"
+    },
+    "devDependencies": {
+        "@types/cookie-parser": "^1.4.7",
+        "@types/express": "^5.0.0",
+        "@types/morgan": "^1.9.9",
+        "@types/statuses": "^2.0.5",
+        "nodemon": "^3.1.7",
+        "ts-node": "^10.9.2"
+    }
+}
