@@ -4,9 +4,12 @@ import { FAIL } from "../constants/responseConstants";
 
 export default function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   if (err instanceof APIError){
-  
+    res.status(err.statusCode).json({
+      status: FAIL,
+      message: err.message,
+    });
   }
-  else { // configure and handle unexpected errors based on your needs
+  else {
     res.status(500).json({
       status: FAIL,
       message: 'Something went wrong.',
