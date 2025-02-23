@@ -4,6 +4,7 @@ import httpLog from './middlewares/httpLog';
 import cookieParser from 'cookie-parser';
 import { notFoundEndpoint } from './middlewares/notAllowedHandler';
 import v1Router from './routes/v1/v1Router';
+import setupSwagger from './swagger';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
@@ -22,6 +23,8 @@ app.use(rateLimit({ // configure based on your needs
 }));
 
 app.use('/api/v1', v1Router); // example router
+
+setupSwagger(app);
 
 app.all('*', notFoundEndpoint); // handle requests to endpoints that are not implemented
 

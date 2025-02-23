@@ -20,14 +20,17 @@
         "joi": "^17.13.3",
         "morgan": "^1.10.0",
         "typescript": "^5.6.3",
-        "winston": "^3.15.0"
+        "winston": "^3.15.0",
+        "yaml": "^2.7.0"
     },
     "devDependencies": {
         "@types/cookie-parser": "^1.4.7",
         "@types/express": "^5.0.0",
         "@types/morgan": "^1.9.9",
         "@types/statuses": "^2.0.5",
+        "@types/swagger-ui-express": "^4.1.8",
         "nodemon": "^3.1.7",
+        "swagger-ui-express": "^5.0.1",
         "ts-node": "^10.9.2"
     }
 }
