@@ -7,10 +7,11 @@ const cliFormat =  printf(({level, message, timestamp}) => {
 });
 
 const logger = winston.createLogger({
-  level: 'info', // change based on your needs or use your own severity system
+  level: 'info',
   format: combine(timestamp(), json()),
   transports: [
-    new winston.transports.File({ filename: './logs/app.log' }),
+    new winston.transports.File({ filename: './logs/combined.log' }),
+    new winston.transports.File({ filename: './logs/errors.log', level: 'error' }),
   ]
 });
 
