@@ -3,3 +3,5 @@ node_modules
 logs
 config
 dist
+**/.env
+**/migrations
