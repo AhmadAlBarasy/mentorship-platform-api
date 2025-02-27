@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DB_STRING")
+}
+
+model User {
+  @@map("users")
+  id String @db.VarChar(32) @id
+  email String @db.VarChar(320) @unique
+  name String @db.VarChar(100)
+  headline String @db.VarChar(50)
+  bio String? @db.VarChar(1000)
+  location String @db.VarChar(56)
+  password String @db.VarChar(255)
+  imageUrl String? @db.VarChar(500) @map("image_url")
+  linkedInUrl String? @db.VarChar(255) @map("linkedin_url")
+  gitHubUrl String? @db.VarChar(255) @map("github_url")
+  resetToken String? @db.VarChar(64) @map("reset_token")
+  resetExpiry DateTime @db.Date @map("reset_expiry")
+  dateJoined DateTime @default(now()) @map("date_joined")
+  skills  Json @db.Json
+  role Role @default(MENTEE)
+  services Service[]
+  sessionRequests SessionRequest[]
+}
+
+model Service {
+  @@map("services")
+  id String @db.VarChar(32) @id @default(uuid())
+  name String @db.VarChar(50)
+  decsription String @db.VarChar(300)
+  sessionTime Int @map("session_time")
+  deletedAt DateTime? @db.Date @map("deleted_at")
+  mentorId String @db.VarChar(32) @map("mentor_id")
+  mentor User @relation(fields: [mentorId], references: [id])
+  requests SessionRequest[]
+  availability Availability?
+}
+
+model SessionRequest {
+  @@map("session_requests")
+  id String @db.VarChar(32) @id @default(uuid())
+  serviceId String @db.VarChar(32) @map("service_id")
+  service Service @relation(fields: [serviceId], references: [id])
+  menteeId String @db.VarChar(32) @map("mentee_id")
+  mentee User @relation(fields: [menteeId], references: [id])
+  startTime DateTime @db.Time() @map("start_time")
+  endTime DateTime @db.Time() @map("end_time")
+  date DateTime @db.Date 
+  status SessionStatus @default(PENDING)
+  agenda String? @db.VarChar(5000)
+  rejectionReason String? @db.VarChar(100) @map("rejection_reason")
+}
+
+model Availability {
+  @@map("availabilities")
+  id String @db.VarChar(32) @id @default(uuid())
+  serviceId String @db.VarChar(32) @map("service_id") @unique
+  service Service @relation(fields: [serviceId], references: [id])
+  dayAvailabilities DayAvailability[]
+  availabilityExceptions AvailabilityException[]
+
+}
+
+model DayAvailability {
+  @@map("day_availabilities")
+  id String @db.VarChar(32) @id @default(uuid())
+  day_of_week Int @map("day_of_week")
+  startTime DateTime @db.Time() @map("start_time")
+  endTime DateTime @db.Time() @map("end_time")
+  availabilityId String @db.VarChar(32) @map("availability_id")
+  availability Availability @relation(fields: [availabilityId], references: [id])
+}
+
+model AvailabilityException {
+  @@map("availability_exceptions")
+  id String @db.VarChar(32) @id @default(uuid())
+  date DateTime @db.Date
+  startTime DateTime @db.Time() @map("start_time")
+  endTime DateTime @db.Time() @map("end_time")
+  availabilityId String @db.VarChar(32) @map("availability_id")
+  availability Availability @relation(fields: [availabilityId], references: [id])
+}
+
+enum Role {
+  MENTEE
+  MENTOR
+  ADMIN
+}
+
+enum SessionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
