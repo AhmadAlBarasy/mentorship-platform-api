@@ -22,7 +22,7 @@ app.use(rateLimit({ // configure based on your needs
   limit: 50,
 }));
 
-app.use('/api/v1', v1Router); // example router
+app.use('/api/v1', v1Router);
 
 setupSwagger(app);
 
