@@ -22,7 +22,7 @@ model User {
   resetToken String? @db.VarChar(64) @map("reset_token")
   resetExpiry DateTime @db.Date @map("reset_expiry")
   dateJoined DateTime @default(now()) @map("date_joined")
-  skills  Json @db.Json
+  skills Json? @db.Json
   role Role @default(MENTEE)
   services Service[]
   sessionRequests SessionRequest[]
