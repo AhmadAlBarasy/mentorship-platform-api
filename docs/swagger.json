@@ -1,34 +1,119 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Sample API",
-      "description": "Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.",
-      "version": "0.1.9"
-    },
-    "servers": [
-      {
-        "url": "http://api.example.com/v1",
-        "description": "Optional server description, e.g. Main (production) server"
-      },
-      {
-        "url": "http://staging-api.example.com",
-        "description": "Optional server description, e.g. Internal staging server for testing"
-      }
-    ],
-    "paths": {
-      "/users": {
-        "get": {
-          "summary": "Returns a list of users.",
-          "description": "Optional extended description in CommonMark or HTML.",
-          "responses": {
-            "200": {
-              "description": "A JSON array of user names",
-              "content": {
-                "application/json": {
-                  "schema": {
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Mentorship Platform API",
+    "description": "",
+    "version": "0.1.9"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api/v1",
+      "description": "Local API Development"
+    }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Sign up a new user",
+        "tags": ["Auth"],
+        "description": "Creates a new user account",
+        "operationId": "signupUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "johndoe@gmail.com"
+                  },
+                  "headline": {
+                    "type": "string",
+                    "example": "Software Engineer at XYZ"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "StrongP@ssword123"
+                  },
+                  "location": {
+                    "type": "string",
+                    "example": "San Francisco, CA"
+                  },
+                  "skills": {
                     "type": "array",
                     "items": {
                       "type": "string"
+                    },
+                    "example": ["JavaScript", "Node.js", "MongoDB"]
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["mentee", "mentor"],
+                    "example": "mentee"
+                  },
+                  "linkedin_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://www.linkedin.com/in/johndoe"
+                  },
+                  "github_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://github.com/johndoe"
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "headline",
+                  "password",
+                  "location",
+                  "skills",
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User registered successfully"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "64a2f1c6e4b0b2a7c6d1e8f9"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid email format"
                     }
                   }
                 }
@@ -37,5 +122,168 @@
           }
         }
       }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "User login",
+        "tags": ["Auth"],
+        "description": "Authenticates a user and returns a token",
+        "operationId": "loginUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "johndoe@gmail.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "StrongP@ssword123"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid email or password"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "summary": "Forgot password",
+        "tags": ["Auth"],
+        "description": "Sends a password reset email to the user",
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "johndoe@gmail.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset email sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password reset email sent successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid email format"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password/{token}": {
+      "post": {
+        "summary": "Reset password",
+        "tags": ["Auth"],
+        "description": "Resets the user's password using a provided token",
+        "operationId": "resetPassword",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "vreiogjewgop9489ghvv8ejg9rej948j"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "NewStrongP@ssword123"
+                  }
+                },
+                "required": ["password"]
+              }
+            }
+          }
+        }
+      }
     }
   }
+}
