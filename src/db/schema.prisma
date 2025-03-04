@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -12,21 +13,31 @@ model User {
   id String @db.VarChar(32) @id
   email String @db.VarChar(320) @unique
   name String @db.VarChar(100)
-  headline String @db.VarChar(50)
+  headline String? @db.VarChar(50)
   bio String? @db.VarChar(1000)
-  location String @db.VarChar(56)
+  country String @db.VarChar(56)
   password String @db.VarChar(255)
   imageUrl String? @db.VarChar(500) @map("image_url")
   linkedInUrl String? @db.VarChar(255) @map("linkedin_url")
   gitHubUrl String? @db.VarChar(255) @map("github_url")
-  resetToken String? @db.VarChar(64) @map("reset_token")
-  resetExpiry DateTime @db.Date @map("reset_expiry")
   dateJoined DateTime @default(now()) @map("date_joined")
   skills Json? @db.Json
   role Role @default(MENTEE)
   services Service[]
   sessionRequests SessionRequest[]
+  authCredentials AuthCredentials?
 }
+
+model AuthCredentials {
+  @@map("auth_credentials")
+  id String @id @default(uuid())
+  userId String @unique @map("user_id")
+  resetToken String? @db.VarChar(64) @map("reset_token")
+  resetExpiry DateTime? @db.Date @map("reset_expiry")
+  emailVerified Boolean @default(false) @map("email_verified")
+  emailVerificationCode String? @db.VarChar(6) @map("email_verification_code")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  }
 
 model Service {
   @@map("services")
@@ -47,7 +58,7 @@ model SessionRequest {
   serviceId String @db.VarChar(32) @map("service_id")
   service Service @relation(fields: [serviceId], references: [id])
   menteeId String @db.VarChar(32) @map("mentee_id")
-  mentee User @relation(fields: [menteeId], references: [id])
+  mentee User @relation(fields: [menteeId], references: [id], onDelete: Cascade)
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
   date DateTime @db.Date 
@@ -60,7 +71,7 @@ model Availability {
   @@map("availabilities")
   id String @db.VarChar(32) @id @default(uuid())
   serviceId String @db.VarChar(32) @map("service_id") @unique
-  service Service @relation(fields: [serviceId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   dayAvailabilities DayAvailability[]
   availabilityExceptions AvailabilityException[]
 
@@ -73,7 +84,7 @@ model DayAvailability {
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
   availabilityId String @db.VarChar(32) @map("availability_id")
-  availability Availability @relation(fields: [availabilityId], references: [id])
+  availability Availability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
 }
 
 model AvailabilityException {
@@ -83,7 +94,7 @@ model AvailabilityException {
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
   availabilityId String @db.VarChar(32) @map("availability_id")
-  availability Availability @relation(fields: [availabilityId], references: [id])
+  availability Availability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
