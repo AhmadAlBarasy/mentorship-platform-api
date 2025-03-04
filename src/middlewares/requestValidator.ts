@@ -1,6 +1,6 @@
 import { ObjectSchema } from "joi";
 import APIError from "../types/classes/APIError";
-import { NextFunction, Request } from "express";
+import { NextFunction, Request, Response } from "express";
 import RequestValidationSchemas from "../types/interfaces/RequestValidationSchemas";
 import { RequestProperties } from "../types/interfaces/RequestProperties";
 
@@ -12,7 +12,7 @@ export default function requestValidator(options: RequestValidationSchemas) {
 
     // function to validate using Joi
     const validate = (toBeValidated: RequestProperties, schema: ObjectSchema) => {
-      const { error } = schema.validate(toBeValidated, { abortEarly: true }); // change 'abortEarly' to false based on your needs
+      const { error } = schema.validate(toBeValidated, { abortEarly: true });
       if (error) {
         const errors: string = error.details.map((err) => err.message).join(', ');
         return next(new APIError(400, errors));
