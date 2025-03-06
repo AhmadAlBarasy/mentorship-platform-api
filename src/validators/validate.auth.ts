@@ -30,8 +30,30 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().length(32).required(),
+  password: Joi.string()
+  .min(8)
+  .required()
+  .pattern(/[A-Z]/, 'uppercase letter')
+  .pattern(/[a-z]/, 'lowercase letter')
+  .pattern(/\d/, 'number')
+  .pattern(/[\W_]/, 'special character')
+  .messages({
+    'string.min': 'Password must be at least 8 characters long',
+    'string.pattern.name': 'Password must contain at least one {#name}',
+    'any.required': 'Password is required',
+  }),
+});
+
 export {
   signupSchema,
   confirmEmailSchema,
   loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 }

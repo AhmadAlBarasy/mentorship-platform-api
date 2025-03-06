@@ -5,27 +5,44 @@ const getUser = async (options: {
   searchBy: {
     email?: string,
     id?: string,
+    resetToken?: string,
   },
-  authCredentials?: boolean,
+  IncludeAuth?: boolean,
   }) => {
-    const { searchBy, authCredentials } = options;
+    const { searchBy, IncludeAuth } = options;
     const user = await prisma.user.findFirst({
       where: {
-      OR: [
-        { email: searchBy.email },
-        { id: searchBy.id },
-      ],
+        OR: [
+          { email: searchBy.email },
+          { id: searchBy.id },
+          { authCredentials: { resetToken: searchBy.resetToken } },
+        ],
       },
-      include: { authCredentials },
+      include: { authCredentials: IncludeAuth },
     });
     return user;
+};
+
+const updateUser = async (id: string, data: {
+  name?: string,
+  headline?: string,
+  bio?: string,
+  password?: string,
+  country?: string,
+}) => {
+  await prisma.user.update({
+    where: {
+      id,
+    },
+    data,
+  });
 };
 
 const updateUserAuthCredentials = async (id: string, data: {
   emailVerificationCode?: string | null,
   emailVerified?: boolean,
-  passwordResetCode?: string,
-  passwordResetExpiry?: Date,
+  resetToken?: string | null,
+  resetExpiry?: Date| null,
   }) => {
     await prisma.authCredentials.update({
       where: {
@@ -70,9 +87,12 @@ const createAuthRecord = async (data:
   });
 };
 
+
+
 export {
   getUser,
   createUser,
   createAuthRecord,
   updateUserAuthCredentials,
+  updateUser,
 };

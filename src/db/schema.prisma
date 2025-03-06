@@ -33,7 +33,7 @@ model AuthCredentials {
   id String @id @default(uuid())
   userId String @unique @map("user_id")
   resetToken String? @db.VarChar(64) @map("reset_token")
-  resetExpiry DateTime? @db.Date @map("reset_expiry")
+  resetExpiry DateTime? @map("reset_expiry")
   emailVerified Boolean @default(false) @map("email_verified")
   emailVerificationCode String? @db.VarChar(6) @map("email_verification_code")
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

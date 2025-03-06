@@ -279,9 +279,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
                     "message": {
                       "type": "string",
-                      "example": "Password reset email sent successfully"
+                      "example": "A reset link has been sent to johndoe@gmail.com"
                     }
                   }
                 }
@@ -295,7 +299,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "status": {
+                      "type": "string",
+                      "example": "fail"
+                    },
+                    "message": {
                       "type": "string",
                       "example": "Invalid email format"
                     }
@@ -307,23 +315,12 @@
         }
       }
     },
-    "/auth/reset-password/{token}": {
+    "/auth/reset-password": {
       "post": {
         "summary": "Reset password",
         "tags": ["Auth"],
         "description": "Resets the user's password using a provided token",
         "operationId": "resetPassword",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "example": "vreiogjewgop9489ghvv8ejg9rej948j"
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -335,9 +332,55 @@
                     "type": "string",
                     "format": "password",
                     "example": "NewStrongP@ssword123"
+                  },
+                  "token": {
+                    "type": "string",
+                    "example": "389f57d8d05040c60ae9648f94e1018a"
                   }
                 },
-                "required": ["password"]
+                "required": ["password", "token"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password has been reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password has been reset successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Reset token has expired"
+                    }
+                  }
+                }
               }
             }
           }

@@ -5,19 +5,22 @@ import {
   getUser,
   createAuthRecord,
   createUser,
-  updateUserAuthCredentials 
+  updateUserAuthCredentials, 
+  updateUser
   } from '../services/userService';
 import APIError from '../types/classes/APIError';
 import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
 import transporter from '../utils/mail/mailSender';
-import { confirmationCodeTemplate } from '../utils/mail/mailTemplates';
+import { confirmationCodeTemplate, resetPasswordTemplate } from '../utils/mail/mailTemplates';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import prisma from '../db';
 
 export const login = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
 
   const { email, password } = req.body;
-  const user = await getUser({ searchBy: { email }, authCredentials: false });
+  const user = await getUser({ searchBy: { email }, IncludeAuth: false });
   if (!user) {
     return next(new APIError(401, 'Invalid email or password'));
   }
@@ -76,7 +79,7 @@ export const signup = errorHandler(async (req: Request, res: Response, next: Nex
 
 export const confirmEmail = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
   const { email, code } = req.body;
-  const user = await getUser({ searchBy: { email }, authCredentials: true });
+  const user = await getUser({ searchBy: { email }, IncludeAuth: true });
   if (!user) {
     return next(new APIError(400, 'Invalid email or confirmation code'));
   }
@@ -90,5 +93,51 @@ export const confirmEmail = errorHandler(async (req: Request, res: Response, nex
   res.status(200).json({
     status: SUCCESS,
     message: `Email ${user.email} has been verified successfully`,
+  });
+});
+
+export const forgotPassword = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { email } = req.body;
+  const user = await getUser({ searchBy: { email }, IncludeAuth: true });
+  if (!user){
+    res.status(200).json({
+      status: SUCCESS,
+      message: `An email with the reset link has been sent to ${email}`
+    });
+    return;
+  }
+  const resetCode = crypto.randomBytes(16).toString('hex');
+  await updateUserAuthCredentials(user.id, {
+    resetToken: resetCode,
+    resetExpiry: new Date(Date.now() + 600000),
+  });
+
+  await transporter.sendMail(resetPasswordTemplate(user.name, user.email, resetCode));
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: `An email with the reset link has been sent to ${email}`
+  })
+});
+
+export const resetPassword = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const { password, token } = req.body;
+  const user = await getUser({ searchBy: { resetToken: token }, IncludeAuth: true });
+  if (!user){
+    return next(new APIError(400, 'Invalid reset token'));
+  }
+  if (user.authCredentials?.resetToken !== token){
+    return next(new APIError(400, 'Invalid reset token'));
+  }
+  if (user.authCredentials?.resetExpiry && user.authCredentials.resetExpiry < new Date()){
+    await updateUserAuthCredentials(user.id, { resetToken: null, resetExpiry: null });
+    return next(new APIError(400, 'Reset token has expired'));
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await updateUser(user.id, { password: hashedPassword });
+  await updateUserAuthCredentials(user.id, { resetToken: null, resetExpiry: null });
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Password has been reset successfully',
   });
 });
