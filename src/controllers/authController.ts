@@ -12,12 +12,25 @@ import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
 import transporter from '../utils/mail/mailSender';
 import { confirmationCodeTemplate } from '../utils/mail/mailTemplates';
+import jwt from 'jsonwebtoken';
 
 export const login = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
 
+  const { email, password } = req.body;
+  const user = await getUser({ searchBy: { email }, authCredentials: false });
+  if (!user) {
+    return next(new APIError(401, 'Invalid email or password'));
+  }
+  if (await bcrypt.compare(password, user.password) === false) {
+    return next(new APIError(401, 'Invalid email or password'));
+  }
+
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
+
   res.status(200).json({
     status: SUCCESS,
-    message: 'Successfully logged in.'
+    message: 'Successfully logged in.',
+    token,
   });
 });
 

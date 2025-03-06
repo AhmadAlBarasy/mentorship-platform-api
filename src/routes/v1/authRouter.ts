@@ -2,13 +2,20 @@ import { Router } from 'express';
 import { notAllowedMethod, notFoundEndpoint } from '../../middlewares/notAllowedHandler';
 import { login, signup, confirmEmail } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
-import { confirmEmailSchema, signupSchema } from '../../validators/validate.auth';
+import {
+  confirmEmailSchema,
+  signupSchema,
+  loginSchema,
+  } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 
 const authRouter = Router();
 
 authRouter.route('/login')
-  .post(login)
+  .post(
+    requestValidator({ bodySchema: loginSchema }),
+    login
+  )
   .all(notAllowedMethod);
 
 authRouter.route("/signup")
