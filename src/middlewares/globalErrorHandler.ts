@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import APIError from '../types/classes/APIError';
+import APIError from '../classes/APIError';
 import { FAIL } from '../constants/responseConstants';
 import logger from '../loggers/appLogger';
 
