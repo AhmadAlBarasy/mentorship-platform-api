@@ -7,6 +7,7 @@ import v1Router from './routes/v1/v1Router';
 import setupSwagger from './swagger';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cors from 'cors';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(httpLog); // to log HTTP requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors());
 
 /* security middlewares */
 app.use(helmet());

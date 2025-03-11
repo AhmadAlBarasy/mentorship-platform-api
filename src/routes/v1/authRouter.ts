@@ -5,7 +5,8 @@ import {
   signup,
   confirmEmail,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
 import {
@@ -14,6 +15,7 @@ import {
   signupSchema,
   loginSchema,
   resetPasswordSchema,
+  // googleAuthSchema,
   } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 
@@ -54,6 +56,13 @@ authRouter.route("/forgot-password")
     resetPassword,
   )
   .all(notAllowedMethod);
+
+// authRouter.route("/google-auth")
+//   .post(
+//     // requestValidator({ bodySchema: googleAuthSchema }),
+//     googleAuth,
+//   )
+//   .all(notAllowedMethod);
 
 authRouter.route('*').all(notFoundEndpoint);
 

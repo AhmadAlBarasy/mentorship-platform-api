@@ -15,7 +15,7 @@ import transporter from '../utils/mail/mailSender';
 import { confirmationCodeTemplate, resetPasswordTemplate } from '../utils/mail/mailTemplates';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import prisma from '../db';
+// import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
 
 export const login = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -141,3 +141,26 @@ export const resetPassword = errorHandler(async (req: Request, res: Response, ne
     message: 'Password has been reset successfully',
   });
 });
+
+// export const googleAuth = errorHandler(async (req: Request, res: Response, next: NextFunction)=> {
+//   const { token } = req.body;
+//   // get user's id_token and access_token
+//   const tokens = await getGoogleTokens(token);
+//   // get user's data using the id_token
+//   const userData = await getGoogleUserData(tokens.id_token);
+//   if (!userData){
+//     return next(new APIError(500, "Something went wrong, please try again later"));
+//   }
+//   const user = await getUser({ searchBy: {email: userData.email} });
+//   if (!user){
+//     await createUser({
+//       name: userData.name,
+      
+//     });
+//   }
+//   res.status(200).json({
+//     status: SUCCESS,
+//     message: 'User data retrieved successfully',
+//     data: userData,
+//   });
+// });
