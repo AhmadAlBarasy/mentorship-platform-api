@@ -1,8 +1,8 @@
-import { ObjectSchema } from "joi";
-import APIError from "../types/classes/APIError";
-import { NextFunction, Request, Response } from "express";
-import RequestValidationSchemas from "../types/interfaces/RequestValidationSchemas";
-import { RequestProperties } from "../types/interfaces/RequestProperties";
+import { ObjectSchema } from 'joi';
+import APIError from '../types/classes/APIError';
+import { NextFunction, Request, Response } from 'express';
+import RequestValidationSchemas from '../types/interfaces/RequestValidationSchemas';
+import { RequestProperties } from '../types/interfaces/RequestProperties';
 
 export default function requestValidator(options: RequestValidationSchemas) {
 
@@ -19,10 +19,10 @@ export default function requestValidator(options: RequestValidationSchemas) {
       }
     }
 
-    if(bodySchema && req.body){
+    if (bodySchema && req.body){
       validate(req.body, bodySchema);
     }
-    if(paramsSchema && req.params){
+    if (paramsSchema && req.params){
       validate(req.params, paramsSchema);
     }
     next();

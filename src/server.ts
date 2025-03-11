@@ -1,6 +1,6 @@
-import app from "./app";
-import dotenv from "dotenv";
-import logger from "./loggers/appLogger";
+import app from './app';
+import dotenv from 'dotenv';
+import logger from './loggers/appLogger';
 
 dotenv.config({ path: './config/.env' });
 

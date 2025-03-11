@@ -1,4 +1,4 @@
-import { ObjectSchema } from "joi";
+import { ObjectSchema } from 'joi';
 
 export default interface RequestValidationSchemas {
   bodySchema?: ObjectSchema,

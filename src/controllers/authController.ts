@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { SUCCESS } from '../constants/responseConstants';
-import errorHandler from "../utils/asyncErrorHandler";
+import errorHandler from '../utils/asyncErrorHandler';
 import {
   getUser,
   createAuthRecord,
   createUser,
-  updateUserAuthCredentials, 
-  updateUser
-  } from '../services/userService';
+  updateUserAuthCredentials,
+  updateUser,
+} from '../services/userService';
 import APIError from '../types/classes/APIError';
 import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
@@ -17,7 +17,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 // import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
 
-export const login = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const { email, password } = req.body;
   const user = await getUser({ searchBy: { email }, IncludeAuth: false });
@@ -37,7 +37,7 @@ export const login = errorHandler(async (req: Request, res: Response, next: Next
   });
 });
 
-export const signup = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const signup = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const {  name, id, email, password, country, role } = req.body;
   if (await getUser({ searchBy: { id } })) {
@@ -50,14 +50,13 @@ export const signup = errorHandler(async (req: Request, res: Response, next: Nex
   if (await getUser({ searchBy: { email } })){
     res.json({
       status: SUCCESS,
-      message: `Registered successfully, a confirmation code has been sent to ${email}`
+      message: `Registered successfully, a confirmation code has been sent to ${email}`,
     });
     return;
   }
 
   // create a 6 digit confirmation code (starting from 000000 to 999999)
   const confirmationCode = `${Math.ceil((Math.random() * 999999))}`.padStart(6, '0');
-  console.log(confirmationCode);
   await createUser({
     name,
     id,
@@ -71,13 +70,13 @@ export const signup = errorHandler(async (req: Request, res: Response, next: Nex
     confirmationCode,
   });
   await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode));
-    res.status(201).json({
+  res.status(201).json({
     status: SUCCESS,
-    message: `Registered successfully, a confirmation code has been sent to ${email}`
+    message: `Registered successfully, a confirmation code has been sent to ${email}`,
   });
 });
 
-export const confirmEmail = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const confirmEmail = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { email, code } = req.body;
   const user = await getUser({ searchBy: { email }, IncludeAuth: true });
   if (!user) {
@@ -96,13 +95,13 @@ export const confirmEmail = errorHandler(async (req: Request, res: Response, nex
   });
 });
 
-export const forgotPassword = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const forgotPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
   const user = await getUser({ searchBy: { email }, IncludeAuth: true });
   if (!user){
     res.status(200).json({
       status: SUCCESS,
-      message: `An email with the reset link has been sent to ${email}`
+      message: `An email with the reset link has been sent to ${email}`,
     });
     return;
   }
@@ -116,11 +115,11 @@ export const forgotPassword = errorHandler(async (req: Request, res: Response, n
 
   res.status(200).json({
     status: SUCCESS,
-    message: `An email with the reset link has been sent to ${email}`
+    message: `An email with the reset link has been sent to ${email}`,
   })
 });
 
-export const resetPassword = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const resetPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { password, token } = req.body;
   const user = await getUser({ searchBy: { resetToken: token }, IncludeAuth: true });
   if (!user){
@@ -155,7 +154,7 @@ export const resetPassword = errorHandler(async (req: Request, res: Response, ne
 //   if (!user){
 //     await createUser({
 //       name: userData.name,
-      
+
 //     });
 //   }
 //   res.status(200).json({

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 dotenv.config({ path: './config/.env' });
 
@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: MAIL_USER,
     pass: MAIL_PASSWORD,
-  }
+  },
 });
 
 export default transporter;

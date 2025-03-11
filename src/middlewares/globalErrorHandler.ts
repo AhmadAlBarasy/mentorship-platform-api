@@ -1,7 +1,7 @@
-import { NextFunction, Request, Response } from "express";
-import APIError from "../types/classes/APIError";
-import { FAIL } from "../constants/responseConstants";
-import logger from "../loggers/appLogger";
+import { NextFunction, Request, Response } from 'express';
+import APIError from '../types/classes/APIError';
+import { FAIL } from '../constants/responseConstants';
+import logger from '../loggers/appLogger';
 
 export default function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   if (err instanceof APIError){
@@ -9,8 +9,7 @@ export default function errorHandler(err: Error, req: Request, res: Response, ne
       status: FAIL,
       message: err.message,
     });
-  }
-  else {
+  } else {
     logger.error(err.message);
     if (err instanceof SyntaxError){
       return res.status(400).json({

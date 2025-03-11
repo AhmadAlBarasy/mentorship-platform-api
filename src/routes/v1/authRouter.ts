@@ -16,7 +16,7 @@ import {
   loginSchema,
   resetPasswordSchema,
   // googleAuthSchema,
-  } from '../../validators/validate.auth';
+} from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 
 const authRouter = Router();
@@ -24,33 +24,33 @@ const authRouter = Router();
 authRouter.route('/login')
   .post(
     requestValidator({ bodySchema: loginSchema }),
-    login
+    login,
   )
   .all(notAllowedMethod);
 
-authRouter.route("/signup")
+authRouter.route('/signup')
   .post(
     requestValidator({ bodySchema: signupSchema }),
-    signup
+    signup,
   )
   .all(notAllowedMethod);
 
-authRouter.route("/confirm-email")
+authRouter.route('/confirm-email')
   .post(
     requestValidator({ bodySchema: confirmEmailSchema }),
-    confirmEmail
+    confirmEmail,
   )
   .all(notAllowedMethod);
 
-authRouter.route("/forgot-password")
+authRouter.route('/forgot-password')
   .post(
-    rateLimiter(60, 5, "Too many requests, please try again later"),
+    rateLimiter(60, 5, 'Too many requests, please try again later'),
     requestValidator({ bodySchema: forgotPasswordSchema }),
     forgotPassword,
   )
   .all(notAllowedMethod);
 
-  authRouter.route("/reset-password")
+authRouter.route('/reset-password')
   .post(
     requestValidator({ bodySchema: resetPasswordSchema }),
     resetPassword,

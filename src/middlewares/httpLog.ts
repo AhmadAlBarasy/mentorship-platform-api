@@ -1,5 +1,5 @@
-import morgan from "morgan";
-import httpLogger from "../loggers/httpLogger";
+import morgan from 'morgan';
+import httpLogger from '../loggers/httpLogger';
 
 const httpLog = morgan(
   ':method :url :status :res[content-length] - :response-time ms',

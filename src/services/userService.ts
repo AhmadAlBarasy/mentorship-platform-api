@@ -1,7 +1,7 @@
-import prisma from "../db";
-import { Role } from "@prisma/client";
+import prisma from '../db';
+import { Role } from '@prisma/client';
 
-const getUser = async (options: {
+const getUser = async(options: {
   searchBy: {
     email?: string,
     id?: string,
@@ -9,21 +9,21 @@ const getUser = async (options: {
   },
   IncludeAuth?: boolean,
   }) => {
-    const { searchBy, IncludeAuth } = options;
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: searchBy.email },
-          { id: searchBy.id },
-          { authCredentials: { resetToken: searchBy.resetToken } },
-        ],
-      },
-      include: { authCredentials: IncludeAuth },
-    });
-    return user;
+  const { searchBy, IncludeAuth } = options;
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: searchBy.email },
+        { id: searchBy.id },
+        { authCredentials: { resetToken: searchBy.resetToken } },
+      ],
+    },
+    include: { authCredentials: IncludeAuth },
+  });
+  return user;
 };
 
-const updateUser = async (id: string, data: {
+const updateUser = async(id: string, data: {
   name?: string,
   headline?: string,
   bio?: string,
@@ -38,43 +38,43 @@ const updateUser = async (id: string, data: {
   });
 };
 
-const updateUserAuthCredentials = async (id: string, data: {
+const updateUserAuthCredentials = async(id: string, data: {
   emailVerificationCode?: string | null,
   emailVerified?: boolean,
   resetToken?: string | null,
   resetExpiry?: Date| null,
   }) => {
-    await prisma.authCredentials.update({
-      where: {
-        userId: id,
-      },
-      data,
-    });
+  await prisma.authCredentials.update({
+    where: {
+      userId: id,
+    },
+    data,
+  });
 };
 
-const createUser = async (data: 
-  { name: string, 
-    id: string, 
-    email: string, 
-    password: string, 
-    country: string, 
-    role: Role, 
-  }
+const createUser = async(data:
+  { name: string,
+    id: string,
+    email: string,
+    password: string,
+    country: string,
+    role: Role,
+  },
 ) => {
-    const { name, id, email, password, country, role } = data;
-    await prisma.user.create({
-      data: {
-        name,
-        id,
-        email,
-        password,
-        country,
-        role,
-      }
-    });
+  const { name, id, email, password, country, role } = data;
+  await prisma.user.create({
+    data: {
+      name,
+      id,
+      email,
+      password,
+      country,
+      role,
+    },
+  });
 };
 
-const createAuthRecord = async (data:
+const createAuthRecord = async(data:
   {
     userId: string,
     confirmationCode: string,
@@ -83,7 +83,7 @@ const createAuthRecord = async (data:
     data: {
       userId: data.userId,
       emailVerificationCode: data.confirmationCode,
-    }
+    },
   });
 };
 

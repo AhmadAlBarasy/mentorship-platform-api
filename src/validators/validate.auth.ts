@@ -5,17 +5,17 @@ const signupSchema = Joi.object({
   id: Joi.string().alphanum().min(3).max(32).required(),
   email: Joi.string().email().required(),
   password: Joi.string()
-  .min(8)
-  .required()
-  .pattern(/[A-Z]/, 'uppercase letter')
-  .pattern(/[a-z]/, 'lowercase letter')
-  .pattern(/\d/, 'number')
-  .pattern(/[\W_]/, 'special character')
-  .messages({
-    'string.min': 'Password must be at least 8 characters long',
-    'string.pattern.name': 'Password must contain at least one {#name}',
-    'any.required': 'Password is required',
-  }),
+    .min(8)
+    .required()
+    .pattern(/[A-Z]/, 'uppercase letter')
+    .pattern(/[a-z]/, 'lowercase letter')
+    .pattern(/\d/, 'number')
+    .pattern(/[\W_]/, 'special character')
+    .messages({
+      'string.min': 'Password must be at least 8 characters long',
+      'string.pattern.name': 'Password must contain at least one {#name}',
+      'any.required': 'Password is required',
+    }),
   country: Joi.string().min(2).max(56).required(),
   role: Joi.string().valid('mentee', 'mentor').required(),
 });
@@ -37,22 +37,22 @@ const forgotPasswordSchema = Joi.object({
 const resetPasswordSchema = Joi.object({
   token: Joi.string().length(32).required(),
   password: Joi.string()
-  .min(8)
-  .required()
-  .pattern(/[A-Z]/, 'uppercase letter')
-  .pattern(/[a-z]/, 'lowercase letter')
-  .pattern(/\d/, 'number')
-  .pattern(/[\W_]/, 'special character')
-  .messages({
-    'string.min': 'Password must be at least 8 characters long',
-    'string.pattern.name': 'Password must contain at least one {#name}',
-    'any.required': 'Password is required',
-  }),
+    .min(8)
+    .required()
+    .pattern(/[A-Z]/, 'uppercase letter')
+    .pattern(/[a-z]/, 'lowercase letter')
+    .pattern(/\d/, 'number')
+    .pattern(/[\W_]/, 'special character')
+    .messages({
+      'string.min': 'Password must be at least 8 characters long',
+      'string.pattern.name': 'Password must contain at least one {#name}',
+      'any.required': 'Password is required',
+    }),
 });
 
 const googleAuthSchema = Joi.object({
   token: Joi.string()
-  .required(),
+    .required(),
 });
 
 export {
