@@ -4,15 +4,17 @@ import { getUser } from '../../controllers/userController';
 import { authenticateUser, authorizeUser } from '../../middlewares/authMiddlewares';
 import { Role } from '@prisma/client';
 
+const { ADMIN, MENTEE, MENTOR } = Role;
+
 const userRouter = Router();
 
 userRouter.route('/:id')
   .get(
     authenticateUser,
     authorizeUser([
-      Role.ADMIN,
-      Role.MENTEE,
-      Role.MENTOR,
+      MENTEE,
+      MENTOR,
+      ADMIN,
     ]),
     getUser,
   )
