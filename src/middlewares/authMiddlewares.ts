@@ -3,13 +3,17 @@ import { Request, Response, NextFunction } from 'express';
 import APIError from '../classes/APIError';
 import errorHandler from '../utils/asyncErrorHandler';
 import { decodeJwt } from '../utils/jwt';
-import { getUserService } from '../services/userService';
+// import { getUserService } from '../services/userService';
+import prisma from '../db';
 
-const authorizeUser = (roles: Role[]) => {
+const authorizedRoles = (roles: Role[] | '*') => {
   return async(req: Request, res: Response, next: NextFunction) => {
     const userRole = req.user?.role;
     if (!userRole) {
       return next(new APIError(403, 'Forbidden'));
+    }
+    if (roles === '*'){
+      return next();
     }
     if (!roles.includes(userRole)) {
       return next(new APIError(403, 'Forbidden: You are not authorized to do this action'));
@@ -26,7 +30,14 @@ const authenticateUser = errorHandler(
     }
     const payload = decodeJwt(token, next);
     // fetch the user from the database
-    const user = await getUserService({ searchBy: { id: payload?.sub } });
+    const user = await prisma.user.findFirst({
+      omit: {
+        password: true,
+      },
+      where: {
+        id: payload?.sub,
+      },
+    });
     if (!user){
       return next(new APIError(401, 'Invalid JWT'))
     }
@@ -48,4 +59,4 @@ const getTokenFromRequest = (req: Request): string | null => {
   return token;
 };
 
-export { authorizeUser, authenticateUser };
+export { authorizedRoles, authenticateUser };

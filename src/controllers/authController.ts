@@ -72,14 +72,14 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     id,
     email,
     password: hashedPassword,
-    country,
+    country: country.toUpperCase(),
     role: roleENUM,
   });
   await createAuthRecordService({
     userId: id,
     confirmationCode,
   });
-  await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode));
+  // await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode));
   res.status(201).json({
     status: SUCCESS,
     message: `Registered successfully, a confirmation code has been sent to ${email}`,

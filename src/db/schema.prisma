@@ -15,7 +15,7 @@ model User {
   name String @db.VarChar(100)
   headline String? @db.VarChar(50)
   bio String? @db.VarChar(1000)
-  country String @db.VarChar(56)
+  country String @db.VarChar(3)
   password String @db.VarChar(255)
   imageUrl String? @db.VarChar(500) @map("image_url")
   linkedInUrl String? @db.VarChar(255) @map("linkedin_url")
