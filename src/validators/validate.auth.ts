@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { validateContryAlpha3Code } from './validator.custom';
 
 const signupSchema = Joi.object({
   name: Joi.string().min(3).max(100).required(),
@@ -16,7 +17,12 @@ const signupSchema = Joi.object({
       'string.pattern.name': 'Password must contain at least one {#name}',
       'any.required': 'Password is required',
     }),
-  country: Joi.string().min(2).max(56).required(),
+  country: Joi.string() // stored in ISO 3166-1 country codes
+    .length(3)
+    .custom(validateContryAlpha3Code)
+    .messages({
+      'string.alpha3Code': 'Country name must be a valid ISO 3166-1 alpha-3 code',
+    }),
   role: Joi.string().valid('mentee', 'mentor').required(),
 });
 

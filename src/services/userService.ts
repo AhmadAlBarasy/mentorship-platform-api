@@ -1,7 +1,7 @@
 import prisma from '../db';
 import { Role } from '@prisma/client';
 
-const getUser = async(options: {
+const getUserService = async(options: {
   searchBy: {
     email?: string,
     id?: string,
@@ -23,7 +23,7 @@ const getUser = async(options: {
   return user;
 };
 
-const updateUser = async(id: string, data: {
+const updateUserService = async(id: string, data: {
   name?: string,
   headline?: string,
   bio?: string,
@@ -38,7 +38,7 @@ const updateUser = async(id: string, data: {
   });
 };
 
-const updateUserAuthCredentials = async(id: string, data: {
+const updateUserAuthCredentialsService = async(id: string, data: {
   emailVerificationCode?: string | null,
   emailVerified?: boolean,
   resetToken?: string | null,
@@ -52,7 +52,7 @@ const updateUserAuthCredentials = async(id: string, data: {
   });
 };
 
-const createUser = async(data:
+const createUserService = async(data:
   { name: string,
     id: string,
     email: string,
@@ -74,7 +74,7 @@ const createUser = async(data:
   });
 };
 
-const createAuthRecord = async(data:
+const createAuthRecordService = async(data:
   {
     userId: string,
     confirmationCode: string,
@@ -90,9 +90,9 @@ const createAuthRecord = async(data:
 
 
 export {
-  getUser,
-  createUser,
-  createAuthRecord,
-  updateUserAuthCredentials,
-  updateUser,
+  getUserService,
+  createUserService,
+  createAuthRecordService,
+  updateUserAuthCredentialsService,
+  updateUserService,
 };

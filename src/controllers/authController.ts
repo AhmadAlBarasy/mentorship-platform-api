@@ -2,13 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { SUCCESS } from '../constants/responseConstants';
 import errorHandler from '../utils/asyncErrorHandler';
 import {
-  getUser,
-  createAuthRecord,
-  createUser,
-  updateUserAuthCredentials,
-  updateUser,
+  getUserService,
+  createAuthRecordService,
+  createUserService,
+  updateUserAuthCredentialsService,
+  updateUserService,
 } from '../services/userService';
-import APIError from '../types/classes/APIError';
+import APIError from '../classes/APIError';
 import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
 import transporter from '../utils/mail/mailSender';
@@ -20,7 +20,7 @@ import crypto from 'crypto';
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const { email, password } = req.body;
-  const user = await getUser({ searchBy: { email }, IncludeAuth: false });
+  const user = await getUserService({ searchBy: { email }, IncludeAuth: false });
   if (!user) {
     return next(new APIError(401, 'Invalid email or password'));
   }
@@ -28,7 +28,17 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     return next(new APIError(401, 'Invalid email or password'));
   }
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
+  const token = jwt.sign(
+    {
+      sub: user.id,
+      role: user.role,
+      iss: process.env.JWT_ISS,
+    },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: '1d',
+    },
+  );
 
   res.status(200).json({
     status: SUCCESS,
@@ -40,14 +50,14 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
 export const signup = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const {  name, id, email, password, country, role } = req.body;
-  if (await getUser({ searchBy: { id } })) {
+  if (await getUserService({ searchBy: { id } })) {
     return next(new APIError(400, `${id} has already been taken`));
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   const roleENUM = role === 'mentee' ? Role.MENTEE : Role.MENTOR;
 
   // this statement will mislead the user that are trying to figure out if an email is already taken
-  if (await getUser({ searchBy: { email } })){
+  if (await getUserService({ searchBy: { email } })){
     res.json({
       status: SUCCESS,
       message: `Registered successfully, a confirmation code has been sent to ${email}`,
@@ -57,19 +67,19 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
 
   // create a 6 digit confirmation code (starting from 000000 to 999999)
   const confirmationCode = `${Math.ceil((Math.random() * 999999))}`.padStart(6, '0');
-  await createUser({
+  await createUserService({
     name,
     id,
     email,
     password: hashedPassword,
-    country,
+    country: country.toUpperCase(),
     role: roleENUM,
   });
-  await createAuthRecord({
+  await createAuthRecordService({
     userId: id,
     confirmationCode,
   });
-  await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode));
+  // await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode));
   res.status(201).json({
     status: SUCCESS,
     message: `Registered successfully, a confirmation code has been sent to ${email}`,
@@ -78,7 +88,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
 
 export const confirmEmail = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { email, code } = req.body;
-  const user = await getUser({ searchBy: { email }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { email }, IncludeAuth: true });
   if (!user) {
     return next(new APIError(400, 'Invalid email or confirmation code'));
   }
@@ -88,7 +98,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
   if (user.authCredentials?.emailVerificationCode !== code){
     return next(new APIError(400, 'Invalid confirmation code'));
   }
-  await updateUserAuthCredentials(user.id, { emailVerified: true, emailVerificationCode: null });
+  await updateUserAuthCredentialsService(user.id, { emailVerified: true, emailVerificationCode: null });
   res.status(200).json({
     status: SUCCESS,
     message: `Email ${user.email} has been verified successfully`,
@@ -97,7 +107,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
 
 export const forgotPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
-  const user = await getUser({ searchBy: { email }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { email }, IncludeAuth: true });
   if (!user){
     res.status(200).json({
       status: SUCCESS,
@@ -106,7 +116,7 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
     return;
   }
   const resetCode = crypto.randomBytes(16).toString('hex');
-  await updateUserAuthCredentials(user.id, {
+  await updateUserAuthCredentialsService(user.id, {
     resetToken: resetCode,
     resetExpiry: new Date(Date.now() + 600000),
   });
@@ -121,7 +131,7 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
 
 export const resetPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { password, token } = req.body;
-  const user = await getUser({ searchBy: { resetToken: token }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { resetToken: token }, IncludeAuth: true });
   if (!user){
     return next(new APIError(400, 'Invalid reset token'));
   }
@@ -129,12 +139,12 @@ export const resetPassword = errorHandler(async(req: Request, res: Response, nex
     return next(new APIError(400, 'Invalid reset token'));
   }
   if (user.authCredentials?.resetExpiry && user.authCredentials.resetExpiry < new Date()){
-    await updateUserAuthCredentials(user.id, { resetToken: null, resetExpiry: null });
+    await updateUserAuthCredentialsService(user.id, { resetToken: null, resetExpiry: null });
     return next(new APIError(400, 'Reset token has expired'));
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  await updateUser(user.id, { password: hashedPassword });
-  await updateUserAuthCredentials(user.id, { resetToken: null, resetExpiry: null });
+  await updateUserService(user.id, { password: hashedPassword });
+  await updateUserAuthCredentialsService(user.id, { resetToken: null, resetExpiry: null });
   res.status(200).json({
     status: SUCCESS,
     message: 'Password has been reset successfully',
