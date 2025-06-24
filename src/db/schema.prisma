@@ -8,99 +8,179 @@ datasource db {
   url = env("DB_STRING")
 }
 
-model User {
+model Users {
   @@map("users")
+
   id String @db.VarChar(32) @id
   email String @db.VarChar(320) @unique
-  name String @db.VarChar(100)
-  headline String? @db.VarChar(50)
+  name String @db.VarChar(50)
+  headline String @db.VarChar(50)
   bio String? @db.VarChar(1000)
   country String @db.VarChar(3)
   password String @db.VarChar(255)
   imageUrl String? @db.VarChar(500) @map("image_url")
-  linkedInUrl String? @db.VarChar(255) @map("linkedin_url")
-  gitHubUrl String? @db.VarChar(255) @map("github_url")
-  dateJoined DateTime @default(now()) @map("date_joined")
+  dateJoined DateTime @default(now()) @map("date_joined") // DateTime stores in UTC by default
   skills Json? @db.Json
-  role Role @default(MENTEE)
-  services Service[]
-  sessionRequests SessionRequest[]
+  timezone String @db.VarChar(32) @default("Etc/UTC")
+  role Role
+
+  // Relations
+  services Services[]
+  sessionRequests SessionRequests[]
+  reports UserReports[]
   authCredentials AuthCredentials?
+  bannedUsers BannedUsers?
+  links UserLinks[]
+  notifications Notifications[]
+  participations Participations[]
+  community Communities?
+
+}
+
+model Communities {
+  id String @id @db.VarChar(32)
+  name String @db.VarChar(50)
+  description String @db.VarChar(1000)
+  imageUrl String? @db.VarChar(500) @map("image_url")
+  invitationCode String? @db.VarChar(32) @map("invitation_code")
+  managerId String? @unique @db.VarChar(32) @map("manager_id")
+  manager Users? @relation(fields: [managerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  participants Participations[]
+
+}
+
+model Participations {
+  @@map("participations")
+  userId String @db.VarChar(32) @map("user_id")
+  communityId String @db.VarChar(32) @map("community_id")
+  @@id(fields: [userId, communityId], name: "participation")
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  community Communities @relation(fields: [communityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Notifications {
+  id String @id @db.VarChar(32) @default(uuid())
+  content String @db.VarChar(100)
+  userId String @db.VarChar(32) @map("user_id")
+  redirectPath String? @db.VarChar(50) @map("redirect_path")
+  isRead Boolean @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  
+}
+
+model UserLinks {
+
+  @@map("user_links")
+
+  id String @id @db.VarChar(32) @default(uuid())
+  userId String @db.VarChar(32) @map("user_id")
+  linkName String @db.VarChar(50) @map("link_name")
+  linkUrl String @db.VarChar(2048) @map("link_url")
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+}
+
+model BannedUsers {
+  @@map("banned_users")
+
+  userId String @id @db.VarChar(32) @map("user_id")
+  bannedById String @db.VarChar(32) @map("banned_by_id")
+  banReason String @db.VarChar(100) @map("ban_reason")
+  bannedAt DateTime @default(now()) @map("banned_at")
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+}
+
+model UserReports {
+  @@map("user_reports")
+
+  id String @id @default(uuid()) @db.VarChar(32)
+  userId String @db.VarChar(32) @map("user_id")
+  reportedUserId String @db.VarChar(32) @map("reported_user_id")
+  violation String @db.VarChar(100)
+  additionalDetails String? @db.VarChar(500) @map("additional_details")
+  resolvedBy String? @db.VarChar(32) @map("resolved_by")
+  reportedAt DateTime @map("reported_at")
+  reporter Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
 }
 
 model AuthCredentials {
   @@map("auth_credentials")
-  id String @id @default(uuid())
-  userId String @unique @map("user_id")
+
+  userId String @id @db.VarChar(32)
   resetToken String? @db.VarChar(64) @map("reset_token")
   resetExpiry DateTime? @map("reset_expiry")
   emailVerified Boolean @default(false) @map("email_verified")
   emailVerificationCode String? @db.VarChar(6) @map("email_verification_code")
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  }
+  twoFactorOTP String? @db.VarChar(6) @map("2fa_otp")
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-model Service {
+}
+
+model Services {
   @@map("services")
+
   id String @db.VarChar(32) @id @default(uuid())
   name String @db.VarChar(50)
   decsription String @db.VarChar(300)
   sessionTime Int @map("session_time")
   deletedAt DateTime? @db.Date @map("deleted_at")
   mentorId String @db.VarChar(32) @map("mentor_id")
-  mentor User @relation(fields: [mentorId], references: [id])
-  requests SessionRequest[]
-  availability Availability?
+  mentor Users @relation(fields: [mentorId], references: [id])
+  requests SessionRequests[]
+  dayAvailabilites DayAvailabilities[]
+  availabilityExceptions AvailabilityExceptions[]
+
 }
 
-model SessionRequest {
+model SessionRequests {
   @@map("session_requests")
+
   id String @db.VarChar(32) @id @default(uuid())
   serviceId String @db.VarChar(32) @map("service_id")
-  service Service @relation(fields: [serviceId], references: [id])
   menteeId String @db.VarChar(32) @map("mentee_id")
-  mentee User @relation(fields: [menteeId], references: [id], onDelete: Cascade)
   startTime DateTime @db.Time() @map("start_time")
-  endTime DateTime @db.Time() @map("end_time")
   date DateTime @db.Date 
   status SessionStatus @default(PENDING)
   agenda String? @db.VarChar(5000)
   rejectionReason String? @db.VarChar(100) @map("rejection_reason")
-}
-
-model Availability {
-  @@map("availabilities")
-  id String @db.VarChar(32) @id @default(uuid())
-  serviceId String @db.VarChar(32) @map("service_id") @unique
-  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  dayAvailabilities DayAvailability[]
-  availabilityExceptions AvailabilityException[]
+  createdAt DateTime @default(now())
+  service Services @relation(fields: [serviceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  mentee Users @relation(fields: [menteeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
 }
 
-model DayAvailability {
+model DayAvailabilities {
   @@map("day_availabilities")
+
   id String @db.VarChar(32) @id @default(uuid())
   day_of_week Int @map("day_of_week")
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
-  availabilityId String @db.VarChar(32) @map("availability_id")
-  availability Availability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  serviceId String @db.VarChar(32) @map("service_id")
+  service Services @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
 }
 
-model AvailabilityException {
+model AvailabilityExceptions {
   @@map("availability_exceptions")
+
   id String @db.VarChar(32) @id @default(uuid())
   date DateTime @db.Date
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
-  availabilityId String @db.VarChar(32) @map("availability_id")
-  availability Availability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  serviceId String @db.VarChar(32) @map("service_id")
+  service Services @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
 }
 
 enum Role {
   MENTEE
   MENTOR
   ADMIN
+  COMMUNITY_MANAGER
 }
 
 enum SessionStatus {
