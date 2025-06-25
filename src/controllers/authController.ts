@@ -19,13 +19,13 @@ import crypto from 'crypto';
 
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
-  const { email, password } = req.body;
-  const user = await getUserService({ searchBy: { email }, IncludeAuth: false });
+  const { id, email, password } = req.body;
+  const user = await getUserService({ searchBy: { id, email }, IncludeAuth: false });
   if (!user) {
-    return next(new APIError(401, 'Invalid email or password'));
+    return next(new APIError(401, 'Invalid id/email or password'));
   }
   if (await bcrypt.compare(password, user.password) === false) {
-    return next(new APIError(401, 'Invalid email or password'));
+    return next(new APIError(401, 'Invalid id/email or password'));
   }
 
   const token = jwt.sign(
@@ -40,6 +40,13 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     },
   );
 
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'prodcution' ? true : false, // restrict sending the cookie only thorugh HTTPS in prod
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000, // 1d
+
+  });
   res.status(200).json({
     status: SUCCESS,
     message: 'Successfully logged in.',
@@ -49,7 +56,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
 
 export const signup = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
-  const {  name, id, email, password, country, role } = req.body;
+  const {  name, id, headline, email, password, country, role } = req.body;
   if (await getUserService({ searchBy: { id } })) {
     return next(new APIError(400, `${id} has already been taken`));
   }
@@ -71,6 +78,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     name,
     id,
     email,
+    headline,
     password: hashedPassword,
     country: country.toUpperCase(),
     role: roleENUM,
@@ -79,7 +87,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     userId: id,
     confirmationCode,
   });
-  // await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode));
+  // await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode)); // temporarily disabled
   res.status(201).json({
     status: SUCCESS,
     message: `Registered successfully, a confirmation code has been sent to ${email}`,
@@ -93,10 +101,10 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
     return next(new APIError(400, 'Invalid email or confirmation code'));
   }
   if (user.authCredentials?.emailVerified === true){
-    return next(new APIError(400, 'Email has already been verified'));
+    return next(new APIError(400, 'Invalid email or confirmation code')); // misleading response
   }
   if (user.authCredentials?.emailVerificationCode !== code){
-    return next(new APIError(400, 'Invalid confirmation code'));
+    return next(new APIError(400, 'Invalid email or confirmation code'));
   }
   await updateUserAuthCredentialsService(user.id, { emailVerified: true, emailVerificationCode: null });
   res.status(200).json({
@@ -109,7 +117,7 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
   const { email } = req.body;
   const user = await getUserService({ searchBy: { email }, IncludeAuth: true });
   if (!user){
-    res.status(200).json({
+    res.status(200).json({ // sent to deceive a malicious user trying to figure out if an email address is used
       status: SUCCESS,
       message: `An email with the reset link has been sent to ${email}`,
     });
@@ -121,7 +129,7 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
     resetExpiry: new Date(Date.now() + 600000),
   });
 
-  await transporter.sendMail(resetPasswordTemplate(user.name, user.email, resetCode));
+  // await transporter.sendMail(resetPasswordTemplate(user.name, user.email, resetCode)); temporarily disabled
 
   res.status(200).json({
     status: SUCCESS,
