@@ -10,7 +10,7 @@ const getUserService = async(options: {
   IncludeAuth?: boolean,
   }) => {
   const { searchBy, IncludeAuth } = options;
-  const user = await prisma.user.findFirst({
+  const user = await prisma.users.findFirst({
     where: {
       OR: [
         { email: searchBy.email },
@@ -30,7 +30,7 @@ const updateUserService = async(id: string, data: {
   password?: string,
   country?: string,
 }) => {
-  await prisma.user.update({
+  await prisma.users.update({
     where: {
       id,
     },
@@ -56,17 +56,19 @@ const createUserService = async(data:
   { name: string,
     id: string,
     email: string,
+    headline: string,
     password: string,
     country: string,
     role: Role,
   },
 ) => {
-  const { name, id, email, password, country, role } = data;
-  await prisma.user.create({
+  const { name, id, email, headline, password, country, role } = data;
+  await prisma.users.create({
     data: {
       name,
       id,
       email,
+      headline,
       password,
       country,
       role,

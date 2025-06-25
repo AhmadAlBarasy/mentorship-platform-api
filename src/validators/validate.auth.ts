@@ -2,11 +2,24 @@ import Joi from 'joi';
 import { validateContryAlpha3Code } from './validator.custom';
 
 const signupSchema = Joi.object({
-  name: Joi.string().min(3).max(100).required(),
-  id: Joi.string().alphanum().min(3).max(32).required(),
-  email: Joi.string().email().required(),
+  name: Joi.string()
+    .min(3)
+    .max(50)
+    .required(),
+  id: Joi.string()
+    .pattern(/^[a-zA-Z0-9_]+$/)
+    .min(3)
+    .max(32)
+    .required(),
+  email: Joi.string()
+    .email()
+    .required(),
+  headline: Joi.string()
+    .max(50)
+    .required(),
   password: Joi.string()
     .min(8)
+    .max(72)
     .required()
     .pattern(/[A-Z]/, 'uppercase letter')
     .pattern(/[a-z]/, 'lowercase letter')
@@ -23,7 +36,9 @@ const signupSchema = Joi.object({
     .messages({
       'string.alpha3Code': 'Country name must be a valid ISO 3166-1 alpha-3 code',
     }),
-  role: Joi.string().valid('mentee', 'mentor').required(),
+  role: Joi.string()
+    .valid('mentee', 'mentor')
+    .required(),
 });
 
 const confirmEmailSchema = Joi.object({
@@ -32,9 +47,10 @@ const confirmEmailSchema = Joi.object({
 });
 
 const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string().email(),
+  id: Joi.string(),
   password: Joi.string().required(),
-});
+}).xor('id', 'email');
 
 const forgotPasswordSchema = Joi.object({
   email: Joi.string().email().required(),

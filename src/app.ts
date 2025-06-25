@@ -15,11 +15,11 @@ app.use(httpLog); // to log HTTP requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+app.use(cors()); // temporarily, CORS will be disabled during development
 
 /* security middlewares */
 app.use(helmet());
-app.use(rateLimit({ // configure based on your needs
+app.use(rateLimit({
   windowMs: 60 * 1000,
   limit: 50,
 }));

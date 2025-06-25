@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Mentorship Platform API",
+    "title": "Growthly Platform API Docs",
     "description": "",
-    "version": "0.1.9"
+    "version": "1.0.0"
   },
   "servers": [
     {
@@ -14,9 +14,9 @@
   "paths": {
     "/auth/signup": {
       "post": {
-        "summary": "Sign up a new user",
-        "tags": ["Auth"],
-        "description": "Creates a new user account",
+        "summary": "Register a new user (Mentee, Mentor)",
+        "tags": ["Authentication"],
+        "description": "Creates a new user on the platform, the user can join either as a Mentee, or as a Mentor",
         "operationId": "signupUser",
         "requestBody": {
           "required": true,
@@ -29,9 +29,13 @@
                     "type": "string",
                     "example": "John Doe"
                   },
-                  "username": {
+                  "id": {
                     "type": "string",
                     "example": "johndoe"
+                  },
+                  "headline": {
+                    "type": "string",
+                    "example": "Software Engineer at Google"
                   },
                   "email": {
                     "type": "string",
@@ -41,11 +45,13 @@
                   "password": {
                     "type": "string",
                     "format": "password",
+                    "description": "User password (should meet platform's security policy)",
                     "example": "StrongP@ssword123"
                   },
                   "country": {
                     "type": "string",
-                    "example": "United States"
+                    "description": "ISO 3166-1 alpha-3 country code",
+                    "example": "USA"
                   },
                   "role": {
                     "type": "string",
@@ -55,7 +61,7 @@
                 },
                 "required": [
                   "name",
-                  "username",
+                  "id",
                   "email",
                   "headline",
                   "password",
@@ -76,7 +82,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "success"
+                      "example": "Success"
                     },
                     "message": {
                       "type": "string",
@@ -96,25 +102,45 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "fail"
+                      "example": "Fail"
                     },
                     "message": {
                       "type": "string",
-                      "example": "username has already been taken"
+                      "example": "Invalid email format"
                     }
                   }
                 }
               }
             }
-          }
+          },
+          "409": {
+            "description": "Resource Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "id has already been taken"
+                    }
+                  }
+                }
+              }
+            }
+          }          
         }
       }
     },
     "/auth/login": {
       "post": {
-        "summary": "User login",
-        "tags": ["Auth"],
-        "description": "Authenticates a user and returns a token",
+        "summary": "Logs a User into the platform",
+        "tags": ["Authentication"],
+        "description": "Authenticates a user and returns a token. The user must provide either an ID or an email, along with a password.",
         "operationId": "loginUser",
         "requestBody": {
           "required": true,
@@ -126,27 +152,38 @@
                   "email": {
                     "type": "string",
                     "format": "email",
-                    "example": "johndoe@gmail.com"
+                    "example": "johndoe@gmail.com",
+                    "description": "User email address (required if ID is not provided)"
+                  },
+                  "id": {
+                    "type": "string",
+                    "example": "johndoe",
+                    "description": "User ID (required if email is not provided)"
                   },
                   "password": {
                     "type": "string",
                     "format": "password",
-                    "example": "StrongP@ssword123"
+                    "example": "StrongP@ssword123",
+                    "description": "User password (always required)"
                   }
                 },
-                "required": ["email", "password"]
+                "required": ["password"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Login successful",
+            "description": "Successfully logged in.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
                     "token": {
                       "type": "string",
                       "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -163,9 +200,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "status": {
                       "type": "string",
-                      "example": "Invalid email or password"
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid id/email or password"
                     }
                   }
                 }
@@ -177,8 +218,8 @@
     },
     "/auth/confirm-email": {
       "post": {
-        "summary": "Confirm email",
-        "tags": ["Auth"],
+        "summary": "Confirm user's email",
+        "tags": ["Authentication"],
         "description": "Confirms a user's email address",
         "operationId": "confirmEmail",
         "requestBody": {
@@ -213,7 +254,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "success"
+                      "example": "Success"
                     },
                     "message": {
                       "type": "string",
@@ -233,11 +274,11 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "fail"
+                      "example": "Fail"
                     },
                     "message": {
                       "type": "string",
-                      "example": "Invalid confirmation code"
+                      "example": "Invalid email or confirmation code"
                     }
                   }
                 }
@@ -250,7 +291,7 @@
     "/auth/forgot-password": {
       "post": {
         "summary": "Forgot password",
-        "tags": ["Auth"],
+        "tags": ["Authentication"],
         "description": "Sends a password reset email to the user",
         "operationId": "forgotPassword",
         "requestBody": {
@@ -285,7 +326,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "A reset link has been sent to johndoe@gmail.com"
+                      "example": "An email with the reset link has been sent to johndoe@gmail.com"
                     }
                   }
                 }
@@ -318,7 +359,7 @@
     "/auth/reset-password": {
       "post": {
         "summary": "Reset password",
-        "tags": ["Auth"],
+        "tags": ["Authentication"],
         "description": "Resets the user's password using a provided token",
         "operationId": "resetPassword",
         "requestBody": {
@@ -353,7 +394,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "success"
+                      "example": "Success"
                     },
                     "message": {
                       "type": "string",
@@ -373,7 +414,7 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "fail"
+                      "example": "Fail"
                     },
                     "message": {
                       "type": "string",

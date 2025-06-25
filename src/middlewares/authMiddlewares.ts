@@ -30,7 +30,7 @@ const authenticateUser = errorHandler(
     }
     const payload = decodeJwt(token, next);
     // fetch the user from the database
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       omit: {
         password: true,
       },

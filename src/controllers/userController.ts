@@ -8,7 +8,7 @@ import { JsonValue } from '@prisma/client/runtime/library';
 
 const getUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
-  const user = await prisma.user.findFirst({
+  const user = await prisma.users.findFirst({
     where: {
       id,
     },
@@ -32,7 +32,7 @@ const updateUser = errorHandler(async(req: Request, res: Response, next: NextFun
   if (requestUser.id !== id && requestUser.role !== Role.ADMIN){
     return next(new APIError(403, 'You are not allowed to preform this action'));
   }
-  const user = await prisma.user.update({
+  const user = await prisma.users.update({
     omit: {
       password: true,
     },
@@ -52,7 +52,7 @@ const updateUser = errorHandler(async(req: Request, res: Response, next: NextFun
 
 const getUserSkills = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
-  const user = await prisma.user.findFirst({
+  const user = await prisma.users.findFirst({
     where: {
       id,
     },
@@ -73,7 +73,7 @@ const updateUserSkills = errorHandler(async(req: Request, res: Response, next: N
   const { skills } = req.body;
   const { id } = req.params;
   const { user: requestUser } = req;
-  const userSkills = (await prisma.user.findFirst({
+  const userSkills = (await prisma.users.findFirst({
     where: {
       id,
     },
