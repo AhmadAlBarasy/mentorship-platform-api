@@ -37,6 +37,7 @@ authRouter.route('/signup')
 
 authRouter.route('/confirm-email')
   .post(
+    rateLimiter(10, 5, 'Too many requests, please try again later'),
     requestValidator({ bodySchema: confirmEmailSchema }),
     confirmEmail,
   )
