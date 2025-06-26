@@ -49,6 +49,20 @@ model Communities {
 
 }
 
+model CommunityJoinRequests {
+  @@map("community_join_requests")
+
+  id String @id @db.VarChar(32)
+  userId String @db.VarChar(32) @map("user_id")
+  communityId String @db.VarChar(32) @map("community_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  community Communities @relation(fields: [communityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+
+
 model Participations {
   @@map("participations")
   userId String @db.VarChar(32) @map("user_id")
@@ -143,7 +157,7 @@ model SessionRequests {
   menteeId String @db.VarChar(32) @map("mentee_id")
   startTime DateTime @db.Time() @map("start_time")
   communityId String? @db.VarChar(32) @map("community_id")
-  
+
   date DateTime @db.Date 
   status SessionStatus @default(PENDING)
   agenda String? @db.VarChar(5000)
