@@ -142,6 +142,8 @@ model SessionRequests {
   serviceId String @db.VarChar(32) @map("service_id")
   menteeId String @db.VarChar(32) @map("mentee_id")
   startTime DateTime @db.Time() @map("start_time")
+  communityId String? @db.VarChar(32) @map("community_id")
+  
   date DateTime @db.Date 
   status SessionStatus @default(PENDING)
   agenda String? @db.VarChar(5000)
