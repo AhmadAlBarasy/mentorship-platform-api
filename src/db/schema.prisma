@@ -33,6 +33,7 @@ model Users {
   links UserLinks[]
   notifications Notifications[]
   participations Participations[]
+  communityJoinRequests CommunityJoinRequests[]
   community Communities?
 
 }
@@ -46,13 +47,14 @@ model Communities {
   managerId String? @unique @db.VarChar(32) @map("manager_id")
   manager Users? @relation(fields: [managerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   participants Participations[]
+  joinRequests CommunityJoinRequests[]
 
 }
 
 model CommunityJoinRequests {
   @@map("community_join_requests")
 
-  id String @id @db.VarChar(32)
+  id String @id @db.VarChar(32) @default(uuid())
   userId String @db.VarChar(32) @map("user_id")
   communityId String @db.VarChar(32) @map("community_id")
   createdAt DateTime @default(now()) @map("created_at")
