@@ -15,7 +15,10 @@ app.use(httpLog); // to log HTTP requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors()); // temporarily, CORS will be disabled during development
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+})); // temporarily, CORS will be disabled during development
 
 /* security middlewares */
 app.use(helmet());
