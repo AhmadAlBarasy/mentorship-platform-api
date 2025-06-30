@@ -11,10 +11,10 @@ import {
 import APIError from '../classes/APIError';
 import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
-import transporter from '../utils/mail/mailSender';
 import { confirmationCodeTemplate, resetPasswordTemplate } from '../utils/mail/mailTemplates';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import sendEmail from '../utils/mail/mailSender';
 // import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
 
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
@@ -87,7 +87,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     userId: id,
     confirmationCode,
   });
-  // await transporter.sendMail(confirmationCodeTemplate(name, email, confirmationCode)); // temporarily disabled
+  await sendEmail(confirmationCodeTemplate(name, email, confirmationCode));
   res.status(201).json({
     status: SUCCESS,
     message: `Registered successfully, a confirmation code has been sent to ${email}`,
@@ -129,7 +129,7 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
     resetExpiry: new Date(Date.now() + 600000),
   });
 
-  // await transporter.sendMail(resetPasswordTemplate(user.name, user.email, resetCode)); temporarily disabled
+  await sendEmail(resetPasswordTemplate(user.name, user.email, resetCode));
 
   res.status(200).json({
     status: SUCCESS,
