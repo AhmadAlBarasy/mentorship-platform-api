@@ -37,7 +37,7 @@ const signupSchema = Joi.object({
       'string.alpha3Code': 'Country name must be a valid ISO 3166-1 alpha-3 code',
     }),
   role: Joi.string()
-    .valid('mentee', 'mentor')
+    .valid('mentee', 'mentor', 'community_manager')
     .required(),
 });
 

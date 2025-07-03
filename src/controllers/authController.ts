@@ -11,7 +11,7 @@ import {
 import APIError from '../classes/APIError';
 import bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
-import { confirmationCodeTemplate, resetPasswordTemplate } from '../utils/mail/mailTemplates';
+import { emailVerficationLinkTemplate, resetPasswordTemplate } from '../utils/mail/mailTemplates';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../utils/mail/mailSender';
@@ -41,12 +41,14 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
   );
 
   res.cookie('token', token, {
+    path: '/',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'prodcution' ? true : false, // restrict sending the cookie only thorugh HTTPS in prod
+    secure: process.env.NODE_ENV === 'production' ? true : false, // restrict sending the cookie only thorugh HTTPS in prod
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 1d
 
   });
+
   res.status(200).json({
     status: SUCCESS,
     message: 'Successfully logged in.',
@@ -56,24 +58,37 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
 
 export const signup = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
-  const {  name, id, headline, email, password, country, role } = req.body;
+  const { name, id, headline, email, password, country, role } = req.body;
   if (await getUserService({ searchBy: { id } })) {
     return next(new APIError(400, `${id} has already been taken`));
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  const roleENUM = role === 'mentee' ? Role.MENTEE : Role.MENTOR;
+  let roleENUM;
+  switch (role){
+  case 'mentee':
+    roleENUM = Role.MENTEE;
+    break;
+  case 'mentor':
+    roleENUM = Role.MENTOR;
+    break;
+  case 'community_manager':
+    roleENUM = Role.COMMUNITY_MANAGER;
+    break;
+  default: // just a default value
+    roleENUM = Role.MENTEE;
+    break;
+  }
 
   // this statement will mislead the user that are trying to figure out if an email is already taken
   if (await getUserService({ searchBy: { email } })){
     res.json({
       status: SUCCESS,
-      message: `Registered successfully, a confirmation code has been sent to ${email}`,
+      message: `Registered successfully, a verfication link has been sent to ${email}`,
     });
     return;
   }
 
-  // create a 6 digit confirmation code (starting from 000000 to 999999)
-  const confirmationCode = `${Math.ceil((Math.random() * 999999))}`.padStart(6, '0');
+  const confirmationCode = crypto.randomBytes(8).toString('hex');
   await createUserService({
     name,
     id,
@@ -83,14 +98,39 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     country: country.toUpperCase(),
     role: roleENUM,
   });
+
   await createAuthRecordService({
     userId: id,
     confirmationCode,
   });
-  await sendEmail(confirmationCodeTemplate(name, email, confirmationCode));
+
+  await sendEmail(emailVerficationLinkTemplate(name, email, confirmationCode));
+
+  const token = jwt.sign(
+    {
+      sub: id,
+      role: roleENUM,
+      iss: process.env.JWT_ISS,
+      partial: true, // generate a partial session for the user to verify their email
+    },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: '1h',
+    },
+  );
+
+  res.cookie('token', token, {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production' ? true : false, // restrict sending the cookie only thorugh HTTPS in prod
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 1000, // 1h
+
+  });
+
   res.status(201).json({
     status: SUCCESS,
-    message: `Registered successfully, a confirmation code has been sent to ${email}`,
+    message: `Registered successfully, a verfication link has been sent to ${email}`,
   });
 });
 
