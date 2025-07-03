@@ -1,9 +1,10 @@
-const confirmationCodeTemplate = (name: string, email: string, code: string) => {
+const emailVerficationLinkTemplate = (name: string, email: string, code: string) => {
+  const verficationLink = `http://localhost:5173/confirm-email?code=${code}`
   return {
     from: process.env.GMAIL_ADDRESS,
     to: email,
     subject: 'Your confirmation code',
-    text: `Hey ${name.split(' ')[0]}!\nThanks for signing up to our platform. Your confirmation code is ${code}.`,
+    text: `Hey ${name.split(' ')[0]}!\nThanks for signing up to Growthly!\n Use the following link to confirm your email: ${verficationLink}`,
   }
 };
 
@@ -23,6 +24,6 @@ const resetPasswordTemplate = (name: string, email: string, code: string) => {
   }
 };
 export {
-  confirmationCodeTemplate,
+  emailVerficationLinkTemplate,
   resetPasswordTemplate,
 };
