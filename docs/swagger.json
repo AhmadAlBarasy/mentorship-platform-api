@@ -216,11 +216,61 @@
         }
       }
     },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logs the user out of the platform",
+        "tags": ["Authentication"],
+        "description": "Logs the user out by clearing the authentication token cookie. Requires an active session (partial or full).",
+        "operationId": "logoutUser",
+        "responses": {
+          "200": {
+            "description": "User logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Logged out successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/confirm-email": {
       "post": {
         "summary": "Confirm user's email",
         "tags": ["Authentication"],
-        "description": "Confirms a user's email address",
+        "description": "Confirms a user's email address, requires a partial session",
         "operationId": "confirmEmail",
         "requestBody": {
           "required": true,
@@ -236,7 +286,7 @@
                   },
                   "code": {
                     "type": "string",
-                    "example": "123456"
+                    "example": "52fe111a0a24ee5a"
                   }
                 },
                 "required": ["email", "code"]
