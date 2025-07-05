@@ -6,7 +6,7 @@ import {
   getUserSkills,
   updateUserSkills,
 } from '../../controllers/userController';
-import { authenticateUser, authorizedRoles } from '../../middlewares/authMiddlewares';
+import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import { Role } from '@prisma/client';
 import requestValidator from '../../middlewares/requestValidator';
 import { updateUserSchema, updateUserSkillsSchema } from '../../validators/validate.user'
@@ -17,12 +17,12 @@ const userRouter = Router();
 
 userRouter.route('/:id/skills')
   .get(
-    authenticateUser,
+    authenticate,
     authorizedRoles('*'),
     getUserSkills,
   )
   .put(
-    authenticateUser,
+    authenticate,
     authorizedRoles('*'),
     requestValidator({ bodySchema: updateUserSkillsSchema }),
     updateUserSkills,
@@ -31,12 +31,12 @@ userRouter.route('/:id/skills')
 
 userRouter.route('/:id')
   .get(
-    authenticateUser,
+    authenticate,
     authorizedRoles('*'),
     getUser,
   )
   .patch(
-    authenticateUser,
+    authenticate,
     authorizedRoles('*'),
     requestValidator({ bodySchema: updateUserSchema }),
     updateUser,

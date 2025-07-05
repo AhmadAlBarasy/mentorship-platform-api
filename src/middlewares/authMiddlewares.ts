@@ -22,7 +22,7 @@ const authorizedRoles = (roles: Role[] | '*') => {
   };
 };
 
-const authenticateUser = errorHandler(
+const authenticate = errorHandler(
   async(req: Request, res: Response, next: NextFunction) => {
     const token = getTokenFromRequest(req);
     if (!token) {
@@ -59,4 +59,4 @@ const getTokenFromRequest = (req: Request): string | null => {
   return token;
 };
 
-export { authorizedRoles, authenticateUser };
+export { authorizedRoles, authenticate };
