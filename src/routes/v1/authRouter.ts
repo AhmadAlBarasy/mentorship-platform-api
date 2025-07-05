@@ -6,6 +6,7 @@ import {
   confirmEmail,
   forgotPassword,
   resetPassword,
+  logout,
   // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
@@ -18,6 +19,7 @@ import {
   // googleAuthSchema,
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
+import { authenticate } from '../../middlewares/authMiddlewares';
 
 const authRouter = Router();
 
@@ -27,6 +29,12 @@ authRouter.route('/login')
     login,
   )
   .all(notAllowedMethod);
+
+authRouter.route('/logout')
+  .post(
+    authenticate({ access: '*' }),
+    logout,
+  )
 
 authRouter.route('/signup')
   .post(
@@ -38,6 +46,7 @@ authRouter.route('/signup')
 authRouter.route('/confirm-email')
   .post(
     rateLimiter(10, 5, 'Too many requests, please try again later'),
+    authenticate({ access: 'partial' }),
     requestValidator({ bodySchema: confirmEmailSchema }),
     confirmEmail,
   )

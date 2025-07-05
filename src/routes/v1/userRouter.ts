@@ -17,12 +17,12 @@ const userRouter = Router();
 
 userRouter.route('/:id/skills')
   .get(
-    authenticate,
+    authenticate({ access: 'full' }),
     authorizedRoles('*'),
     getUserSkills,
   )
   .put(
-    authenticate,
+    authenticate({ access: 'full' }),
     authorizedRoles('*'),
     requestValidator({ bodySchema: updateUserSkillsSchema }),
     updateUserSkills,
@@ -31,12 +31,12 @@ userRouter.route('/:id/skills')
 
 userRouter.route('/:id')
   .get(
-    authenticate,
+    authenticate({ access: 'full' }),
     authorizedRoles('*'),
     getUser,
   )
   .patch(
-    authenticate,
+    authenticate({ access: 'full' }),
     authorizedRoles('*'),
     requestValidator({ bodySchema: updateUserSchema }),
     updateUser,
