@@ -20,7 +20,7 @@ import sendEmail from '../utils/mail/mailSender';
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const { id, email, password } = req.body;
-  const user = await getUserService({ searchBy: { id, email }, IncludeAuth: false });
+  const user = await getUserService({ searchBy: { id, email }, IncludeAuth: true });
   if (!user) {
     return next(new APIError(401, 'Invalid id/email or password'));
   }
@@ -28,24 +28,28 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     return next(new APIError(401, 'Invalid id/email or password'));
   }
 
+  const emailVerified = user.authCredentials?.emailVerified;
+
   const token = jwt.sign(
     {
       sub: user.id,
       role: user.role,
       iss: process.env.JWT_ISS,
+      partial: emailVerified ? undefined : true, // make the session partial if the email is not verified
     },
     process.env.JWT_SECRET as string,
     {
-      expiresIn: '1d',
+      expiresIn: emailVerified ? '1d' : '1h',
     },
   );
 
+  const cookieExpiry = 60 * 60 * 1000;
   res.cookie('token', token, {
     path: '/',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' ? true : false, // restrict sending the cookie only thorugh HTTPS in prod
+    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000, // 1d
+    maxAge: emailVerified ? cookieExpiry * 24 : cookieExpiry, // expires after 1 day if the user is verified. Otherwise, after 1 hour
 
   });
 
@@ -54,6 +58,21 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     message: 'Successfully logged in.',
     token,
   });
+});
+
+export const logout = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Logged out successfully',
+  });
+
 });
 
 export const signup = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
@@ -122,7 +141,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
   res.cookie('token', token, {
     path: '/',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' ? true : false, // restrict sending the cookie only thorugh HTTPS in prod
+    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
     sameSite: 'lax',
     maxAge: 60 * 60 * 1000, // 1h
 
@@ -147,6 +166,29 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
     return next(new APIError(400, 'Invalid email or confirmation code'));
   }
   await updateUserAuthCredentialsService(user.id, { emailVerified: true, emailVerificationCode: null });
+
+  // upgrade the user's session to a full one
+  const token = jwt.sign(
+    {
+      sub: user.id,
+      role: user.role,
+      iss: process.env.JWT_ISS,
+    },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: '1d',
+    },
+  );
+
+  res.cookie('token', token, {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000, // 1d
+
+  });
+
   res.status(200).json({
     status: SUCCESS,
     message: `Email ${user.email} has been verified successfully`,
