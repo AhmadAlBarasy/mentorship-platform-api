@@ -154,16 +154,17 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
 });
 
 export const confirmEmail = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
-  const { email, code } = req.body;
+  const { code } = req.body;
+  const { email } = req.user;
   const user = await getUserService({ searchBy: { email }, IncludeAuth: true });
   if (!user) {
-    return next(new APIError(400, 'Invalid email or confirmation code'));
+    return next(new APIError(400, 'Invalid confirmation code'));
   }
   if (user.authCredentials?.emailVerified === true){
-    return next(new APIError(400, 'Invalid email or confirmation code')); // misleading response
+    return next(new APIError(400, 'Invalid confirmation code')); // misleading response
   }
   if (user.authCredentials?.emailVerificationCode !== code){
-    return next(new APIError(400, 'Invalid email or confirmation code'));
+    return next(new APIError(400, 'Invalid confirmation code'));
   }
   await updateUserAuthCredentialsService(user.id, { emailVerified: true, emailVerificationCode: null });
 

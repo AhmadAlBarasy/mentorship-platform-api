@@ -42,7 +42,6 @@ const signupSchema = Joi.object({
 });
 
 const confirmEmailSchema = Joi.object({
-  email: Joi.string().email().required(),
   code: Joi.string().length(16).required(),
 });
 
