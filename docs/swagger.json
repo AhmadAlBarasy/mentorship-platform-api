@@ -279,17 +279,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "johndoe@gmail.com"
-                  },
                   "code": {
                     "type": "string",
                     "example": "52fe111a0a24ee5a"
                   }
                 },
-                "required": ["email", "code"]
+                "required": ["code"]
               }
             }
           }
@@ -328,7 +323,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Invalid email or confirmation code"
+                      "example": "Invalid confirmation code"
                     }
                   }
                 }
