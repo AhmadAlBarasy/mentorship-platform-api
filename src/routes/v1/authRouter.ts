@@ -20,6 +20,7 @@ import {
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 import { authenticate } from '../../middlewares/authMiddlewares';
+import { getAuthenticatedUser } from '../../controllers/userController';
 
 const authRouter = Router();
 
@@ -27,6 +28,13 @@ authRouter.route('/login')
   .post(
     requestValidator({ bodySchema: loginSchema }),
     login,
+  )
+  .all(notAllowedMethod);
+
+authRouter.route('/me')
+  .get(
+    authenticate({ access: '*' }),
+    getAuthenticatedUser,
   )
   .all(notAllowedMethod);
 
