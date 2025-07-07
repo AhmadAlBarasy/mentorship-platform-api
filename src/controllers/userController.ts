@@ -25,6 +25,13 @@ const getUser = errorHandler(async(req: Request, res: Response, next: NextFuncti
   });
 });
 
+const getAuthenticatedUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  res.status(200).json({
+    status: SUCCESS,
+    user: req.user,
+  });
+});
+
 const updateUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   const { user: requestUser } = req;
@@ -101,6 +108,7 @@ const updateUserSkills = errorHandler(async(req: Request, res: Response, next: N
 
 export {
   getUser,
+  getAuthenticatedUser,
   updateUser,
   getUserSkills,
   updateUserSkills,
