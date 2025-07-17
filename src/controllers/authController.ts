@@ -242,6 +242,17 @@ export const resetPassword = errorHandler(async(req: Request, res: Response, nex
   });
 });
 
+export const updatePassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.user;
+  const { password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await updateUserService(id, { password: hashedPassword });
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Password has been updated successfully',
+  });
+});
+
 // export const googleAuth = errorHandler(async (req: Request, res: Response, next: NextFunction)=> {
 //   const { token } = req.body;
 //   // get user's id_token and access_token

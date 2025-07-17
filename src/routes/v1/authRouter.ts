@@ -7,6 +7,7 @@ import {
   forgotPassword,
   resetPassword,
   logout,
+  updatePassword,
   // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
@@ -16,10 +17,11 @@ import {
   signupSchema,
   loginSchema,
   resetPasswordSchema,
+  updatePasswordSchema,
   // googleAuthSchema,
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
-import { authenticate } from '../../middlewares/authMiddlewares';
+import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import { getAuthenticatedUser } from '../../controllers/userController';
 
 const authRouter = Router();
@@ -74,6 +76,15 @@ authRouter.route('/reset-password')
     resetPassword,
   )
   .all(notAllowedMethod);
+
+authRouter.route('/update-password')
+  .post(
+    authenticate({ access: 'full' }),
+    requestValidator({ bodySchema: updatePasswordSchema }),
+    updatePassword,
+  )
+  .all(notAllowedMethod);
+
 
 // authRouter.route("/google-auth")
 //   .post(

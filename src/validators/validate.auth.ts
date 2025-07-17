@@ -71,6 +71,21 @@ const resetPasswordSchema = Joi.object({
     }),
 });
 
+const updatePasswordSchema = Joi.object({
+  password: Joi.string()
+    .min(8)
+    .required()
+    .pattern(/[A-Z]/, 'uppercase letter')
+    .pattern(/[a-z]/, 'lowercase letter')
+    .pattern(/\d/, 'number')
+    .pattern(/[\W_]/, 'special character')
+    .messages({
+      'string.min': 'Password must be at least 8 characters long',
+      'string.pattern.name': 'Password must contain at least one {#name}',
+      'any.required': 'Password is required',
+    }),
+});
+
 const googleAuthSchema = Joi.object({
   token: Joi.string()
     .required(),
@@ -83,4 +98,5 @@ export {
   forgotPasswordSchema,
   resetPasswordSchema,
   googleAuthSchema,
+  updatePasswordSchema,
 }
