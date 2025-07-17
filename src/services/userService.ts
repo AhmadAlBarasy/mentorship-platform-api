@@ -7,21 +7,39 @@ const getUserService = async(options: {
     id?: string,
     resetToken?: string,
   },
-  IncludeAuth?: boolean,
-  }) => {
-  const { searchBy, IncludeAuth } = options;
+  includeAuth?: boolean,
+  includeUserLinks?: boolean,
+  includePassword?: boolean,
+}) => {
+  const { searchBy, includeAuth, includeUserLinks, includePassword } = options;
+
+  const filters = [];
+  if (searchBy.email) {
+    filters.push({ email: searchBy.email });
+  }
+  if (searchBy.id) {
+    filters.push({ id: searchBy.id });
+  }
+  if (searchBy.resetToken) {
+    filters.push({ authCredentials: { resetToken: searchBy.resetToken } });
+  }
+
   const user = await prisma.users.findFirst({
     where: {
-      OR: [
-        { email: searchBy.email },
-        { id: searchBy.id },
-        { authCredentials: { resetToken: searchBy.resetToken } },
-      ],
+      OR: filters,
     },
-    include: { authCredentials: IncludeAuth },
+    include: {
+      authCredentials: includeAuth,
+      links: includeUserLinks,
+    },
+    omit: {
+      password: !includePassword, // don't omit the password if true
+    },
   });
+
   return user;
 };
+
 
 const updateUserService = async(id: string, data: {
   name?: string,
