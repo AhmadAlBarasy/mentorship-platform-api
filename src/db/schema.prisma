@@ -131,7 +131,7 @@ model AuthCredentials {
   emailVerified Boolean @default(false) @map("email_verified")
   emailVerificationCode String? @db.VarChar(16) @map("email_verification_code")
   twoFactorOTP String? @db.VarChar(6) @map("2fa_otp")
-  twoFactorEnabled Boolean @default(false)
+  twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
   user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
 }
