@@ -32,19 +32,14 @@ const getAuthenticatedUser = errorHandler(async(req: Request, res: Response, nex
   });
 });
 
-const updateUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
-  const { user: requestUser } = req;
-  // admins have full control over the system
-  if (requestUser.id !== id && requestUser.role !== Role.ADMIN){
-    return next(new APIError(403, 'You are not allowed to preform this action'));
-  }
-  const user = await prisma.users.update({
+const updateAuthenticatedUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { user } = req;
+  const updatedUser = await prisma.users.update({
     omit: {
       password: true,
     },
     where: {
-      id,
+      id: user.id,
     },
     data: req.body,
   });
@@ -52,8 +47,7 @@ const updateUser = errorHandler(async(req: Request, res: Response, next: NextFun
   res.status(200).json({
     status: SUCCESS,
     message: 'User updated successfully',
-    user,
-
+    user: updatedUser,
   });
 });
 
@@ -109,7 +103,7 @@ const updateUserSkills = errorHandler(async(req: Request, res: Response, next: N
 export {
   getUser,
   getAuthenticatedUser,
-  updateUser,
+  updateAuthenticatedUser,
   getUserSkills,
   updateUserSkills,
 };
