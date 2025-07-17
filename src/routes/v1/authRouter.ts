@@ -21,7 +21,7 @@ import {
   // googleAuthSchema,
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
-import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
+import { authenticate } from '../../middlewares/authMiddlewares';
 import { getAuthenticatedUser } from '../../controllers/userController';
 
 const authRouter = Router();
