@@ -9,4 +9,17 @@ const validateContryAlpha3Code = (code: string, helpers: Joi.CustomHelpers<strin
   return code;
 };
 
-export { validateContryAlpha3Code };
+const validateIANADatabaseTimeZone = (timeZone: string, helpers: Joi.CustomHelpers<string>) => {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone })
+    return timeZone;
+  } catch (e: any){
+    return helpers.error('string.IANADataBaseTimeZone');
+  }
+}
+
+export {
+  validateContryAlpha3Code,
+  validateIANADatabaseTimeZone,
+
+};
