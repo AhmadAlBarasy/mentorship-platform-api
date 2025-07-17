@@ -33,20 +33,4 @@ const updateUserSchema = Joi.object({
 
 }).min(1).message('At least 1 attribute should be provided to update');
 
-const skillUpdateSchema = Joi.object({
-  name: Joi.string()
-    .required()
-    .max(100),
-  add: Joi.boolean()
-    .required(),
-
-});
-
-const updateUserSkillsSchema = Joi.object({
-  skills: Joi.array()
-    .items(skillUpdateSchema)
-    .required()
-    .min(1),
-});
-
-export { updateUserSchema, updateUserSkillsSchema };
+export { updateUserSchema };
