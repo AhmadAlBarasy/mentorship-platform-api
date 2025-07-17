@@ -60,7 +60,7 @@ const updateUserAuthCredentialsService = async(id: string, data: {
   emailVerificationCode?: string | null,
   emailVerified?: boolean,
   resetToken?: string | null,
-  resetExpiry?: Date| null,
+  resetExpiry?: Date | null,
   }) => {
   await prisma.authCredentials.update({
     where: {
