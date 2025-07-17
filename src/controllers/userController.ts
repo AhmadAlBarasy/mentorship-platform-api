@@ -5,20 +5,20 @@ import prisma from '../db';
 import APIError from '../classes/APIError';
 import { Role } from '@prisma/client';
 import { JsonValue } from '@prisma/client/runtime/library';
+import { getUserService } from '../services/userService';
 
 const getUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
-  const user = await prisma.users.findFirst({
-    where: {
-      id,
-    },
-    omit: {
-      password: true,
-    },
+  const user = await getUserService({
+    searchBy: { id },
+    includeUserLinks: true,
+    includePassword: false,
   });
+
   if (!user){
     return next(new APIError(404, 'User not found'));
   }
+
   res.status(200).json({
     status: SUCCESS,
     user,

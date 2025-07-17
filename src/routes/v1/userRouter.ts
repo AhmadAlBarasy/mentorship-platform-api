@@ -11,23 +11,9 @@ import { Role } from '@prisma/client';
 import requestValidator from '../../middlewares/requestValidator';
 import { updateUserSchema, updateUserSkillsSchema } from '../../validators/validate.user'
 
-const { ADMIN, MENTEE, MENTOR } = Role;
+const { ADMIN, MENTEE, MENTOR, COMMUNITY_MANAGER } = Role;
 
 const userRouter = Router();
-
-userRouter.route('/:id/skills')
-  .get(
-    authenticate({ access: 'full' }),
-    authorizedRoles('*'),
-    getUserSkills,
-  )
-  .put(
-    authenticate({ access: 'full' }),
-    authorizedRoles('*'),
-    requestValidator({ bodySchema: updateUserSkillsSchema }),
-    updateUserSkills,
-  )
-  .all(notAllowedMethod);
 
 userRouter.route('/:id')
   .get(
@@ -43,6 +29,19 @@ userRouter.route('/:id')
   )
   .all(notAllowedMethod);
 
+userRouter.route('/:id/skills')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles('*'),
+    getUserSkills,
+  )
+  .put(
+    authenticate({ access: 'full' }),
+    authorizedRoles('*'),
+    requestValidator({ bodySchema: updateUserSkillsSchema }),
+    updateUserSkills,
+  )
+  .all(notAllowedMethod);
 
 
 export default userRouter;
