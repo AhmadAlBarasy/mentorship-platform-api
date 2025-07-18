@@ -89,7 +89,7 @@ model UserLinks {
 
   @@map("user_links")
 
-  id String @id @db.VarChar(32) @default(uuid())
+  id String @id @db.VarChar(36) @default(uuid())
   userId String @db.VarChar(32) @map("user_id")
   linkName String @db.VarChar(50) @map("link_name")
   linkUrl String @db.VarChar(2048) @map("link_url")
