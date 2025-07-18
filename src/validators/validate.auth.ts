@@ -64,6 +64,7 @@ const resetPasswordSchema = Joi.object({
     .pattern(/[a-z]/, 'lowercase letter')
     .pattern(/\d/, 'number')
     .pattern(/[\W_]/, 'special character')
+    .required()
     .messages({
       'string.min': 'Password must be at least 8 characters long',
       'string.pattern.name': 'Password must contain at least one {#name}',
@@ -79,6 +80,7 @@ const updatePasswordSchema = Joi.object({
     .pattern(/[a-z]/, 'lowercase letter')
     .pattern(/\d/, 'number')
     .pattern(/[\W_]/, 'special character')
+    .required()
     .messages({
       'string.min': 'Password must be at least 8 characters long',
       'string.pattern.name': 'Password must contain at least one {#name}',
