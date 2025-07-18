@@ -20,7 +20,7 @@ import sendEmail from '../utils/mail/mailSender';
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const { id, email, password } = req.body;
-  const user = await getUserService({ searchBy: { id, email }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { id, email }, includeAuth: true, includePassword: true });
   if (!user) {
     return next(new APIError(401, 'Invalid id/email or password'));
   }
@@ -156,7 +156,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
 export const confirmEmail = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { code } = req.body;
   const { email } = req.user;
-  const user = await getUserService({ searchBy: { email }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { email }, includeAuth: true });
   if (!user) {
     return next(new APIError(400, 'Invalid confirmation code'));
   }
@@ -198,7 +198,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
 
 export const forgotPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
-  const user = await getUserService({ searchBy: { email }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { email }, includeAuth: true });
   if (!user){
     res.status(200).json({ // sent to deceive a malicious user trying to figure out if an email address is used
       status: SUCCESS,
@@ -222,7 +222,7 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
 
 export const resetPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { password, token } = req.body;
-  const user = await getUserService({ searchBy: { resetToken: token }, IncludeAuth: true });
+  const user = await getUserService({ searchBy: { resetToken: token }, includeAuth: true });
   if (!user){
     return next(new APIError(400, 'Invalid reset token'));
   }
@@ -239,6 +239,17 @@ export const resetPassword = errorHandler(async(req: Request, res: Response, nex
   res.status(200).json({
     status: SUCCESS,
     message: 'Password has been reset successfully',
+  });
+});
+
+export const updatePassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.user;
+  const { password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await updateUserService(id, { password: hashedPassword });
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Password has been updated successfully',
   });
 });
 

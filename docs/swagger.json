@@ -15,7 +15,9 @@
     "/auth/signup": {
       "post": {
         "summary": "Register a new user (Mentee, Mentor)",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Creates a new user on the platform, the user can join either as a Mentee, or as a Mentor",
         "operationId": "signupUser",
         "requestBody": {
@@ -55,7 +57,10 @@
                   },
                   "role": {
                     "type": "string",
-                    "enum": ["mentee", "mentor"],
+                    "enum": [
+                      "mentee",
+                      "mentor"
+                    ],
                     "example": "mentee"
                   }
                 },
@@ -132,14 +137,16 @@
                 }
               }
             }
-          }          
+          }
         }
       }
     },
     "/auth/login": {
       "post": {
         "summary": "Logs a User into the platform",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Authenticates a user and returns a token. The user must provide either an ID or an email, along with a password.",
         "operationId": "loginUser",
         "requestBody": {
@@ -167,7 +174,9 @@
                     "description": "User password (always required)"
                   }
                 },
-                "required": ["password"]
+                "required": [
+                  "password"
+                ]
               }
             }
           }
@@ -219,7 +228,9 @@
     "/auth/logout": {
       "post": {
         "summary": "Logs the user out of the platform",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Logs the user out by clearing the authentication token cookie. Requires an active session (partial or full).",
         "operationId": "logoutUser",
         "responses": {
@@ -269,7 +280,9 @@
     "/auth/confirm-email": {
       "post": {
         "summary": "Confirm user's email",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Confirms a user's email address, requires a partial session",
         "operationId": "confirmEmail",
         "requestBody": {
@@ -284,7 +297,9 @@
                     "example": "52fe111a0a24ee5a"
                   }
                 },
-                "required": ["code"]
+                "required": [
+                  "code"
+                ]
               }
             }
           }
@@ -336,7 +351,9 @@
     "/auth/forgot-password": {
       "post": {
         "summary": "Forgot password",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Sends a password reset email to the user",
         "operationId": "forgotPassword",
         "requestBody": {
@@ -352,7 +369,9 @@
                     "example": "johndoe@gmail.com"
                   }
                 },
-                "required": ["email"]
+                "required": [
+                  "email"
+                ]
               }
             }
           }
@@ -404,7 +423,9 @@
     "/auth/reset-password": {
       "post": {
         "summary": "Reset password",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Resets the user's password using a provided token",
         "operationId": "resetPassword",
         "requestBody": {
@@ -424,7 +445,10 @@
                     "example": "389f57d8d05040c60ae9648f94e1018a"
                   }
                 },
-                "required": ["password", "token"]
+                "required": [
+                  "password",
+                  "token"
+                ]
               }
             }
           }
@@ -473,10 +497,261 @@
         }
       }
     },
-    "/auth/me": {
+    "/auth/update-password": {
+      "post": {
+        "summary": "Update password",
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Updates the authenticated user's password. Requires a full session",
+        "operationId": "updatePassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "NewStrongP@ssword123"
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password has been updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Password must be at least 8 characters long"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get basic profile of a user by ID",
+        "tags": [
+          "Users"
+        ],
+        "description": "Requires the user to be authenticated. Returns public profile information of a user, including ID, name, email, role, and associated links. Sensitive fields such as passwords and authentication tokens are excluded.",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the user.",
+            "schema": {
+              "type": "string",
+              "example": "johndoe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the user's profile information.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "johndoe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "example": "johndoe@gmail.com"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "John Doe"
+                        },
+                        "headline": {
+                          "type": "string",
+                          "example": "Software Engineer"
+                        },
+                        "bio": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": null
+                        },
+                        "country": {
+                          "type": "string",
+                          "example": "USA"
+                        },
+                        "imageUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": null
+                        },
+                        "dateJoined": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-07-11T16:58:26.127Z"
+                        },
+                        "skills": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "HTML",
+                            "CSS",
+                            "JavaScript"
+                          ]
+                        },
+                        "timezone": {
+                          "type": "string",
+                          "example": "Etc/UTC"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "MENTOR"
+                        },
+                        "links": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "example": "GitHub"
+                              },
+                              "url": {
+                                "type": "string",
+                                "format": "uri",
+                                "example": "https://github.com/johndoe"
+                              }
+                            }
+                          },
+                          "example": [
+                            {
+                              "name": "GitHub",
+                              "url": "https://github.com/johndoe"
+                            },
+                            {
+                              "name": "Portfolio",
+                              "url": "https://johndoe.dev"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
       "get": {
         "summary": "Get current authenticated user's profile",
-        "tags": ["Authentication"],
+        "tags": [
+          "Users"
+        ],
         "description": "Requires the user to be authenticated. Returns basic user information including ID, name, email, role, and other optional profile fields.",
         "operationId": "getCurrentUser",
         "responses": {
@@ -512,7 +787,10 @@
                           "example": "Software Engineer"
                         },
                         "bio": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "country": {
@@ -520,7 +798,10 @@
                           "example": "USA"
                         },
                         "imageUrl": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "dateJoined": {
@@ -529,11 +810,18 @@
                           "example": "2025-07-11T16:58:26.127Z"
                         },
                         "skills": {
-                          "type": ["array", "null"],
+                          "type": [
+                            "array",
+                            "null"
+                          ],
                           "items": {
                             "type": "string"
                           },
-                          "example": null
+                          "example": [
+                            "HTML",
+                            "CSS",
+                            "JavaScript"
+                          ]
                         },
                         "timezone": {
                           "type": "string",
@@ -544,6 +832,589 @@
                           "example": "MENTOR"
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update authenticated user's profile",
+        "tags": [
+          "Users"
+        ],
+        "description": "Requires the user to be authenticated. Allows the user to update their profile information. At least one updatable field must be provided.",
+        "operationId": "updateAuthenticatedUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 50,
+                    "example": "John Doe"
+                  },
+                  "headline": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "Full-Stack Developer"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "I'm passionate about clean code and teaching developers."
+                  },
+                  "country": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "description": "A valid ISO 3166-1 alpha-3 country code",
+                    "example": "USA"
+                  },
+                  "timezone": {
+                    "type": "string",
+                    "description": "A valid IANA time zone name",
+                    "example": "America/New_York"
+                  },
+                  "skills": {
+                    "type": "array",
+                    "maxItems": 300,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 50
+                    },
+                    "example": [
+                      "JavaScript",
+                      "React",
+                      "Node.js"
+                    ]
+                  }
+                },
+                "example": {
+                  "headline": "Backend Engineer",
+                  "bio": "10+ years in distributed systems",
+                  "skills": [
+                    "Node.js",
+                    "Docker",
+                    "PostgreSQL"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the user's profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User updated successfully"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "johndoe"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "example": "johndoe@gmail.com"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "John Doe"
+                        },
+                        "headline": {
+                          "type": "string",
+                          "example": "Backend Engineer"
+                        },
+                        "bio": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": "10+ years in distributed systems"
+                        },
+                        "country": {
+                          "type": "string",
+                          "example": "USA"
+                        },
+                        "imageUrl": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "example": null
+                        },
+                        "dateJoined": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-07-11T16:58:26.127Z"
+                        },
+                        "skills": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "Node.js",
+                            "Docker",
+                            "PostgreSQL"
+                          ]
+                        },
+                        "timezone": {
+                          "type": "string",
+                          "example": "America/New_York"
+                        },
+                        "role": {
+                          "type": "string",
+                          "example": "MENTOR"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or no valid fields provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "At least 1 attribute should be provided to update"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/links": {
+      "get": {
+        "summary": "Get all links associated with the authenticated user",
+        "tags": [
+          "UserLinks"
+        ],
+        "description": "Requires the user to be authenticated. Returns an array of all the user's added links.",
+        "operationId": "getAuthenticatedUserLinks",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the user's links.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "cdd40d2c-8ed9-48fb-aea6-6222dbbcfc9b"
+                          },
+                          "linkName": {
+                            "type": "string",
+                            "example": "GitHub"
+                          },
+                          "linkUrl": {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "https://github.com/johndoe"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a new link to the authenticated user's profile",
+        "tags": [
+          "UserLinks"
+        ],
+        "description": "Requires the user to be authenticated. Adds a new link (e.g. portfolio or social profile) to the user's profile.",
+        "operationId": "addAuthenticatedUserLink",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "linkName",
+                  "linkUrl"
+                ],
+                "properties": {
+                  "linkName": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "Portfolio"
+                  },
+                  "linkUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://johndoe.dev"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully added a new link.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Link added successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Link URL must be a valid HTTPS URL"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/links/{id}": {
+      "patch": {
+        "summary": "Update an existing link for the authenticated user",
+        "tags": [
+          "UserLinks"
+        ],
+        "description": "Requires the user to be authenticated. Allows the user to update an existing link by its ID. At least one of `linkName` or `linkUrl` must be provided.",
+        "operationId": "updateAuthenticatedUserLink",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the link to update.",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "minLength": 36,
+              "maxLength": 36,
+              "example": "cdd40d2c-8ed9-48fb-aea6-6222dbbcfc9b"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "linkName": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "Updated GitHub"
+                  },
+                  "linkUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://github.com/newhandle"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the link.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Link updated Successfully"
+                    },
+                    "link": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "cdd40d2c-8ed9-48fb-aea6-6222dbbcfc9b"
+                        },
+                        "linkName": {
+                          "type": "string",
+                          "example": "Updated GitHub"
+                        },
+                        "linkUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": "https://github.com/newhandle"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or no valid fields provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "At least 1 attribute should be provided to update"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link not found or does not belong to the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Link not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an existing link for the authenticated user",
+        "tags": [
+          "UserLinks"
+        ],
+        "description": "Requires the user to be authenticated. Deletes a link belonging to the user by its ID.",
+        "operationId": "deleteAuthenticatedUserLink",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the link to delete.",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "minLength": 36,
+              "maxLength": 36,
+              "example": "cdd40d2c-8ed9-48fb-aea6-6222dbbcfc9b"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully deleted the link. No content returned."
+          },
+          "404": {
+            "description": "Link not found or does not belong to the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Link not found"
                     }
                   }
                 }
