@@ -111,7 +111,7 @@ model BannedUsers {
 model UserReports {
   @@map("user_reports")
 
-  id String @id @default(uuid()) @db.VarChar(32)
+  id String @id @default(uuid()) @db.VarChar(36)
   userId String @db.VarChar(32) @map("user_id")
   reportedUserId String @db.VarChar(32) @map("reported_user_id")
   violation String @db.VarChar(100)
