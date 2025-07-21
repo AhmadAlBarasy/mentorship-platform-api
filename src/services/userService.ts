@@ -69,7 +69,7 @@ const updateUserAuthCredentialsService = async(id: string, data: {
   emailVerified?: boolean,
   resetToken?: string | null,
   resetExpiry?: Date | null,
-  }) => {
+}) => {
   await prisma.authCredentials.update({
     where: {
       userId: id,
@@ -79,7 +79,8 @@ const updateUserAuthCredentialsService = async(id: string, data: {
 };
 
 const createUserService = async(data:
-  { name: string,
+  {
+    name: string,
     id: string,
     email: string,
     headline: string,
@@ -115,7 +116,31 @@ const createAuthRecordService = async(data:
   });
 };
 
+const checkExistingUserReport = async(reporterId: string, reportedUserId: string) => {
+  return await prisma.userReports.findFirst({
+    where: {
+      userId: reporterId,
+      reportedUserId: reportedUserId,
+    },
+  });
+};
 
+const createUserReport = async(data: {
+  userId: string;
+  reportedUserId: string;
+  violation: string;
+  additionalDetails?: string;
+}) => {
+  return await prisma.userReports.create({
+    data: {
+      userId: data.userId,
+      reportedUserId: data.reportedUserId,
+      violation: data.violation,
+      additionalDetails: data.additionalDetails,
+      reportedAt: new Date(),
+    },
+  });
+};
 
 export {
   getUserService,
@@ -123,4 +148,6 @@ export {
   createAuthRecordService,
   updateUserAuthCredentialsService,
   updateUserService,
+  checkExistingUserReport,
+  createUserReport,
 };
