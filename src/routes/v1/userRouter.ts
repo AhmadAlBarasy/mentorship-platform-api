@@ -7,6 +7,7 @@ import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares
 import requestValidator from '../../middlewares/requestValidator';
 import authenticatedUserRouter from './authenticatedUserRouter';
 import { reportUser } from '../../controllers/reportController';
+import { reportUserSchema } from '../../validators/validate.user';
 
 const userRouter = Router();
 
@@ -16,7 +17,8 @@ userRouter.route('/:id/report')
   .post(
     authenticate({ access: 'full' }),
     authorizedRoles('*'),
-    reportUser
+    requestValidator({ bodySchema: reportUserSchema }),
+    reportUser,
   )
   .all(notAllowedMethod);
 

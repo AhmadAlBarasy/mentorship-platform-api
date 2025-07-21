@@ -33,4 +33,29 @@ const updateUserSchema = Joi.object({
 
 }).min(1).message('At least 1 attribute should be provided to update');
 
-export { updateUserSchema };
+const reportUserSchema = Joi.object({
+  violation: Joi.string()
+    .trim()
+    .min(3)
+    .max(100)
+    .required()
+    .messages({
+      'string.base': 'Violation must be a string.',
+      'string.empty': 'Violation is required.',
+      'string.min': 'Violation must be at least 3 characters.',
+      'string.max': 'Violation must be at most 100 characters.',
+      'any.required': 'Violation is required.',
+    }),
+
+  additionalDetails: Joi.string()
+    .trim()
+    .max(500)
+    .allow('', null)
+    .messages({
+      'string.max': 'Additional details must be under 500 characters.',
+    }),
+});
+export {
+  updateUserSchema,
+  reportUserSchema,
+};
