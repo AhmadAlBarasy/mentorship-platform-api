@@ -117,7 +117,7 @@ model UserReports {
   violation String @db.VarChar(100)
   additionalDetails String? @db.VarChar(500) @map("additional_details")
   resolvedBy String? @db.VarChar(32) @map("resolved_by")
-  reportedAt DateTime @map("reported_at")
+  reportedAt DateTime @default(now()) @map("reported_at")
   reporter Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
 }
