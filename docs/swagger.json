@@ -1443,6 +1443,32 @@
           }
         }
       }
+    },
+    "/api/csrf-token": {
+      "get": {
+        "summary": "Get CSRF token",
+        "tags": [
+          "Security"
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a CSRF token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "csrfToken": {
+                      "type": "string",
+                      "example": "Qh29rpGL-yeX62WVE8ZzWQUyXLlq-3jU1bQk"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

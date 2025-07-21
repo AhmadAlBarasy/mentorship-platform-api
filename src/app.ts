@@ -8,13 +8,15 @@ import setupSwagger from './swagger';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
-
+import csurf from 'csurf';
 const app = express();
 
 app.use(httpLog); // to log HTTP requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+//for CSRF prevention functionality feature
+app.use(csurf({ cookie: true }));
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
@@ -27,6 +29,10 @@ app.use(rateLimit({
   limit: 50,
 }));
 
+app.get('/api/csrf-token', (req: Request, res: Response) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 app.use('/api/v1', v1Router);
 
 setupSwagger(app);
@@ -37,5 +43,8 @@ app.all('*', notFoundEndpoint); // handle requests to endpoints that are not imp
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   globalErrorHandler(err, req, res, next);
 });
+
+
+
 
 export default app;
