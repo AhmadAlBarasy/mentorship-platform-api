@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { FAIL, SUCCESS } from '../constants/responseConstants';
+import { SUCCESS } from '../constants/responseConstants';
 import errorHandler from '../utils/asyncErrorHandler';
 import prisma from '../db';
 import APIError from '../classes/APIError';
@@ -59,18 +59,23 @@ const updateAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
     return next(new APIError(400, 'No image provided'));
   }
 
+  const UPLOAD_TESTER = process.env.UPLOAD_TESTER;
+  const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
+
+  // Create the path for Supabase
+  const TESTER = UPLOAD_TESTER ? `${UPLOAD_TESTER}/` : ''; // if UPLOAD_TESTER exists, add its value as a base path
   const fileBuffer = req.file.buffer;
   const fileExt = path.extname(req.file.originalname);
   const fileName = `${user.id}${fileExt}`;
-  const supabasePath = `avatars/${fileName}`;
+  const supabasePath = `${TESTER}avatars/${fileName}`;
   const contentType = mime.lookup(fileExt) || 'application/octet-stream';
 
   // Delete previous avatar if it exists
   if (user.imageUrl){
-    await supabase.storage.from('growthly-storage').remove([imageUrl]);
+    await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([imageUrl]);
   }
   // Upload new avatar
-  const { error } = await supabase.storage.from('growthly-storage').upload(
+  const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).upload(
     supabasePath,
     fileBuffer,
     {
@@ -92,7 +97,7 @@ const updateAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
     },
   });
 
-  const { data } = supabase.storage.from('growthly-storage').getPublicUrl(supabasePath);
+  const { data } = supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(supabasePath);
 
   res.status(200).json({
     status: SUCCESS,
