@@ -1,7 +1,7 @@
 import prisma from '../db';
 import { Role } from '@prisma/client';
 
-const getUserService = async (options: {
+const getUserService = async(options: {
   searchBy: {
     email?: string,
     id?: string,
@@ -41,7 +41,7 @@ const getUserService = async (options: {
 };
 
 
-const updateUserService = async (id: string, data: {
+const updateUserService = async(id: string, data: {
   name?: string,
   headline?: string,
   bio?: string,
@@ -56,7 +56,7 @@ const updateUserService = async (id: string, data: {
   });
 };
 
-const updateUserAuthCredentialsService = async (id: string, data: {
+const updateUserAuthCredentialsService = async(id: string, data: {
   emailVerificationCode?: string | null,
   emailVerified?: boolean,
   resetToken?: string | null,
@@ -70,7 +70,7 @@ const updateUserAuthCredentialsService = async (id: string, data: {
   });
 };
 
-const createUserService = async (data:
+const createUserService = async(data:
   {
     name: string,
     id: string,
@@ -95,7 +95,7 @@ const createUserService = async (data:
   });
 };
 
-const createAuthRecordService = async (data:
+const createAuthRecordService = async(data:
   {
     userId: string,
     confirmationCode: string,
@@ -108,7 +108,7 @@ const createAuthRecordService = async (data:
   });
 };
 
-const checkExistingUserReport = async (reporterId: string, reportedUserId: string) => {
+const checkExistingUserReport = async(reporterId: string, reportedUserId: string) => {
   return await prisma.userReports.findFirst({
     where: {
       userId: reporterId,
@@ -117,7 +117,7 @@ const checkExistingUserReport = async (reporterId: string, reportedUserId: strin
   });
 };
 
-const createUserReport = async (data: {
+const createUserReport = async(data: {
   userId: string;
   reportedUserId: string;
   violation: string;
