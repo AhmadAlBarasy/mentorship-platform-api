@@ -9,6 +9,13 @@ import mime from 'mime-types';
 import { checkExistingUserReport, createUserReport, getUserService } from '../services/userService';
 import { Role } from '@prisma/client';
 
+const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
+
+const getSupabasePathFromURL = (url: string, bucketName: string) => {
+  const path = url.split(bucketName)[1];
+  return path.slice(1);
+}
+
 const getUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   const user = await getUserService({
@@ -100,7 +107,6 @@ const updateAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
   }
 
   const UPLOAD_TESTER = process.env.UPLOAD_TESTER;
-  const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
   // Create the path for Supabase
   const TESTER = UPLOAD_TESTER ? `${UPLOAD_TESTER}/` : ''; // if UPLOAD_TESTER exists, add its value as a base path
@@ -112,7 +118,8 @@ const updateAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
 
   // Delete previous avatar if it exists
   if (user.imageUrl){
-    await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([imageUrl]);
+    const deletionPath = getSupabasePathFromURL(imageUrl, SUPABASE_BUCKET_NAME);
+    await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([deletionPath]);
   }
   // Upload new avatar
   const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).upload(
@@ -153,8 +160,14 @@ const deleteAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
   if (!imageUrl){
     return next(new APIError(404, 'Resource to be deleted not found'));
   }
+  const deletionPath = getSupabasePathFromURL(imageUrl, SUPABASE_BUCKET_NAME);
 
-  await supabase.storage.from('growthly-storage').remove([imageUrl]);
+  const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([deletionPath]);
+
+  if (error){
+    return next(new APIError(500, 'Failed to delete image'));
+  }
+
   await prisma.users.update({
     where: {
       id,
@@ -163,6 +176,7 @@ const deleteAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
       imageUrl: null,
     },
   });
+
   res.status(204).json({});
 });
 
