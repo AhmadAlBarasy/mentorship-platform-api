@@ -1,5 +1,8 @@
 import prisma from '../db';
 import { Role } from '@prisma/client';
+import supabase from './supabaseClient';
+
+const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
 const getUserService = async(options: {
   searchBy: {
@@ -36,6 +39,11 @@ const getUserService = async(options: {
       password: !includePassword, // don't omit the password if true
     },
   });
+
+  if (user && user.imageUrl){
+    const { data } = supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(user.imageUrl);
+    user.imageUrl = data.publicUrl;
+  }
 
   return user;
 };
