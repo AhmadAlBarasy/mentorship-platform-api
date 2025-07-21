@@ -1444,6 +1444,130 @@
         }
       }
     },
+    "/users/me/profile-picture": {
+      "put": {
+        "summary": "Upload or update profile picture",
+        "tags": ["Users"],
+        "description": "Uploads a new profile picture for the authenticated user. If an image already exists, it will be replaced. Only image files are allowed, and the file size must not exceed 2MB.",
+        "operationId": "uploadOrUpdateProfilePicture",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The image file to upload (max 2MB)."
+                  }
+                },
+                "required": ["image"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile picture uploaded or updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Profile picture uploaded successfully"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri",
+                      "example": "https://xyz.supabase.co/storage/v1/object/public/growthly-storage/avatars/user123.png"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - no image provided or unsupported file type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "No image provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error - failed to upload image.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Upload to Supabase failed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete profile picture",
+        "tags": ["Users"],
+        "description": "Deletes the authenticated user’s existing profile picture from Supabase storage.",
+        "operationId": "deleteProfilePicture",
+        "responses": {
+          "204": {
+            "description": "Profile picture deleted successfully."
+          },
+          "404": {
+            "description": "No profile picture found to delete.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Resource to be deleted not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}/report": {
       "post": {
         "summary": "Report a user",

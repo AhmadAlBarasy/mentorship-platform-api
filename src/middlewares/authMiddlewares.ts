@@ -6,6 +6,7 @@ import { decodeJwt } from '../utils/jwt';
 // import { getUserService } from '../services/userService';
 import prisma from '../db';
 import { AuthenticationOptions } from '../interfaces/AuthMiddlewares';
+import { getUserService } from '../services/userService';
 
 const authorizedRoles = (roles: Role[] | '*') => {
   return async(req: Request, res: Response, next: NextFunction) => {
@@ -35,13 +36,11 @@ const authenticate = (options: AuthenticationOptions) =>
       const payload = decodeJwt(token, next);
 
       // fetch the user from the database
-      const user = await prisma.users.findFirst({
-        omit: {
-          password: true,
-        },
-        where: {
+      const user = await getUserService({
+        searchBy: {
           id: payload?.sub,
         },
+        includePassword: false,
       });
 
       if (!user){

@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { authenticate } from '../../middlewares/authMiddlewares';
 import requestValidator from '../../middlewares/requestValidator';
-import { getAuthenticatedUser, updateAuthenticatedUser } from '../../controllers/userController';
+import {
+  deleteAuthenticatedUserImage,
+  getAuthenticatedUser,
+  updateAuthenticatedUser,
+  updateAuthenticatedUserImage,
+} from '../../controllers/userController';
 import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import { updateUserSchema } from '../../validators/validate.user';
 import {
@@ -11,6 +16,7 @@ import {
   deleteAuthenticatedUserLink,
 } from '../../controllers/userLinksController';
 import { addUserLinkSchema, updateUserLinkSchema } from '../../validators/validate.userLinks';
+import upload from '../../utils/fileUpload';
 
 const authenticatedUserRouter = Router();
 
@@ -35,6 +41,18 @@ authenticatedUserRouter.route('/links')
     authenticate({ access: 'full' }),
     requestValidator({ bodySchema: addUserLinkSchema }),
     addAuthenticatedUserLinks,
+  )
+  .all(notAllowedMethod);
+
+authenticatedUserRouter.route('/profile-picture')
+  .put(
+    authenticate({ access: 'full' }),
+    upload.single('image'),
+    updateAuthenticatedUserImage,
+  )
+  .delete(
+    authenticate({ access: 'full' }),
+    deleteAuthenticatedUserImage,
   )
   .all(notAllowedMethod);
 
