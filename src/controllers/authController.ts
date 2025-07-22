@@ -67,6 +67,8 @@ export const logout = errorHandler(async(req: Request, res: Response, next: Next
     sameSite: 'lax',
     path: '/',
   });
+  res.clearCookie('XSRF-TOKEN', { path: '/' });
+  res.clearCookie('_csrf', { path: '/' });
 
   res.status(200).json({
     status: SUCCESS,
