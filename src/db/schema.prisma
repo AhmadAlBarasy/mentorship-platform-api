@@ -43,8 +43,8 @@ model Communities {
   name String @db.VarChar(50)
   description String @db.VarChar(1000)
   imageUrl String? @db.VarChar(500) @map("image_url")
-  invitationCode String? @db.VarChar(32) @map("invitation_code")
   managerId String? @unique @db.VarChar(32) @map("manager_id")
+  createdAt DateTime @default(now()) @map("created_at") // DateTime stores in UTC by default
   manager Users? @relation(fields: [managerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   participants Participations[]
   joinRequests CommunityJoinRequests[]
