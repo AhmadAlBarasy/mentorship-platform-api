@@ -20,7 +20,6 @@ app.use((req, res, next) => {
   const csrfExcludedPaths = [
     '/api/v1/auth/login',
     '/api/v1/auth/signup',
-    '/api/v1/auth/logout',
   ];
 
   if (csrfExcludedPaths.includes(req.path)) {

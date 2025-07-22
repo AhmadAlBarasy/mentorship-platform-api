@@ -1444,23 +1444,35 @@
         }
       }
     },
-    "/api/csrf-token": {
-      "get": {
-        "summary": "Get CSRF token",
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "Logout the current user",
         "tags": [
-          "Security"
+          "Auth"
+        ],
+        "security": [
+          {
+            "csrfAuth": []
+          }
         ],
         "responses": {
           "200": {
-            "description": "Returns a CSRF token",
+            "description": "Successfully logged out"
+          },
+          "403": {
+            "description": "Missing or invalid CSRF token",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "csrfToken": {
+                    "status": {
                       "type": "string",
-                      "example": "Qh29rpGL-yeX62WVE8ZzWQUyXLlq-3jU1bQk"
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid or missing CSRF token."
                     }
                   }
                 }

@@ -17,6 +17,12 @@ export default function errorHandler(err: Error, req: Request, res: Response, ne
         message: 'Invalid JSON payload passed.',
       });
     }
+    if ((err as any).code === 'EBADCSRFTOKEN') {
+      return res.status(401).json({
+        status: FAIL,
+        message: 'Invalid or missing CSRF token.',
+      });
+    }
     res.status(500).json({
       status: FAIL,
       message: 'Something went wrong.',
