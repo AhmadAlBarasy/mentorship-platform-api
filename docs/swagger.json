@@ -1837,6 +1837,151 @@
           }
         }
       }
+    },
+    "/communities/my": {
+      "patch": {
+        "summary": "Update the authenticated manager's community",
+        "tags": ["Communities"],
+        "description": "Allows a COMMUNITY_MANAGER to update their own community's information such as name or description. Requires authentication and appropriate role.",
+        "operationId": "updateMyCommunity",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "Tech Lounge"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "A friendly community for developers, designers, and tech enthusiasts to collaborate and grow."
+                  }
+                },
+                "minProperties": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated the community.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community updated successfully"
+                    },
+                    "community": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "tech-lounge"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Tech Lounge"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A friendly community for developers, designers, and tech enthusiasts to collaborate and grow."
+                        },
+                        "imageUrl": {
+                          "type": ["string", "null"],
+                          "format": "uri",
+                          "example": "https://example.com/images/tech-lounge.png"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_abc123"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-07-17T15:22:10.500Z"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - no updatable attributes provided or invalid format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "At least 1 attribute should be provided to update"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - user has no community to update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
+
   }
 }
