@@ -16,7 +16,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 //for CSRF prevention functionality feature
-app.use(csurf({ cookie: true }));
+app.use((req, res, next) => {
+  const csrfExcludedPaths = [
+    '/api/v1/auth/login',
+    '/api/v1/auth/signup',
+    '/api/v1/auth/logout',
+  ];
+
+  if (csrfExcludedPaths.includes(req.path)) {
+    return next(); // Skip CSRF protection for these paths
+  }
+
+  return csurf({ cookie: true })(req, res, next);
+});
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,

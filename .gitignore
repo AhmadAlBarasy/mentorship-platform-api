@@ -1,8 +1,30 @@
+# IDE settings
 .vscode
+
+# Node
 node_modules
+dist
 logs
 config
-dist
+
+# Env and Secrets
 **/.env
+
+# Prisma (optional)
 **/migrations
+
+# Scripts
 generateToken.js
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# ESLint cache
+.eslintcache

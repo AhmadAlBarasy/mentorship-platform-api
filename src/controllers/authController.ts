@@ -67,6 +67,8 @@ export const logout = errorHandler(async(req: Request, res: Response, next: Next
     sameSite: 'lax',
     path: '/',
   });
+  res.clearCookie('XSRF-TOKEN', { path: '/' });
+  res.clearCookie('_csrf', { path: '/' });
 
   res.status(200).json({
     status: SUCCESS,
@@ -83,7 +85,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   let roleENUM;
-  switch (role){
+  switch (role) {
   case 'mentee':
     roleENUM = Role.MENTEE;
     break;
@@ -99,7 +101,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
   }
 
   // this statement will mislead the user that are trying to figure out if an email is already taken
-  if (await getUserService({ searchBy: { email } })){
+  if (await getUserService({ searchBy: { email } })) {
     res.json({
       status: SUCCESS,
       message: `Registered successfully, a verfication link has been sent to ${email}`,
@@ -160,10 +162,10 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
   if (!user) {
     return next(new APIError(400, 'Invalid confirmation code'));
   }
-  if (user.authCredentials?.emailVerified === true){
+  if (user.authCredentials?.emailVerified === true) {
     return next(new APIError(400, 'Invalid confirmation code')); // misleading response
   }
-  if (user.authCredentials?.emailVerificationCode !== code){
+  if (user.authCredentials?.emailVerificationCode !== code) {
     return next(new APIError(400, 'Invalid confirmation code'));
   }
   await updateUserAuthCredentialsService(user.id, { emailVerified: true, emailVerificationCode: null });
@@ -199,7 +201,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
 export const forgotPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { email } = req.body;
   const user = await getUserService({ searchBy: { email }, includeAuth: true });
-  if (!user){
+  if (!user) {
     res.status(200).json({ // sent to deceive a malicious user trying to figure out if an email address is used
       status: SUCCESS,
       message: `An email with the reset link has been sent to ${email}`,
@@ -223,13 +225,13 @@ export const forgotPassword = errorHandler(async(req: Request, res: Response, ne
 export const resetPassword = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { password, token } = req.body;
   const user = await getUserService({ searchBy: { resetToken: token }, includeAuth: true });
-  if (!user){
+  if (!user) {
     return next(new APIError(400, 'Invalid reset token'));
   }
-  if (user.authCredentials?.resetToken !== token){
+  if (user.authCredentials?.resetToken !== token) {
     return next(new APIError(400, 'Invalid reset token'));
   }
-  if (user.authCredentials?.resetExpiry && user.authCredentials.resetExpiry < new Date()){
+  if (user.authCredentials?.resetExpiry && user.authCredentials.resetExpiry < new Date()) {
     await updateUserAuthCredentialsService(user.id, { resetToken: null, resetExpiry: null });
     return next(new APIError(400, 'Reset token has expired'));
   }
