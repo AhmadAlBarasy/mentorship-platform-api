@@ -34,4 +34,31 @@ const createCommunity = errorHandler(async(req: Request, res: Response, next: Ne
 
 });
 
-export { createCommunity };
+const updateCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { user, body } = req;
+
+  const community = await getCommunityByFieldService({ searchBy: { managerId: user.id } });
+
+  if (!community){
+    return next(new APIError(404, 'You don\'t have a community'));
+  }
+
+  const updatedCommunity = await prisma.communities.update({
+    where: {
+      id: community.id,
+    },
+    data: body,
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Community updated successfully',
+    community: updatedCommunity,
+  });
+
+});
+
+export {
+  createCommunity,
+  updateCommunity,
+};
