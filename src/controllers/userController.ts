@@ -8,13 +8,9 @@ import path from 'path';
 import mime from 'mime-types';
 import { checkExistingUserReport, createUserReport, getUserService } from '../services/userService';
 import { Role } from '@prisma/client';
+import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
-
-const getSupabasePathFromURL = (url: string, bucketName: string) => {
-  const path = url.split(bucketName)[1];
-  return path.slice(1);
-}
 
 const getUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
