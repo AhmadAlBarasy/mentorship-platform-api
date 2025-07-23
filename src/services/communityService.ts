@@ -1,4 +1,7 @@
 import prisma from '../db';
+import supabase from './supabaseClient';
+
+const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
 const getCommunityByFieldService = async(options: {
   searchBy: {
@@ -22,6 +25,11 @@ const getCommunityByFieldService = async(options: {
       OR: filters,
     },
   });
+
+  if (community && community.imageUrl){
+    const { data } = supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(community.imageUrl);
+    community.imageUrl = data.publicUrl;
+  }
 
   return community;
 };
