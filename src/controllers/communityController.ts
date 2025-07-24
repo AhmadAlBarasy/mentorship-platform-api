@@ -5,7 +5,7 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import path from 'path';
 import mime from 'mime-types';
-import { getCommunityByFieldService } from '../services/communityService';
+import { getCommunityByFieldService ,getCommunityMembersService } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
 
@@ -161,6 +161,27 @@ const deleteAuthenticatedUserCommunityImage = errorHandler(async(req: Request, r
 
   res.status(204).json({});
 
+});
+
+export const getCommunityMembers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const communityId = req.params.id;
+
+  const members = await getCommunityMembersService(communityId);
+
+  if (!members.length) {
+    return next(new APIError(404, `No members found for community ID ${communityId}`));
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    data: members.map((member) => ({
+      id: member.user.id,
+      name: member.user.name,
+      email: member.user.email,
+      role: member.user.role,
+      joinedAt: member.joinedAt,
+    })),
+  });
 });
 
 export {
