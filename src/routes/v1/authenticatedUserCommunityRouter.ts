@@ -8,7 +8,7 @@ import {
   deleteAuthenticatedUserCommunityImage,
   updateAuthenticatedUserCommunityImage,
   updateCommunity,
-  getCommunityDetails,
+  getCommunity,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
@@ -42,7 +42,7 @@ authenticatedUserCommunityRouter.route('/')
 authenticatedUserCommunityRouter.route('/:id')
   .get(
     authenticate({ access: 'full' }),
-    getCommunityDetails,
+    getCommunity,
   )
   .all(notAllowedMethod);
 export default authenticatedUserCommunityRouter;

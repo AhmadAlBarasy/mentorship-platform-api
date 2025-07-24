@@ -164,28 +164,25 @@ const deleteAuthenticatedUserCommunityImage = errorHandler(async(req: Request, r
 });
 
 
-const getCommunityDetails = async(req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
+const getCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
 
-    const community = await getCommunityByFieldService({ searchBy: { id } });
+  const community = await getCommunityByFieldService({ searchBy: { id } });
 
-    if (!community) {
-      return next(new APIError(404, 'Community not found'));
-    }
-
-    res.status(200).json({
-      status: 'Success',
-      data: community,
-    });
-  } catch (error) {
-    next(error);
+  if (!community) {
+    return next(new APIError(404, 'Community not found'));
   }
-};
+
+  res.status(200).json({
+    status: SUCCESS,
+    community,
+  });
+});
+
 export {
   createCommunity,
   updateCommunity,
   updateAuthenticatedUserCommunityImage,
   deleteAuthenticatedUserCommunityImage,
-  getCommunityDetails,
+  getCommunity,
 };

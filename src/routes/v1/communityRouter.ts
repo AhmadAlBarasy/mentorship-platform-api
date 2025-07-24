@@ -4,7 +4,7 @@ import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares
 import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
 import { createCommunitySchema } from '../../validators/validate.community';
-import { createCommunity,getCommunityDetails } from '../../controllers/communityController';
+import { createCommunity, getCommunity } from '../../controllers/communityController';
 import authenticatedUserCommunityRouter from './authenticatedUserCommunityRouter';
 
 const { COMMUNITY_MANAGER } = Role;
@@ -25,7 +25,7 @@ communityRouter.route('/')
 communityRouter.route('/:id')
   .get(
     authenticate({ access: 'full' }),
-    getCommunityDetails,
+    getCommunity,
   )
   .all(notAllowedMethod);
 
