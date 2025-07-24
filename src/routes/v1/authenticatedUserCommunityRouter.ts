@@ -8,7 +8,7 @@ import {
   deleteAuthenticatedUserCommunityImage,
   updateAuthenticatedUserCommunityImage,
   updateCommunity,
-  getCommunity,
+  getAuthenticatedUserCommunity,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
@@ -31,6 +31,11 @@ authenticatedUserCommunityRouter.route('/picture')
   .all(notAllowedMethod);
 
 authenticatedUserCommunityRouter.route('/')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    getAuthenticatedUserCommunity,
+  )
   .patch(
     authenticate({ access: 'full' }),
     authorizedRoles([COMMUNITY_MANAGER]),
@@ -39,10 +44,5 @@ authenticatedUserCommunityRouter.route('/')
   )
   .all(notAllowedMethod);
 
-authenticatedUserCommunityRouter.route('/:id')
-  .get(
-    authenticate({ access: 'full' }),
-    getCommunity,
-  )
-  .all(notAllowedMethod);
+
 export default authenticatedUserCommunityRouter;

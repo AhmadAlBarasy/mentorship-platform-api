@@ -179,10 +179,27 @@ const getCommunity = errorHandler(async(req: Request, res: Response, next: NextF
   });
 });
 
+const getAuthenticatedUserCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { user } = req;
+
+  const community = await getCommunityByFieldService({ searchBy: { managerId: user.id } });
+
+  if (!community){
+    return next(new APIError(404, 'You don\'t have a community'));
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    community,
+  });
+
+});
+
 export {
   createCommunity,
   updateCommunity,
   updateAuthenticatedUserCommunityImage,
   deleteAuthenticatedUserCommunityImage,
   getCommunity,
+  getAuthenticatedUserCommunity,
 };
