@@ -33,5 +33,21 @@ const getCommunityByFieldService = async(options: {
 
   return community;
 };
+const getCommunityMembersService = async (communityId: string) => {
+  return prisma.participations.findMany({
+    where: { communityId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  });
+};
 
-export { getCommunityByFieldService };
+
+export { getCommunityByFieldService, getCommunityMembersService};

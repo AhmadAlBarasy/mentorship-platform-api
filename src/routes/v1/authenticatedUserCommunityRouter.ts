@@ -4,7 +4,12 @@ import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares
 import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
 import { updateCommunitySchema } from '../../validators/validate.community';
-import { deleteAuthenticatedUserCommunityImage, updateAuthenticatedUserCommunityImage, updateCommunity } from '../../controllers/communityController';
+import {
+  deleteAuthenticatedUserCommunityImage,
+  updateAuthenticatedUserCommunityImage,
+  updateCommunity,
+  getCommunityDetails,
+} from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
 const { COMMUNITY_MANAGER } = Role;
@@ -34,4 +39,10 @@ authenticatedUserCommunityRouter.route('/')
   )
   .all(notAllowedMethod);
 
+authenticatedUserCommunityRouter.route('/:id')
+  .get(
+    authenticate({ access: 'full' }),
+    getCommunityDetails,
+  )
+  .all(notAllowedMethod);
 export default authenticatedUserCommunityRouter;
