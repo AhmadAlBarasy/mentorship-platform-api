@@ -13,19 +13,19 @@ const communityRouter = Router();
 
 communityRouter.use('/my', authenticatedUserCommunityRouter);
 
+communityRouter.route('/:id')
+  .get(
+    authenticate({ access: 'full' }),
+    getCommunity,
+  )
+  .all(notAllowedMethod);
+
 communityRouter.route('/')
   .post(
     authenticate({ access: 'full' }),
     authorizedRoles([COMMUNITY_MANAGER]),
     requestValidator({ bodySchema: createCommunitySchema }),
     createCommunity,
-  )
-  .all(notAllowedMethod);
-
-communityRouter.route('/:id')
-  .get(
-    authenticate({ access: 'full' }),
-    getCommunity,
   )
   .all(notAllowedMethod);
 
