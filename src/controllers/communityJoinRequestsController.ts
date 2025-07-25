@@ -16,6 +16,17 @@ const requestToJoinCommunity = errorHandler(async(req: Request, res: Response, n
     return next(new APIError(404, 'Community not found'));
   }
 
+  const alreadyMember = await prisma.participations.findFirst({
+    where: {
+      userId: user.id,
+      communityId: community.id,
+    },
+  });
+
+  if (alreadyMember){
+    return next(new APIError(400, 'You are already a participant in this community'));
+  }
+
   const joinRequestExists = await prisma.communityJoinRequests.findFirst({
     where: {
       userId: userId,
