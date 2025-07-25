@@ -1447,7 +1447,9 @@
     "/users/me/profile-picture": {
       "put": {
         "summary": "Upload or update profile picture",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Uploads a new profile picture for the authenticated user. If an image already exists, it will be replaced. Only image files are allowed, and the file size must not exceed 2MB.",
         "operationId": "uploadOrUpdateProfilePicture",
         "requestBody": {
@@ -1463,7 +1465,9 @@
                     "description": "The image file to upload (max 2MB)."
                   }
                 },
-                "required": ["image"]
+                "required": [
+                  "image"
+                ]
               }
             }
           }
@@ -1538,7 +1542,9 @@
       },
       "delete": {
         "summary": "Delete profile picture",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Deletes the authenticated user’s existing profile picture from Supabase storage.",
         "operationId": "deleteProfilePicture",
         "responses": {
@@ -1716,7 +1722,9 @@
     "/communities": {
       "post": {
         "summary": "Create a new community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated user with the COMMUNITY_MANAGER role to create a new community. Each user may create only one community. All fields are required.",
         "operationId": "createCommunity",
         "requestBody": {
@@ -1742,7 +1750,11 @@
                     "example": "A community for developers, designers, and tech enthusiasts to collaborate and share ideas."
                   }
                 },
-                "required": ["id", "name", "description"]
+                "required": [
+                  "id",
+                  "name",
+                  "description"
+                ]
               }
             }
           }
@@ -1766,12 +1778,32 @@
                     "community": {
                       "type": "object",
                       "properties": {
-                        "id": { "type": "string", "example": "tech-lounge" },
-                        "name": { "type": "string", "example": "Tech Lounge" },
-                        "description": { "type": "string", "example": "A community for developers, designers, and tech enthusiasts to collaborate and share ideas." },
-                        "managerId": { "type": "string", "example": "user_abc123" },
-                        "imageUrl": { "type": "string", "format": "uri", "example": null },
-                        "createdAt": { "type": "string", "format": "date-time", "example": "2025-07-17T15:22:10.500Z" }
+                        "id": {
+                          "type": "string",
+                          "example": "tech-lounge"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Tech Lounge"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A community for developers, designers, and tech enthusiasts to collaborate and share ideas."
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_abc123"
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "example": null
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-07-17T15:22:10.500Z"
+                        }
                       }
                     }
                   }
@@ -1786,8 +1818,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "Fail" },
-                    "message": { "type": "string", "example": "tech-lounge has already been taken" }
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "tech-lounge has already been taken"
+                    }
                   }
                 }
               }
@@ -1800,8 +1838,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "Fail" },
-                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
                   }
                 }
               }
@@ -1814,8 +1858,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "Fail" },
-                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden: You are not authorized to do this action"
+                    }
                   }
                 }
               }
@@ -1828,8 +1878,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "Fail" },
-                    "message": { "type": "string", "example": "You already have a community" }
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You already have a community"
+                    }
                   }
                 }
               }
@@ -1839,9 +1895,96 @@
       }
     },
     "/communities/my": {
+      "get": {
+        "summary": "Get authenticated user's community",
+        "tags": ["Communities"],
+        "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
+        "operationId": "getAuthenticatedUserCommunity",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user's community retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "community": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "growthly-dev"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Growthly Developer Community"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A community for developers building Growthly features and tools."
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "example": "https://your-supabase-url.storage.supabase.co/growthly-bucket/communities/growthly-dev.webp"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_123456789"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-07-01T14:20:00.000Z"
+                        },
+                        "memberCount": {
+                          "type": "integer",
+                          "example": 125
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "summary": "Update the authenticated manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to update their own community's information such as name or description. Requires authentication and appropriate role.",
         "operationId": "updateMyCommunity",
         "requestBody": {
@@ -1899,7 +2042,10 @@
                           "example": "A friendly community for developers, designers, and tech enthusiasts to collaborate and grow."
                         },
                         "imageUrl": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "uri",
                           "example": "https://example.com/images/tech-lounge.png"
                         },
@@ -1985,7 +2131,9 @@
     "/communities/my/picture": {
       "put": {
         "summary": "Upload or update the community image",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to upload or update the image associated with their community. The image must be provided as multipart/form-data under the key `image`. This endpoint replaces any previously uploaded image.",
         "operationId": "uploadOrUpdateCommunityImage",
         "requestBody": {
@@ -2001,7 +2149,9 @@
                     "description": "The image file to upload (must be an image type, max size 2MB)"
                   }
                 },
-                "required": ["image"]
+                "required": [
+                  "image"
+                ]
               }
             }
           }
@@ -2096,7 +2246,9 @@
       },
       "delete": {
         "summary": "Delete the community image",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to delete the image associated with their community. If no image exists, it returns a 404 error.",
         "operationId": "deleteCommunityImage",
         "responses": {
@@ -2137,6 +2289,100 @@
                     "message": {
                       "type": "string",
                       "example": "Failed to delete image"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/communities/{id}": {
+      "get": {
+        "summary": "Get community details",
+        "tags": ["Communities"],
+        "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
+        "operationId": "getCommunityDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the community to retrieve",
+            "schema": {
+              "type": "string",
+              "maxLength": 32
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Community details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "community": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "growthly-dev"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Growthly Developer Community"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A community for developers building Growthly features and tools."
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "example": "https://your-supabase-url.storage.supabase.co/growthly-bucket/communities/growthly-dev.webp"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_123456789"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-07-01T14:20:00.000Z"
+                        },
+                        "memberCount": {
+                          "type": "integer",
+                          "example": 125
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
                     }
                   }
                 }

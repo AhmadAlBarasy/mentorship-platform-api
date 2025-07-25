@@ -24,14 +24,49 @@ const getCommunityByFieldService = async(options: {
     where: {
       OR: filters,
     },
+    include: {
+      _count: {
+        select: {
+          participants: true,
+        },
+      },
+    },
   });
 
-  if (community && community.imageUrl){
+  if (!community){
+    return null;
+  }
+
+  if (community.imageUrl){
     const { data } = supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(community.imageUrl);
     community.imageUrl = data.publicUrl;
   }
 
-  return community;
+  const { _count, ...rest } = community;
+
+  const restructuredCommunity = {
+    ...rest,
+    memberCount: _count.participants,
+  };
+
+  return restructuredCommunity;
 };
 
-export { getCommunityByFieldService };
+const getCommunityMembersService = async(communityId: string) => {
+  return prisma.participations.findMany({
+    where: { communityId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  });
+};
+
+
+export { getCommunityByFieldService, getCommunityMembersService };
