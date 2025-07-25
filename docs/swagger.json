@@ -2298,6 +2298,82 @@
         }
       }
     },
+    "/communities/my/join-requests": {
+      "get": {
+        "summary": "Get join requests for the manager's community",
+        "tags": ["Communities"],
+        "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
+        "operationId": "getAuthenticatedManagerCommunityJoinRequests",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Join requests retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "joinRequests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "clwovwdd70000z5bpv6p5ehhx"
+                          },
+                          "userId": {
+                            "type": "string",
+                            "example": "clwovd9qj00002n5bm6zhebn7"
+                          },
+                          "communityId": {
+                            "type": "string",
+                            "example": "growthly-dev"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-24T18:26:02.720Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Manager has no associated community",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
