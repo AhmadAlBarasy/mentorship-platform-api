@@ -3,18 +3,34 @@ import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
-import { updateCommunitySchema } from '../../validators/validate.community';
+import { resolveJoinRequestSchema, updateCommunitySchema } from '../../validators/validate.community';
 import {
   deleteAuthenticatedUserCommunityImage,
   updateAuthenticatedUserCommunityImage,
   updateCommunity,
   getAuthenticatedUserCommunity,
+  getAuthenticatedManagerCommunityJoinRequests,
+  resolveCommunityJoinRequest,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
 const { COMMUNITY_MANAGER } = Role;
 
 const authenticatedUserCommunityRouter = Router();
+
+authenticatedUserCommunityRouter.route('/join-requests')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    getAuthenticatedManagerCommunityJoinRequests,
+  )
+  .put(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    requestValidator({ bodySchema: resolveJoinRequestSchema }),
+    resolveCommunityJoinRequest,
+  )
+  .all(notAllowedMethod);
 
 authenticatedUserCommunityRouter.route('/picture')
   .put(
