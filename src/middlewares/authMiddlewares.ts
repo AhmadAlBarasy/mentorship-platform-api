@@ -3,8 +3,6 @@ import { Request, Response, NextFunction } from 'express';
 import APIError from '../classes/APIError';
 import errorHandler from '../utils/asyncErrorHandler';
 import { decodeJwt } from '../utils/jwt';
-// import { getUserService } from '../services/userService';
-import prisma from '../db';
 import { AuthenticationOptions } from '../interfaces/AuthMiddlewares';
 import { getUserService } from '../services/userService';
 
