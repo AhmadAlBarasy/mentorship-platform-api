@@ -2391,6 +2391,161 @@
           }
         }
       }
+    },
+    "/communities/{id}/join-requests": {
+      "post": {
+        "summary": "Request to join a community",
+        "tags": ["Communities"],
+        "description": "Allows a Mentee or Mentor to request to join a specific community. A user cannot submit multiple requests to the same community.",
+        "operationId": "requestToJoinCommunity",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the community to join",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "growthly-dev"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Join request submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Join request submitted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Join request already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You've already submitted a request to join this community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Withdraw join request from a community",
+        "tags": ["Communities"],
+        "description": "Allows a Mentee or Mentor to withdraw a previously submitted request to join a specific community.",
+        "operationId": "withdrawCommunityJoinRequest",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the community",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "growthly-dev"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Join request withdrawn successfully"
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No join request to withdraw",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You haven't submitted a request to join this community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
