@@ -2372,6 +2372,83 @@
             }
           }
         }
+      },
+      "put": {
+        "summary": "Resolve a community join request",
+        "tags": ["Communities"],
+        "description": "Allows an authenticated community manager to resolve a pending join request by either accepting or rejecting it. Accepting a request adds the user to the community participants and removes the request. Rejecting simply removes the request.",
+        "operationId": "resolveCommunityJoinRequest",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "action"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The 36-character UUID of the join request",
+                    "example": "09b13094-35a4-4d0d-b477-aa43c57aff3d"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": ["accept", "reject"],
+                    "description": "The action to perform on the join request",
+                    "example": "accept"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Join request has been resolved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Join request has been resolved successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either the manager doesn't have a community or the join request was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Join request not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/communities/{id}": {
