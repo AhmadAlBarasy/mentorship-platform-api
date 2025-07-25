@@ -1895,6 +1895,91 @@
       }
     },
     "/communities/my": {
+      "get": {
+        "summary": "Get authenticated user's community",
+        "tags": ["Communities"],
+        "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
+        "operationId": "getAuthenticatedUserCommunity",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user's community retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "community": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "growthly-dev"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Growthly Developer Community"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A community for developers building Growthly features and tools."
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "example": "https://your-supabase-url.storage.supabase.co/growthly-bucket/communities/growthly-dev.webp"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_123456789"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-07-01T14:20:00.000Z"
+                        },
+                        "memberCount": {
+                          "type": "integer",
+                          "example": 125
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "summary": "Update the authenticated manager's community",
         "tags": [
@@ -2215,26 +2300,25 @@
     },
     "/communities/{id}": {
       "get": {
-        "tags": [
-          "Communities"
-        ],
-        "summary": "Get community details by ID",
-        "description": "Returns detailed information about a specific community by its unique ID.",
+        "summary": "Get community details",
+        "tags": ["Communities"],
+        "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
+        "operationId": "getCommunityDetails",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "description": "The ID of the community to retrieve.",
+            "description": "The ID of the community to retrieve",
             "schema": {
               "type": "string",
-              "example": "tech-mentors"
+              "maxLength": 32
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Community details retrieved successfully.",
+            "description": "Community details retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -2244,29 +2328,39 @@
                       "type": "string",
                       "example": "Success"
                     },
-                    "data": {
+                    "community": {
                       "type": "object",
                       "properties": {
                         "id": {
                           "type": "string",
-                          "example": "tech-mentors"
+                          "example": "growthly-dev"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Tech Mentors"
+                          "example": "Growthly Developer Community"
                         },
                         "description": {
                           "type": "string",
-                          "example": "A community for tech enthusiasts."
+                          "example": "A community for developers building Growthly features and tools."
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "example": "https://your-supabase-url.storage.supabase.co/growthly-bucket/communities/growthly-dev.webp"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_123456789"
                         },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
-                          "example": "2025-07-01T12:34:56Z"
+                          "example": "2024-07-01T14:20:00.000Z"
                         },
                         "memberCount": {
                           "type": "integer",
-                          "example": 87
+                          "example": 125
                         }
                       }
                     }
@@ -2275,28 +2369,8 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid community ID format.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Invalid community ID."
-                    }
-                  }
-                }
-              }
-            }
-          },
           "404": {
-            "description": "Community not found.",
+            "description": "Community not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -2308,27 +2382,7 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Community with ID 'tech-mentors' not found."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Error"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Something went wrong."
+                      "example": "Community not found"
                     }
                   }
                 }
