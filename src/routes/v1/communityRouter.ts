@@ -34,8 +34,6 @@ communityRouter.route('/:id')
   )
   .all(notAllowedMethod);
 
-
-
 communityRouter.route('/')
   .post(
     authenticate({ access: 'full' }),

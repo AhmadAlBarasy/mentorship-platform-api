@@ -195,6 +195,28 @@ const getAuthenticatedUserCommunity = errorHandler(async(req: Request, res: Resp
 
 });
 
+const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { user } = req;
+
+  const community = await getCommunityByFieldService({ searchBy: { managerId: user.id } });
+
+  if (!community){
+    return next(new APIError(404, 'You don\'t have a community'));
+  }
+
+  const joinRequests = await prisma.communityJoinRequests.findMany({
+    where: {
+      communityId: community.id,
+    },
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    joinRequests,
+  });
+
+});
+
 export {
   createCommunity,
   updateCommunity,
@@ -202,4 +224,5 @@ export {
   deleteAuthenticatedUserCommunityImage,
   getCommunity,
   getAuthenticatedUserCommunity,
+  getAuthenticatedManagerCommunityJoinRequests,
 };

@@ -9,12 +9,21 @@ import {
   updateAuthenticatedUserCommunityImage,
   updateCommunity,
   getAuthenticatedUserCommunity,
+  getAuthenticatedManagerCommunityJoinRequests,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
 const { COMMUNITY_MANAGER } = Role;
 
 const authenticatedUserCommunityRouter = Router();
+
+authenticatedUserCommunityRouter.route('/join-requests')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    getAuthenticatedManagerCommunityJoinRequests,
+  )
+  .all(notAllowedMethod);
 
 authenticatedUserCommunityRouter.route('/picture')
   .put(
