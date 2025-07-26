@@ -8,6 +8,8 @@ import mime from 'mime-types';
 import { getCommunityByFieldService ,getCommunityMembersService } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
+import { Role } from '@prisma/client';
+
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -163,7 +165,7 @@ const deleteAuthenticatedUserCommunityImage = errorHandler(async(req: Request, r
 
 });
 
-export const getCommunityMembers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+const getCommunityMembers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const communityId = req.params.id;
 
   const members = await getCommunityMembersService(communityId);
@@ -174,7 +176,15 @@ export const getCommunityMembers = errorHandler(async(req: Request, res: Respons
 
   res.status(200).json({
     status: SUCCESS,
-    data: members.map((member) => ({
+    data: members.map((member: {
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role: Role;
+      };
+      joinedAt: Date;
+    }) => ({
       id: member.user.id,
       name: member.user.name,
       email: member.user.email,
@@ -189,4 +199,5 @@ export {
   updateCommunity,
   updateAuthenticatedUserCommunityImage,
   deleteAuthenticatedUserCommunityImage,
+  getCommunityMembers,
 };
