@@ -11,10 +11,11 @@ import {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
+  leaveCommunity,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
-const { COMMUNITY_MANAGER } = Role;
+const { COMMUNITY_MANAGER ,MENTEE , MENTOR } = Role;
 
 const authenticatedUserCommunityRouter = Router();
 
@@ -57,6 +58,14 @@ authenticatedUserCommunityRouter.route('/')
     authorizedRoles([COMMUNITY_MANAGER]),
     requestValidator({ bodySchema: updateCommunitySchema }),
     updateCommunity,
+  )
+  .all(notAllowedMethod);
+
+authenticatedUserCommunityRouter.route('/:id/leave')
+  .delete(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE, MENTOR]),
+    leaveCommunity,
   )
   .all(notAllowedMethod);
 

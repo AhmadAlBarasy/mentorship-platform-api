@@ -1,3 +1,4 @@
+import APIError from '../classes/APIError';
 import prisma from '../db';
 import supabase from './supabaseClient';
 
@@ -68,5 +69,27 @@ const getCommunityMembersService = async(communityId: string) => {
   });
 };
 
+const leaveCommunityService = async(userId: string, communityId: string) => {
+  const participation = await prisma.participations.findFirst({
+    where: {
+      userId,
+      communityId,
+    },
+  });
 
-export { getCommunityByFieldService, getCommunityMembersService };
+  if (!participation) {
+    throw new APIError(404, 'You are not a member of this community');
+  }
+
+  await prisma.participations.deleteMany({
+    where: {
+      userId,
+      communityId,
+    },
+  });
+
+  return { message: 'Successfully left the community' };
+};
+
+
+export { getCommunityByFieldService, getCommunityMembersService,leaveCommunityService };
