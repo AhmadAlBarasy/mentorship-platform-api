@@ -11,6 +11,7 @@ import {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
+  getAuthenticatedUserCommunities,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
@@ -46,6 +47,7 @@ authenticatedUserCommunityRouter.route('/picture')
   )
   .all(notAllowedMethod);
 
+
 authenticatedUserCommunityRouter.route('/')
   .get(
     authenticate({ access: 'full' }),
@@ -60,5 +62,12 @@ authenticatedUserCommunityRouter.route('/')
   )
   .all(notAllowedMethod);
 
+
+authenticatedUserCommunityRouter.route('/memberships')
+  .get(
+    authenticate({ access: 'full' }),
+    getAuthenticatedUserCommunities,
+  )
+  .all(notAllowedMethod);
 
 export default authenticatedUserCommunityRouter;

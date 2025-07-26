@@ -1897,7 +1897,9 @@
     "/communities/my": {
       "get": {
         "summary": "Get authenticated user's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
         "operationId": "getAuthenticatedUserCommunity",
         "security": [
@@ -2301,7 +2303,9 @@
     "/communities/my/join-requests": {
       "get": {
         "summary": "Get join requests for the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
         "operationId": "getAuthenticatedManagerCommunityJoinRequests",
         "security": [
@@ -2375,7 +2379,9 @@
       },
       "put": {
         "summary": "Resolve a community join request",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated community manager to resolve a pending join request by either accepting or rejecting it. Accepting a request adds the user to the community participants and removes the request. Rejecting simply removes the request.",
         "operationId": "resolveCommunityJoinRequest",
         "security": [
@@ -2389,7 +2395,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id", "action"],
+                "required": [
+                  "id",
+                  "action"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2398,7 +2407,10 @@
                   },
                   "action": {
                     "type": "string",
-                    "enum": ["accept", "reject"],
+                    "enum": [
+                      "accept",
+                      "reject"
+                    ],
                     "description": "The action to perform on the join request",
                     "example": "accept"
                   }
@@ -2454,7 +2466,9 @@
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
         "operationId": "getCommunityDetails",
         "parameters": [
@@ -2548,7 +2562,9 @@
     "/communities/{id}/join-requests": {
       "post": {
         "summary": "Request to join a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a Mentee or Mentor to request to join a specific community. A user cannot submit multiple requests to the same community.",
         "operationId": "requestToJoinCommunity",
         "security": [
@@ -2633,7 +2649,9 @@
       },
       "delete": {
         "summary": "Withdraw join request from a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a Mentee or Mentor to withdraw a previously submitted request to join a specific community.",
         "operationId": "withdrawCommunityJoinRequest",
         "security": [
@@ -2691,6 +2709,92 @@
                     "message": {
                       "type": "string",
                       "example": "You haven't submitted a request to join this community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/communities/my/memberships": {
+      "get": {
+        "summary": "Get communities where the user is a member",
+        "tags": [
+          "Communities"
+        ],
+        "description": "Returns a list of communities that the currently authenticated user is a member of.",
+        "operationId": "getAuthenticatedUserMemberships",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memberships retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "tech-lounge"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Tech Lounge"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "A community for developers, designers, and tech enthusiasts."
+                          },
+                          "imageUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri",
+                            "example": "https://example.com/images/community.png"
+                          },
+                          "joinedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-24T18:26:02.720Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User is not a member of any communities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a member of any communities."
                     }
                   }
                 }
