@@ -5,7 +5,7 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import path from 'path';
 import mime from 'mime-types';
-import { getCommunityByFieldService } from '../services/communityService';
+import { getCommunityByFieldService, leaveCommunityService } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
 
@@ -269,6 +269,22 @@ const resolveCommunityJoinRequest = errorHandler(async(req: Request, res: Respon
 
 });
 
+const leaveCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const id = req.user.id;
+  const communityId = req.params.id;
+
+  if (!id) {
+    return next(new APIError(401, 'Unauthorized'));
+  }
+
+  const result = await leaveCommunityService(id, communityId);
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: result.message,
+  });
+});
+
 export {
   createCommunity,
   updateCommunity,
@@ -278,4 +294,5 @@ export {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
+  leaveCommunity,
 };
