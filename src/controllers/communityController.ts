@@ -5,7 +5,7 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import path from 'path';
 import mime from 'mime-types';
-import { getCommunityByFieldService } from '../services/communityService';
+import { getAuthenticatedUserCommunitiesService, getCommunityByFieldService } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
 
@@ -269,6 +269,29 @@ const resolveCommunityJoinRequest = errorHandler(async(req: Request, res: Respon
 
 });
 
+
+const getAuthenticatedUserCommunities = errorHandler(  async(req: Request, res: Response, next: NextFunction) => {
+  const { user } = req;
+  const participations = await getAuthenticatedUserCommunitiesService(user.id);
+
+  if (!participations.length) {
+    return next(new APIError(404, 'You are not a member of any communities.'));
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    data: participations.map((p) => ({
+      id: p.community.id,
+      name: p.community.name,
+      description: p.community.description,
+      imageUrl: p.community.imageUrl,
+      joinedAt: p.joinedAt,
+    })),
+  });
+},
+);
+
+
 export {
   createCommunity,
   updateCommunity,
@@ -278,4 +301,5 @@ export {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
+  getAuthenticatedUserCommunities,
 };
