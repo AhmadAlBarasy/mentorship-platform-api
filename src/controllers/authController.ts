@@ -7,6 +7,7 @@ import {
   createUserService,
   updateUserAuthCredentialsService,
   updateUserService,
+  cleanOTP,
 } from '../services/userService';
 import APIError from '../classes/APIError';
 import bcrypt from 'bcrypt';
@@ -15,6 +16,7 @@ import { emailVerficationLinkTemplate, resetPasswordTemplate } from '../utils/ma
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../utils/mail/mailSender';
+import { createAndSendOTP } from '../services/otpService';
 // import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
 
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
@@ -26,6 +28,14 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
   }
   if (await bcrypt.compare(password, user.password) === false) {
     return next(new APIError(401, 'Invalid id/email or password'));
+  }
+  if (user.authCredentials?.twoFactorEnabled) {
+    await createAndSendOTP(user.id, user.email);
+    res.status(200).json({
+      message: 'OTP sent to your email',
+      partialAuth: true,
+      userId: user.id,
+    });
   }
 
   const emailVerified = user.authCredentials?.emailVerified;
@@ -61,13 +71,18 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
 });
 
 export const logout = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+
+  const user = req.user;
+  if (!user || !user.id) {
+    return next(new Error('User not authenticated'));
+  }
   res.clearCookie('token', {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
   });
-
+  await cleanOTP(user.id);
   res.status(200).json({
     status: SUCCESS,
     message: 'Logged out successfully',

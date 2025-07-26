@@ -22,6 +22,8 @@ import {
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 import { authenticate } from '../../middlewares/authMiddlewares';
+import { verifyOTPSchema } from '../../validators/validateOtp';
+import { verifyOTP } from '../../controllers/otpController';
 
 const authRouter = Router();
 
@@ -74,6 +76,13 @@ authRouter.route('/update-password')
     authenticate({ access: 'full' }),
     requestValidator({ bodySchema: updatePasswordSchema }),
     updatePassword,
+  )
+  .all(notAllowedMethod);
+
+authRouter.route('/verify-otp')
+  .post(
+    requestValidator({ bodySchema: verifyOTPSchema }),
+    verifyOTP,
   )
   .all(notAllowedMethod);
 

@@ -142,6 +142,16 @@ const createUserReport = async(data: {
   });
 };
 
+const cleanOTP = async(id: string) => {
+  await prisma.authCredentials.update({
+    where: { userId: id },
+    data: {
+      twoFactorOTP: null,
+      resetExpiry: null,
+    },
+  });
+};
+
 export {
   getUserService,
   createUserService,
@@ -150,4 +160,5 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
+  cleanOTP,
 };
