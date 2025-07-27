@@ -282,12 +282,14 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
 
   res.status(200).json({
     status: SUCCESS,
-    data: members.map((member: {
+    members: members.map((member: {
       user: {
         id: string;
         name: string;
         email: string;
         role: Role;
+        headline: string;
+        imageUrl: string | null;
       };
       joinedAt: Date;
     }) => ({
@@ -296,6 +298,8 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
       email: member.user.email,
       role: member.user.role,
       joinedAt: member.joinedAt,
+      headline: member.user.headline,
+      imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
     })),
   });
 });

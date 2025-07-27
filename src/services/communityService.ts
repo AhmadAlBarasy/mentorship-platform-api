@@ -62,6 +62,8 @@ const getCommunityMembersService = async(communityId: string) => {
           name: true,
           email: true,
           role: true,
+          headline: true,
+          imageUrl: true,
         },
       },
     },
