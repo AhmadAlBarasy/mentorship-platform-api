@@ -11,10 +11,8 @@ import {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
-  getCommunityMembers,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
-import { authorizeCommunityAccess } from '../../middlewares/communityMiddlewares';
 
 const { COMMUNITY_MANAGER } = Role;
 
@@ -59,15 +57,6 @@ authenticatedUserCommunityRouter.route('/')
     authorizedRoles([COMMUNITY_MANAGER]),
     requestValidator({ bodySchema: updateCommunitySchema }),
     updateCommunity,
-  )
-  .all(notAllowedMethod);
-
-
-authenticatedUserCommunityRouter.route('/:id/members')
-  .get(
-    authenticate({ access: 'full' }),
-    authorizeCommunityAccess,
-    getCommunityMembers,
   )
   .all(notAllowedMethod);
 

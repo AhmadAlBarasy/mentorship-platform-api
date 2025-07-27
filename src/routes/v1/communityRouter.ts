@@ -4,9 +4,10 @@ import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares
 import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
 import { createCommunitySchema } from '../../validators/validate.community';
-import { createCommunity, getCommunity } from '../../controllers/communityController';
+import { createCommunity, getCommunity, getCommunityMembers } from '../../controllers/communityController';
 import authenticatedUserCommunityRouter from './authenticatedUserCommunityRouter';
 import { requestToJoinCommunity, withdrawCommunityJoinRequest } from '../../controllers/communityJoinRequestsController';
+import { authorizeCommunityAccess } from '../../middlewares/communityMiddlewares';
 
 const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
@@ -24,6 +25,14 @@ communityRouter.route('/:id/join-requests')
     authenticate({ access: 'full' }),
     authorizedRoles([MENTEE, MENTOR]),
     withdrawCommunityJoinRequest,
+  )
+  .all(notAllowedMethod);
+
+communityRouter.route('/:id/members')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizeCommunityAccess,
+    getCommunityMembers,
   )
   .all(notAllowedMethod);
 
