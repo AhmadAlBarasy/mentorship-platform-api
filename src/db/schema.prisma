@@ -69,6 +69,7 @@ model Participations {
   @@map("participations")
   userId String @db.VarChar(32) @map("user_id")
   communityId String @db.VarChar(32) @map("community_id")
+  joinedAt DateTime @default(now())
   @@id(fields: [userId, communityId], name: "participation")
   user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   community Communities @relation(fields: [communityId], references: [id], onDelete: Cascade, onUpdate: Cascade)

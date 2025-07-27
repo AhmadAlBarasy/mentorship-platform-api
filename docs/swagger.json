@@ -2718,6 +2718,109 @@
         }
       }
     },
+    "/communities/{id}/members": {
+      "get": {
+        "summary": "Get all members of a community",
+        "tags": ["Communities"],
+        "description": "Retrieves a list of all users who are members of the specified community. Accessible only to Admins, the community's manager, or existing MENTOR/MENTEE participants.",
+        "operationId": "getCommunityMembers",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the community",
+            "schema": {
+              "type": "string",
+              "example": "growthly-dev"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved the list of community members.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "user_abc123"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "John Doe"
+                          },
+                          "email": {
+                            "type": "string",
+                            "format": "email",
+                            "example": "john.doe@example.com"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": ["MENTEE", "MENTOR", "ADMIN"],
+                            "example": "MENTOR"
+                          },
+                          "joinedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-26T12:34:56.789Z"
+                          },
+                          "headline": {
+                            "type": "string",
+                            "example": "Software Engineer at XYZ"
+                          },
+                          "imageUrl": {
+                            "type": ["string", "null"],
+                            "format": "uri",
+                            "example": "https://your-supabase-url.storage.supabase.co/avatars/user_abc123.webp"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not allowed to access members of this community",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not allowed to access community members"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/communities/my/memberships": {
       "get": {
         "summary": "Get communities where the user is a member",
