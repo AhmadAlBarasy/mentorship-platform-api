@@ -2463,6 +2463,92 @@
         }
       }
     },
+    "/communities/my/memberships": {
+      "get": {
+        "summary": "Get communities where the user is a member",
+        "tags": [
+          "Communities"
+        ],
+        "description": "Returns a list of communities that the currently authenticated user is a member of.",
+        "operationId": "getAuthenticatedUserMemberships",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memberships retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "memberships": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "tech-lounge"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Tech Lounge"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "A community for developers, designers, and tech enthusiasts."
+                          },
+                          "imageUrl": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri",
+                            "example": "https://xyz.supabase.co/storage/v1/object/public/growthly-storage/communities/iug.png"
+                          },
+                          "joinedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-24T18:26:02.720Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user role is not MENTEE or MENTOR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Forbidden: You are not authorized to do this action"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
@@ -2812,92 +2898,6 @@
                     "message": {
                       "type": "string",
                       "example": "You are not allowed to access community members"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/communities/my/memberships": {
-      "get": {
-        "summary": "Get communities where the user is a member",
-        "tags": [
-          "Communities"
-        ],
-        "description": "Returns a list of communities that the currently authenticated user is a member of.",
-        "operationId": "getAuthenticatedUserMemberships",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Memberships retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Success"
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "example": "tech-lounge"
-                          },
-                          "name": {
-                            "type": "string",
-                            "example": "Tech Lounge"
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "A community for developers, designers, and tech enthusiasts."
-                          },
-                          "imageUrl": {
-                            "type": [
-                              "string",
-                              "null"
-                            ],
-                            "format": "uri",
-                            "example": "https://example.com/images/community.png"
-                          },
-                          "joinedAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2025-07-24T18:26:02.720Z"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "User is not a member of any communities",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You are not a member of any communities."
                     }
                   }
                 }
