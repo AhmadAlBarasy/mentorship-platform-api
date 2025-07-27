@@ -311,19 +311,20 @@ const getAuthenticatedUserCommunities = errorHandler(  async(req: Request, res: 
   const { user } = req;
   const participations = await getAuthenticatedUserCommunitiesService(user.id);
 
-  if (!participations.length) {
-    return next(new APIError(404, 'You are not a member of any communities.'));
-  }
+  const structuredMemberships = participations.length === 0 ? [] :
+    participations.map((participation) => ({
+      id: participation.community.id,
+      name: participation.community.name,
+      description: participation.community.description,
+      imageUrl: participation.community.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(participation.community.imageUrl).data.publicUrl
+        : null,
+      joinedAt: participation.joinedAt,
+    }))
 
   res.status(200).json({
     status: SUCCESS,
-    data: participations.map((p) => ({
-      id: p.community.id,
-      name: p.community.name,
-      description: p.community.description,
-      imageUrl: p.community.imageUrl,
-      joinedAt: p.joinedAt,
-    })),
+    memberships: structuredMemberships,
   });
 },
 );
