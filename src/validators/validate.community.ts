@@ -49,7 +49,29 @@ const updateCommunitySchema = Joi.object({
     }),
 }).min(1).message('At least 1 attribute should be provided to update');
 
+const resolveJoinRequestSchema = Joi.object({
+
+  id: Joi.string()
+    .required()
+    .length(36)
+    .messages({
+      'string.base': 'id must be a string',
+      'string.length': 'id must be 36 characters long',
+      'any.required': 'id is required',
+    }),
+
+  action: Joi.string()
+    .required()
+    .valid('accept', 'reject')
+    .messages({
+      'string.base': 'action must be a string',
+      'any.required': 'action is required',
+    }),
+
+});
+
 export {
   createCommunitySchema,
   updateCommunitySchema,
+  resolveJoinRequestSchema,
 };

@@ -1895,6 +1895,91 @@
       }
     },
     "/communities/my": {
+      "get": {
+        "summary": "Get authenticated user's community",
+        "tags": ["Communities"],
+        "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
+        "operationId": "getAuthenticatedUserCommunity",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user's community retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "community": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "growthly-dev"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Growthly Developer Community"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A community for developers building Growthly features and tools."
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "example": "https://your-supabase-url.storage.supabase.co/growthly-bucket/communities/growthly-dev.webp"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_123456789"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-07-01T14:20:00.000Z"
+                        },
+                        "memberCount": {
+                          "type": "integer",
+                          "example": 125
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "summary": "Update the authenticated manager's community",
         "tags": [
@@ -2213,26 +2298,20 @@
         }
       }
     },
-    "/communities/{id}/members": {
+    "/communities/my/join-requests": {
       "get": {
-        "tags": [
-          "Communities"
-        ],
-        "summary": "Get community members by community ID",
-        "parameters": [
+        "summary": "Get join requests for the manager's community",
+        "tags": ["Communities"],
+        "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
+        "operationId": "getAuthenticatedManagerCommunityJoinRequests",
+        "security": [
           {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "The ID of the community",
-            "schema": {
-              "type": "string"
-            }
+            "cookieAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "List of community members",
+            "description": "Join requests retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -2242,26 +2321,27 @@
                       "type": "string",
                       "example": "Success"
                     },
-                    "data": {
+                    "joinRequests": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
                           "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "email": {
-                            "type": "string"
-                          },
-                          "role": {
-                            "type": "string"
-                          },
-                          "joinedAt": {
                             "type": "string",
-                            "format": "date-time"
+                            "example": "clwovwdd70000z5bpv6p5ehhx"
+                          },
+                          "userId": {
+                            "type": "string",
+                            "example": "clwovd9qj00002n5bm6zhebn7"
+                          },
+                          "communityId": {
+                            "type": "string",
+                            "example": "growthly-dev"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-24T18:26:02.720Z"
                           }
                         }
                       }
@@ -2272,7 +2352,7 @@
             }
           },
           "404": {
-            "description": "No members found for the given community ID",
+            "description": "Manager has no associated community",
             "content": {
               "application/json": {
                 "schema": {
@@ -2284,15 +2364,338 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "No members found for community ID abc123"
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Resolve a community join request",
+        "tags": ["Communities"],
+        "description": "Allows an authenticated community manager to resolve a pending join request by either accepting or rejecting it. Accepting a request adds the user to the community participants and removes the request. Rejecting simply removes the request.",
+        "operationId": "resolveCommunityJoinRequest",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "action"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The 36-character UUID of the join request",
+                    "example": "09b13094-35a4-4d0d-b477-aa43c57aff3d"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": ["accept", "reject"],
+                    "description": "The action to perform on the join request",
+                    "example": "accept"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Join request has been resolved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Join request has been resolved successfully"
                     }
                   }
                 }
               }
             }
           },
-          "500": {
-            "description": "Internal server error"
+          "404": {
+            "description": "Either the manager doesn't have a community or the join request was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Join request not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/communities/{id}": {
+      "get": {
+        "summary": "Get community details",
+        "tags": ["Communities"],
+        "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
+        "operationId": "getCommunityDetails",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the community to retrieve",
+            "schema": {
+              "type": "string",
+              "maxLength": 32
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Community details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "community": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "growthly-dev"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Growthly Developer Community"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A community for developers building Growthly features and tools."
+                        },
+                        "imageUrl": {
+                          "type": "string",
+                          "format": "uri",
+                          "nullable": true,
+                          "example": "https://your-supabase-url.storage.supabase.co/growthly-bucket/communities/growthly-dev.webp"
+                        },
+                        "managerId": {
+                          "type": "string",
+                          "example": "user_123456789"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2024-07-01T14:20:00.000Z"
+                        },
+                        "memberCount": {
+                          "type": "integer",
+                          "example": 125
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/communities/{id}/join-requests": {
+      "post": {
+        "summary": "Request to join a community",
+        "tags": ["Communities"],
+        "description": "Allows a Mentee or Mentor to request to join a specific community. A user cannot submit multiple requests to the same community.",
+        "operationId": "requestToJoinCommunity",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the community to join",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "growthly-dev"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Join request submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Join request submitted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Join request already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You've already submitted a request to join this community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Withdraw join request from a community",
+        "tags": ["Communities"],
+        "description": "Allows a Mentee or Mentor to withdraw a previously submitted request to join a specific community.",
+        "operationId": "withdrawCommunityJoinRequest",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the community",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "growthly-dev"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Join request withdrawn successfully"
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No join request to withdraw",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You haven't submitted a request to join this community"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

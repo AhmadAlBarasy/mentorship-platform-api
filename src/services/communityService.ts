@@ -24,14 +24,32 @@ const getCommunityByFieldService = async(options: {
     where: {
       OR: filters,
     },
+    include: {
+      _count: {
+        select: {
+          participants: true,
+        },
+      },
+    },
   });
 
-  if (community && community.imageUrl){
+  if (!community){
+    return null;
+  }
+
+  if (community.imageUrl){
     const { data } = supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(community.imageUrl);
     community.imageUrl = data.publicUrl;
   }
 
-  return community;
+  const { _count, ...rest } = community;
+
+  const restructuredCommunity = {
+    ...rest,
+    memberCount: _count.participants,
+  };
+
+  return restructuredCommunity;
 };
 
 const getCommunityMembersService = async(communityId: string) => {
@@ -49,5 +67,6 @@ const getCommunityMembersService = async(communityId: string) => {
     },
   });
 };
+
 
 export { getCommunityByFieldService, getCommunityMembersService };
