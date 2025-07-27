@@ -5,7 +5,10 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import path from 'path';
 import mime from 'mime-types';
-import { getCommunityByFieldService ,getCommunityMembersService } from '../services/communityService';
+import { getCommunityByFieldService,
+  getCommunityMembersService,
+  getAuthenticatedUserCommunitiesService,
+} from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
 import { Role } from '@prisma/client';
@@ -303,6 +306,30 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
   });
 });
 
+
+const getAuthenticatedUserCommunities = errorHandler(  async(req: Request, res: Response, next: NextFunction) => {
+  const { user } = req;
+  const participations = await getAuthenticatedUserCommunitiesService(user.id);
+
+  const structuredMemberships = participations.length === 0 ? [] :
+    participations.map((participation) => ({
+      id: participation.community.id,
+      name: participation.community.name,
+      description: participation.community.description,
+      imageUrl: participation.community.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(participation.community.imageUrl).data.publicUrl
+        : null,
+      joinedAt: participation.joinedAt,
+    }))
+
+  res.status(200).json({
+    status: SUCCESS,
+    memberships: structuredMemberships,
+  });
+},
+);
+
+
 export {
   createCommunity,
   updateCommunity,
@@ -313,4 +340,5 @@ export {
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
   getCommunityMembers,
+  getAuthenticatedUserCommunities,
 };

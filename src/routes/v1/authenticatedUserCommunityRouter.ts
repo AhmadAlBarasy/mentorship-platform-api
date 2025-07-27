@@ -11,10 +11,11 @@ import {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
+  getAuthenticatedUserCommunities,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 
-const { COMMUNITY_MANAGER } = Role;
+const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
 const authenticatedUserCommunityRouter = Router();
 
@@ -46,6 +47,7 @@ authenticatedUserCommunityRouter.route('/picture')
   )
   .all(notAllowedMethod);
 
+
 authenticatedUserCommunityRouter.route('/')
   .get(
     authenticate({ access: 'full' }),
@@ -57,6 +59,15 @@ authenticatedUserCommunityRouter.route('/')
     authorizedRoles([COMMUNITY_MANAGER]),
     requestValidator({ bodySchema: updateCommunitySchema }),
     updateCommunity,
+  )
+  .all(notAllowedMethod);
+
+
+authenticatedUserCommunityRouter.route('/memberships')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE, MENTOR]),
+    getAuthenticatedUserCommunities,
   )
   .all(notAllowedMethod);
 
