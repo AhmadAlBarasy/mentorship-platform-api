@@ -60,5 +60,4 @@ authenticatedUserCommunityRouter.route('/')
   )
   .all(notAllowedMethod);
 
-
 export default authenticatedUserCommunityRouter;

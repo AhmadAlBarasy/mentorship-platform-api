@@ -5,9 +5,11 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import path from 'path';
 import mime from 'mime-types';
-import { getCommunityByFieldService } from '../services/communityService';
+import { getCommunityByFieldService ,getCommunityMembersService } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
+import { Role } from '@prisma/client';
+
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -269,6 +271,38 @@ const resolveCommunityJoinRequest = errorHandler(async(req: Request, res: Respon
 
 });
 
+const getCommunityMembers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const communityId = req.params.id;
+
+  const members = await getCommunityMembersService(communityId);
+
+  const sturcturedMembers = members.length === 0 ? [] :
+    members.map((member: {
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role: Role;
+        headline: string;
+        imageUrl: string | null;
+      };
+      joinedAt: Date;
+    }) => ({
+      id: member.user.id,
+      name: member.user.name,
+      email: member.user.email,
+      role: member.user.role,
+      joinedAt: member.joinedAt,
+      headline: member.user.headline,
+      imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
+    }))
+
+  res.status(200).json({
+    status: SUCCESS,
+    members: sturcturedMembers,
+  });
+});
+
 export {
   createCommunity,
   updateCommunity,
@@ -278,4 +312,5 @@ export {
   getAuthenticatedUserCommunity,
   getAuthenticatedManagerCommunityJoinRequests,
   resolveCommunityJoinRequest,
+  getCommunityMembers,
 };
