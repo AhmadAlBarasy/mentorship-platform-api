@@ -276,13 +276,8 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
 
   const members = await getCommunityMembersService(communityId);
 
-  if (!members.length) {
-    return next(new APIError(404, `No members found for community ID ${communityId}`));
-  }
-
-  res.status(200).json({
-    status: SUCCESS,
-    members: members.map((member: {
+  const sturcturedMembers = members.length === 0 ? [] :
+    members.map((member: {
       user: {
         id: string;
         name: string;
@@ -300,7 +295,11 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
       joinedAt: member.joinedAt,
       headline: member.user.headline,
       imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
-    })),
+    }))
+
+  res.status(200).json({
+    status: SUCCESS,
+    members: sturcturedMembers,
   });
 });
 
