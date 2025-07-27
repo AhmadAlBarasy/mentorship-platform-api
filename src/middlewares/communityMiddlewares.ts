@@ -4,7 +4,7 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 
 
-export const authorizeCommunityAccess = async(req: Request, res: Response, next: NextFunction) => {
+export const authorizeCommunityMembersAccess = async(req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   const communityId = req.params.id;
 

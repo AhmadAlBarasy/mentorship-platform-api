@@ -7,7 +7,7 @@ import { createCommunitySchema } from '../../validators/validate.community';
 import { createCommunity, getCommunity, getCommunityMembers } from '../../controllers/communityController';
 import authenticatedUserCommunityRouter from './authenticatedUserCommunityRouter';
 import { requestToJoinCommunity, withdrawCommunityJoinRequest } from '../../controllers/communityJoinRequestsController';
-import { authorizeCommunityAccess } from '../../middlewares/communityMiddlewares';
+import { authorizeCommunityMembersAccess } from '../../middlewares/communityMiddlewares';
 
 const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
@@ -31,7 +31,7 @@ communityRouter.route('/:id/join-requests')
 communityRouter.route('/:id/members')
   .get(
     authenticate({ access: 'full' }),
-    authorizeCommunityAccess,
+    authorizeCommunityMembersAccess,
     getCommunityMembers,
   )
   .all(notAllowedMethod);
