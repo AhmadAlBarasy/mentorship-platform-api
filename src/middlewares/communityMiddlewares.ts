@@ -8,10 +8,6 @@ export const authorizeCommunityAccess = async(req: Request, res: Response, next:
   const user = req.user;
   const communityId = req.params.id;
 
-  if (!user) {
-    return next(new APIError(401, 'Unauthorized'));
-  }
-
   if (user.role === Role.ADMIN) {
     return next();
   }
