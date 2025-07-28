@@ -147,7 +147,7 @@
         "tags": [
           "Authentication"
         ],
-        "description": "Authenticates a user and returns a token. The user must provide either an ID or an email, along with a password.",
+        "description": "Authenticates a user and returns a token. If 2FA is enabled, an OTP will be sent and the response will indicate partial authentication. If email is not verified, a temporary session is created.",
         "operationId": "loginUser",
         "requestBody": {
           "required": true,
@@ -183,7 +183,34 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully logged in.",
+            "description": "Successfully logged in"
+          },
+          "202": {
+            "description": "OTP sent for 2FA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "OTP sent to your email"
+                    },
+                    "partialAuth": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "user_abc123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error",
             "content": {
               "application/json": {
                 "schema": {
@@ -191,11 +218,11 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "example": "Success"
+                      "example": "Fail"
                     },
-                    "token": {
+                    "message": {
                       "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      "example": "\"password\" is required"
                     }
                   }
                 }
@@ -1897,7 +1924,9 @@
     "/communities/my": {
       "get": {
         "summary": "Get authenticated user's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
         "operationId": "getAuthenticatedUserCommunity",
         "security": [
@@ -2301,7 +2330,9 @@
     "/communities/my/join-requests": {
       "get": {
         "summary": "Get join requests for the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
         "operationId": "getAuthenticatedManagerCommunityJoinRequests",
         "security": [
@@ -2375,7 +2406,9 @@
       },
       "put": {
         "summary": "Resolve a community join request",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated community manager to resolve a pending join request by either accepting or rejecting it. Accepting a request adds the user to the community participants and removes the request. Rejecting simply removes the request.",
         "operationId": "resolveCommunityJoinRequest",
         "security": [
@@ -2389,7 +2422,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id", "action"],
+                "required": [
+                  "id",
+                  "action"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2398,7 +2434,10 @@
                   },
                   "action": {
                     "type": "string",
-                    "enum": ["accept", "reject"],
+                    "enum": [
+                      "accept",
+                      "reject"
+                    ],
                     "description": "The action to perform on the join request",
                     "example": "accept"
                   }
@@ -2454,7 +2493,9 @@
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
         "operationId": "getCommunityDetails",
         "parameters": [
@@ -2548,7 +2589,9 @@
     "/communities/{id}/join-requests": {
       "post": {
         "summary": "Request to join a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a Mentee or Mentor to request to join a specific community. A user cannot submit multiple requests to the same community.",
         "operationId": "requestToJoinCommunity",
         "security": [
@@ -2633,7 +2676,9 @@
       },
       "delete": {
         "summary": "Withdraw join request from a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a Mentee or Mentor to withdraw a previously submitted request to join a specific community.",
         "operationId": "withdrawCommunityJoinRequest",
         "security": [

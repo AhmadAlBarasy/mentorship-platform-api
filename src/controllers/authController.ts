@@ -31,7 +31,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
   }
   if (user.authCredentials?.twoFactorEnabled) {
     await createAndSendOTP(user.id, user.email);
-    res.status(200).json({
+    res.status(202).json({
       message: 'OTP sent to your email',
       partialAuth: true,
       userId: user.id,
