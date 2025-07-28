@@ -596,6 +596,142 @@
         }
       }
     },
+    "/auth/verify-otp": {
+      "post": {
+        "summary": "Verify OTP for 2FA login",
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Verifies the OTP sent to the user's email for 2FA login. If successful, issues a full session token.",
+        "operationId": "verifyOTP",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "example": "user_abc123",
+                    "description": "The user's unique ID"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "example": "482139",
+                    "description": "The OTP code sent to the user's email"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "otp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified successfully. Full session started.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "JWT token cookie for full session",
+                "schema": {
+                  "type": "string",
+                  "example": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OTP verified. Session complete."
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error in input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "\"userId\" is required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired OTP",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid or expired OTP."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "OTP not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "OTP not found or expired."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}": {
       "get": {
         "summary": "Get basic profile of a user by ID",

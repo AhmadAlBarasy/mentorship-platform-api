@@ -33,7 +33,6 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     await createAndSendOTP(user.id, user.email);
     res.status(202).json({
       message: 'OTP sent to your email',
-      partialAuth: true,
       userId: user.id,
     });
   }
