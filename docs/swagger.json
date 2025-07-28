@@ -2644,6 +2644,192 @@
         }
       }
     },
+    "/communities/my/members": {
+      "get": {
+        "summary": "Get all members of the manager's community",
+        "tags": ["Communities"],
+        "description": "Retrieves all members of the community managed by the authenticated COMMUNITY_MANAGER. Includes member information such as ID, name, role, and joined date.",
+        "operationId": "getAuthenticatedManagerCommunityMembers",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Community members retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "user_abc123"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "John Doe"
+                          },
+                          "email": {
+                            "type": "string",
+                            "format": "email",
+                            "example": "john.doe@example.com"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": ["MENTEE", "MENTOR", "ADMIN"],
+                            "example": "MENTOR"
+                          },
+                          "joinedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-26T12:34:56.789Z"
+                          },
+                          "headline": {
+                            "type": "string",
+                            "example": "Software Engineer at XYZ"
+                          },
+                          "imageUrl": {
+                            "type": ["string", "null"],
+                            "format": "uri",
+                            "example": "https://your-supabase-url.storage.supabase.co/avatars/user_abc123.webp"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found for the authenticated manager",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a member from the manager's community",
+        "tags": ["Communities"],
+        "description": "Allows the authenticated COMMUNITY_MANAGER to remove a specific user from their community. The user must currently be a member of the manager's community.",
+        "operationId": "removeCommunityMember",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "description": "The ID of the user to remove",
+                    "example": "user_abc123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "User removed from the community successfully. No content returned."
+          },
+          "404": {
+            "description": "Either the manager has no community or the user is not a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "This user is not a member of your community"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
