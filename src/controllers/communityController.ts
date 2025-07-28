@@ -8,7 +8,8 @@ import mime from 'mime-types';
 import { getCommunityByFieldService,
   getCommunityMembersService,
   getAuthenticatedUserCommunitiesService,
-  leaveCommunityService,
+  removeParticipantService,
+  structureMembers,
 } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
@@ -280,26 +281,7 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
 
   const members = await getCommunityMembersService(communityId);
 
-  const sturcturedMembers = members.length === 0 ? [] :
-    members.map((member: {
-      user: {
-        id: string;
-        name: string;
-        email: string;
-        role: Role;
-        headline: string;
-        imageUrl: string | null;
-      };
-      joinedAt: Date;
-    }) => ({
-      id: member.user.id,
-      name: member.user.name,
-      email: member.user.email,
-      role: member.user.role,
-      joinedAt: member.joinedAt,
-      headline: member.user.headline,
-      imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
-    }))
+  const sturcturedMembers = structureMembers(members);
 
   res.status(200).json({
     status: SUCCESS,
@@ -307,8 +289,29 @@ const getCommunityMembers = errorHandler(async(req: Request, res: Response, next
   });
 });
 
+const getAuthenticatedManagerCommunityMembers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: managerId } = req.user;
 
-const getAuthenticatedUserCommunities = errorHandler(  async(req: Request, res: Response, next: NextFunction) => {
+  const community = await getCommunityByFieldService({ searchBy: { managerId } });
+
+  if (!community){
+    return next(new APIError(404, 'You don\'t have a community'));
+  }
+
+  const { id: communityId } = community;
+
+  const members = await getCommunityMembersService(communityId);
+  const sturcturedMembers = structureMembers(members);
+
+  res.status(200).json({
+    status: SUCCESS,
+    members: sturcturedMembers,
+  });
+
+});
+
+
+const getAuthenticatedUserCommunities = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { user } = req;
   const participations = await getAuthenticatedUserCommunitiesService(user.id);
 
@@ -350,7 +353,40 @@ const leaveCommunity = errorHandler(async(req: Request, res: Response, next: Nex
     return next(new APIError(400, 'You are not a member of this community'));
   }
 
-  await leaveCommunityService(userId, communityId);
+  await removeParticipantService(userId, communityId);
+
+  res.status(204).json({});
+
+});
+
+const removeCommunityMember = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: managerId } = req.user;
+  const { id: userId } = req.body;
+
+  const community = await prisma.communities.findFirst({
+    where: {
+      managerId,
+    },
+  });
+
+  if (!community){
+    return next(new APIError(404, 'You don\'t have a community'));
+  }
+
+  const { id: communityId } = community;
+
+  const participation = await prisma.participations.findFirst({
+    where: {
+      userId,
+      communityId,
+    },
+  });
+
+  if (!participation){
+    return next(new APIError(404, 'This user is not a member of your community'));
+  }
+
+  await removeParticipantService(userId, communityId);
 
   res.status(204).json({});
 
@@ -369,4 +405,6 @@ export {
   getCommunityMembers,
   getAuthenticatedUserCommunities,
   leaveCommunity,
+  removeCommunityMember,
+  getAuthenticatedManagerCommunityMembers,
 };

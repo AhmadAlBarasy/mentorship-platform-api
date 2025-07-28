@@ -3,7 +3,11 @@ import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
-import { leaveCommunitySchema, resolveJoinRequestSchema, updateCommunitySchema } from '../../validators/validate.community';
+import {
+  communityIdSchema,
+  resolveJoinRequestSchema,
+  updateCommunitySchema,
+} from '../../validators/validate.community';
 import {
   deleteAuthenticatedUserCommunityImage,
   updateAuthenticatedUserCommunityImage,
@@ -13,8 +17,11 @@ import {
   resolveCommunityJoinRequest,
   getAuthenticatedUserCommunities,
   leaveCommunity,
+  removeCommunityMember,
+  getAuthenticatedManagerCommunityMembers,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
+import { userIdSchema } from '../../validators/validate.user';
 
 const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
@@ -58,10 +65,25 @@ authenticatedUserCommunityRouter.route('/memberships')
   .delete(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTEE, MENTOR]),
-    requestValidator({ bodySchema: leaveCommunitySchema }),
+    requestValidator({ bodySchema: communityIdSchema }),
     leaveCommunity,
   )
   .all(notAllowedMethod);
+
+authenticatedUserCommunityRouter.route('/members')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    getAuthenticatedManagerCommunityMembers,
+  )
+  .delete(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    requestValidator({ bodySchema: userIdSchema }),
+    removeCommunityMember,
+  )
+  .all(notAllowedMethod);
+
 
 authenticatedUserCommunityRouter.route('/')
   .get(
