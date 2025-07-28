@@ -70,7 +70,7 @@ const resolveJoinRequestSchema = Joi.object({
 
 });
 
-const leaveCommunitySchema = Joi.object({
+const communityIdSchema = Joi.object({
   id: Joi.string()
     .max(32)
     .required()
@@ -85,5 +85,5 @@ export {
   createCommunitySchema,
   updateCommunitySchema,
   resolveJoinRequestSchema,
-  leaveCommunitySchema,
+  communityIdSchema,
 };

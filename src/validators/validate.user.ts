@@ -55,7 +55,20 @@ const reportUserSchema = Joi.object({
       'string.max': 'Additional details must be under 500 characters.',
     }),
 });
+
+const userIdSchema = Joi.object({
+  id: Joi.string()
+    .max(32)
+    .required()
+    .messages({
+      'string.base': 'ID must be a string',
+      'string.max': 'ID must be at most 32 characters long',
+      'any.required': 'ID is required',
+    }),
+});
+
 export {
   updateUserSchema,
   reportUserSchema,
+  userIdSchema,
 };

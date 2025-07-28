@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import prisma from '../db';
 import supabase from './supabaseClient';
 
@@ -87,7 +88,7 @@ const getAuthenticatedUserCommunitiesService = async(userId: string) => {
   });
 };
 
-const leaveCommunityService = async(userId: string, communityId: string) => {
+const removeParticipantService = async(userId: string, communityId: string) => {
 
   await prisma.participations.deleteMany({
     where: {
@@ -95,6 +96,30 @@ const leaveCommunityService = async(userId: string, communityId: string) => {
       communityId,
     },
   });
+};
+
+const structureMembers = (members: {
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        role: Role;
+        headline: string;
+        imageUrl: string | null;
+      };
+      joinedAt: Date;
+    }[]) => {
+
+  return members.length === 0 ? [] :
+    members.map((member) => ({
+      id: member.user.id,
+      name: member.user.name,
+      email: member.user.email,
+      role: member.user.role,
+      joinedAt: member.joinedAt,
+      headline: member.user.headline,
+      imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
+    }))
 
 };
 
@@ -102,5 +127,6 @@ export {
   getCommunityByFieldService,
   getCommunityMembersService,
   getAuthenticatedUserCommunitiesService,
-  leaveCommunityService,
+  removeParticipantService,
+  structureMembers,
 };
