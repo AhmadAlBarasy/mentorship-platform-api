@@ -81,6 +81,7 @@ authRouter.route('/update-password')
 
 authRouter.route('/verify-otp')
   .post(
+    authenticate({ access: 'full' }),
     requestValidator({ bodySchema: verifyOTPSchema }),
     verifyOTP,
   )
