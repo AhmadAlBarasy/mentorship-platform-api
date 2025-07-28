@@ -70,8 +70,20 @@ const resolveJoinRequestSchema = Joi.object({
 
 });
 
+const leaveCommunitySchema = Joi.object({
+  id: Joi.string()
+    .max(32)
+    .required()
+    .messages({
+      'string.base': 'ID must be a string',
+      'string.max': 'ID must be at most 32 characters long',
+      'any.required': 'ID is required',
+    }),
+});
+
 export {
   createCommunitySchema,
   updateCommunitySchema,
   resolveJoinRequestSchema,
+  leaveCommunitySchema,
 };
