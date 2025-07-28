@@ -8,6 +8,7 @@ import mime from 'mime-types';
 import { getCommunityByFieldService,
   getCommunityMembersService,
   getAuthenticatedUserCommunitiesService,
+  leaveCommunityService,
 } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
@@ -326,8 +327,34 @@ const getAuthenticatedUserCommunities = errorHandler(  async(req: Request, res: 
     status: SUCCESS,
     memberships: structuredMemberships,
   });
-},
-);
+});
+
+const leaveCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: communityId } = req.body;
+  const { id: userId } = req.user;
+
+  const community = await getCommunityByFieldService({ searchBy: { id: communityId } });
+
+  if (!community){
+    return next(new APIError(404, 'Community not found'));
+  }
+
+  const participation = await prisma.participations.findFirst({
+    where: {
+      userId,
+      communityId,
+    },
+  });
+
+  if (!participation){
+    return next(new APIError(400, 'You are not a member of this community'));
+  }
+
+  await leaveCommunityService(userId, communityId);
+
+  res.status(204).json({});
+
+});
 
 
 export {
@@ -341,4 +368,5 @@ export {
   resolveCommunityJoinRequest,
   getCommunityMembers,
   getAuthenticatedUserCommunities,
+  leaveCommunity,
 };

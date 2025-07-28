@@ -87,4 +87,20 @@ const getAuthenticatedUserCommunitiesService = async(userId: string) => {
   });
 };
 
-export { getCommunityByFieldService, getCommunityMembersService, getAuthenticatedUserCommunitiesService };
+const leaveCommunityService = async(userId: string, communityId: string) => {
+
+  await prisma.participations.deleteMany({
+    where: {
+      userId,
+      communityId,
+    },
+  });
+
+};
+
+export {
+  getCommunityByFieldService,
+  getCommunityMembersService,
+  getAuthenticatedUserCommunitiesService,
+  leaveCommunityService,
+};
