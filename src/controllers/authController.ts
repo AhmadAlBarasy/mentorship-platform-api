@@ -45,7 +45,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
       sub: user.id,
       role: user.role,
       iss: process.env.JWT_ISS,
-      partial: emailVerified ? undefined : true, // make the session partial if the email is not verified
+      partial: emailVerified ? undefined : true,
     },
     process.env.JWT_SECRET as string,
     {
@@ -57,10 +57,9 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
   res.cookie('token', token, {
     path: '/',
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: emailVerified ? cookieExpiry * 24 : cookieExpiry, // expires after 1 day if the user is verified. Otherwise, after 1 hour
-
+    maxAge: emailVerified ? cookieExpiry * 24 : cookieExpiry,
   });
 
   res.status(200).json({

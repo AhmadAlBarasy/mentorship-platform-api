@@ -12,7 +12,7 @@ export const sendOTPEmail = async(to: string, otp: string) => {
         sender: { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
         to: [{ email: to }],
         subject: 'Your Verification Code',
-        htmlContent: `<p>Your OTP is <strong>${otp}</strong>. It will expire in 5 minutes.</p>`,
+        htmlContent: `<p>Your OTP is <strong>${otp}</strong>. It will expire in 15 minutes.</p>`,
       },
       {
         headers: {
