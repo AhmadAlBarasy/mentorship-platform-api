@@ -2547,6 +2547,101 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Leave a community",
+        "tags": ["Communities"],
+        "description": "Allows an authenticated MENTEE or MENTOR to leave a community they are a member of. This action removes the user's participation record from the specified community.",
+        "operationId": "leaveCommunity",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "description": "The ID of the community to leave",
+                    "example": "growthly-dev"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successfully left the community. No content returned."
+          },
+          "400": {
+            "description": "Bad request - user is not a member of the specified community",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not a member of this community"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/communities/{id}": {
