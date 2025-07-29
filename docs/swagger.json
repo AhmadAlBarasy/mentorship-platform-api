@@ -2550,7 +2550,9 @@
       },
       "delete": {
         "summary": "Leave a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated MENTEE or MENTOR to leave a community they are a member of. This action removes the user's participation record from the specified community.",
         "operationId": "leaveCommunity",
         "security": [
@@ -2564,7 +2566,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id"],
+                "required": [
+                  "id"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2647,7 +2651,9 @@
     "/communities/my/members": {
       "get": {
         "summary": "Get all members of the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves all members of the community managed by the authenticated COMMUNITY_MANAGER. Includes member information such as ID, name, role, and joined date.",
         "operationId": "getAuthenticatedManagerCommunityMembers",
         "security": [
@@ -2687,7 +2693,11 @@
                           },
                           "role": {
                             "type": "string",
-                            "enum": ["MENTEE", "MENTOR", "ADMIN"],
+                            "enum": [
+                              "MENTEE",
+                              "MENTOR",
+                              "ADMIN"
+                            ],
                             "example": "MENTOR"
                           },
                           "joinedAt": {
@@ -2700,7 +2710,10 @@
                             "example": "Software Engineer at XYZ"
                           },
                           "imageUrl": {
-                            "type": ["string", "null"],
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "format": "uri",
                             "example": "https://your-supabase-url.storage.supabase.co/avatars/user_abc123.webp"
                           }
@@ -2756,7 +2769,9 @@
       },
       "delete": {
         "summary": "Remove a member from the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows the authenticated COMMUNITY_MANAGER to remove a specific user from their community. The user must currently be a member of the manager's community.",
         "operationId": "removeCommunityMember",
         "security": [
@@ -2770,7 +2785,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id"],
+                "required": [
+                  "id"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -3088,7 +3105,9 @@
     "/communities/{id}/members": {
       "get": {
         "summary": "Get all members of a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves a list of all users who are members of the specified community. Accessible only to Admins, the community's manager, or existing MENTOR/MENTEE participants.",
         "operationId": "getCommunityMembers",
         "security": [
@@ -3140,7 +3159,11 @@
                           },
                           "role": {
                             "type": "string",
-                            "enum": ["MENTEE", "MENTOR", "ADMIN"],
+                            "enum": [
+                              "MENTEE",
+                              "MENTOR",
+                              "ADMIN"
+                            ],
                             "example": "MENTOR"
                           },
                           "joinedAt": {
@@ -3153,7 +3176,10 @@
                             "example": "Software Engineer at XYZ"
                           },
                           "imageUrl": {
-                            "type": ["string", "null"],
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "format": "uri",
                             "example": "https://your-supabase-url.storage.supabase.co/avatars/user_abc123.webp"
                           }
@@ -3179,6 +3205,83 @@
                     "message": {
                       "type": "string",
                       "example": "You are not allowed to access community members"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/enable-2fa": {
+      "post": {
+        "summary": "Enable Two-Factor Authentication (2FA)",
+        "tags": [
+          "Users"
+        ],
+        "description": "Enables 2FA for the authenticated user. Requires a full session (email must be verified).",
+        "operationId": "enable2FA",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "2FA has been successfully enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Two-factor authentication has been enabled."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - partial sessions cannot enable 2FA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not allowed to perform this action"
                     }
                   }
                 }

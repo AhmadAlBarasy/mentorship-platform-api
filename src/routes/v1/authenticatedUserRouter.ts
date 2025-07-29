@@ -17,6 +17,7 @@ import {
 } from '../../controllers/userLinksController';
 import { addUserLinkSchema, updateUserLinkSchema } from '../../validators/validate.userLinks';
 import upload from '../../utils/fileUpload';
+import { enable2FA } from '../../controllers/otpController';
 
 const authenticatedUserRouter = Router();
 
@@ -55,6 +56,14 @@ authenticatedUserRouter.route('/profile-picture')
     deleteAuthenticatedUserImage,
   )
   .all(notAllowedMethod);
+
+authenticatedUserRouter.route('/enable-2fa')
+  .post(
+    authenticate({ access: 'full' }),
+    enable2FA,
+  )
+  .all(notAllowedMethod);
+
 
 authenticatedUserRouter.route('/')
   .get(
