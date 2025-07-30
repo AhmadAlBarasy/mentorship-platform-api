@@ -3,6 +3,7 @@ import { authenticate } from '../../middlewares/authMiddlewares';
 import requestValidator from '../../middlewares/requestValidator';
 import {
   deleteAuthenticatedUserImage,
+  enable2FA,
   getAuthenticatedUser,
   updateAuthenticatedUser,
   updateAuthenticatedUserImage,
@@ -17,7 +18,6 @@ import {
 } from '../../controllers/userLinksController';
 import { addUserLinkSchema, updateUserLinkSchema } from '../../validators/validate.userLinks';
 import upload from '../../utils/fileUpload';
-import { enable2FA } from '../../controllers/otpController';
 
 const authenticatedUserRouter = Router();
 

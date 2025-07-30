@@ -1,6 +1,7 @@
 import prisma from '../db';
 import { Role } from '@prisma/client';
 import supabase from './supabaseClient';
+import APIError from '../classes/APIError';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -142,6 +143,19 @@ const createUserReport = async(data: {
   });
 };
 
+const enable2FAService = async(userId: string) => {
+  const record = await prisma.authCredentials.findUnique({ where: { userId } });
+
+  if (record?.twoFactorEnabled) {
+    throw new APIError(400, '2FA is already enabled.');
+  }
+
+  return prisma.authCredentials.update({
+    where: { userId },
+    data: { twoFactorEnabled: true },
+  });
+};
+
 export {
   getUserService,
   createUserService,
@@ -150,4 +164,5 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
+  enable2FAService,
 };
