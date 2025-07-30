@@ -15,7 +15,9 @@
     "/auth/signup": {
       "post": {
         "summary": "Register a new user (Mentee, Mentor)",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Creates a new user on the platform, the user can join either as a Mentee, or as a Mentor",
         "operationId": "signupUser",
         "requestBody": {
@@ -55,7 +57,10 @@
                   },
                   "role": {
                     "type": "string",
-                    "enum": ["mentee", "mentor"],
+                    "enum": [
+                      "mentee",
+                      "mentor"
+                    ],
                     "example": "mentee"
                   }
                 },
@@ -139,7 +144,9 @@
     "/auth/login": {
       "post": {
         "summary": "Logs a User into the platform",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Authenticates a user and returns a token. The user must provide either an ID or an email, along with a password.",
         "operationId": "loginUser",
         "requestBody": {
@@ -167,7 +174,9 @@
                     "description": "User password (always required)"
                   }
                 },
-                "required": ["password"]
+                "required": [
+                  "password"
+                ]
               }
             }
           }
@@ -219,7 +228,9 @@
     "/auth/logout": {
       "post": {
         "summary": "Logs the user out of the platform",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Logs the user out by clearing the authentication token cookie. Requires an active session (partial or full).",
         "operationId": "logoutUser",
         "responses": {
@@ -269,7 +280,9 @@
     "/auth/confirm-email": {
       "post": {
         "summary": "Confirm user's email",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Confirms a user's email address, requires a partial session",
         "operationId": "confirmEmail",
         "requestBody": {
@@ -284,7 +297,9 @@
                     "example": "52fe111a0a24ee5a"
                   }
                 },
-                "required": ["code"]
+                "required": [
+                  "code"
+                ]
               }
             }
           }
@@ -336,7 +351,9 @@
     "/auth/forgot-password": {
       "post": {
         "summary": "Forgot password",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Sends a password reset email to the user",
         "operationId": "forgotPassword",
         "requestBody": {
@@ -352,7 +369,9 @@
                     "example": "johndoe@gmail.com"
                   }
                 },
-                "required": ["email"]
+                "required": [
+                  "email"
+                ]
               }
             }
           }
@@ -404,7 +423,9 @@
     "/auth/reset-password": {
       "post": {
         "summary": "Reset password",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Resets the user's password using a provided token",
         "operationId": "resetPassword",
         "requestBody": {
@@ -424,7 +445,10 @@
                     "example": "389f57d8d05040c60ae9648f94e1018a"
                   }
                 },
-                "required": ["password", "token"]
+                "required": [
+                  "password",
+                  "token"
+                ]
               }
             }
           }
@@ -476,7 +500,9 @@
     "/auth/update-password": {
       "post": {
         "summary": "Update password",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "description": "Updates the authenticated user's password. Requires a full session",
         "operationId": "updatePassword",
         "requestBody": {
@@ -492,7 +518,9 @@
                     "example": "NewStrongP@ssword123"
                   }
                 },
-                "required": ["password"]
+                "required": [
+                  "password"
+                ]
               }
             }
           }
@@ -544,7 +572,9 @@
     "/users/{id}": {
       "get": {
         "summary": "Get basic profile of a user by ID",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Requires the user to be authenticated. Returns public profile information of a user, including ID, name, email, role, and associated links. Sensitive fields such as passwords and authentication tokens are excluded.",
         "operationId": "getUserById",
         "parameters": [
@@ -592,7 +622,10 @@
                           "example": "Software Engineer"
                         },
                         "bio": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "country": {
@@ -600,7 +633,10 @@
                           "example": "USA"
                         },
                         "imageUrl": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "dateJoined": {
@@ -609,11 +645,18 @@
                           "example": "2025-07-11T16:58:26.127Z"
                         },
                         "skills": {
-                          "type": ["array", "null"],
+                          "type": [
+                            "array",
+                            "null"
+                          ],
                           "items": {
                             "type": "string"
                           },
-                          "example": ["HTML", "CSS", "JavaScript"]
+                          "example": [
+                            "HTML",
+                            "CSS",
+                            "JavaScript"
+                          ]
                         },
                         "timezone": {
                           "type": "string",
@@ -624,7 +667,10 @@
                           "example": "MENTOR"
                         },
                         "links": {
-                          "type": ["array", "null"],
+                          "type": [
+                            "array",
+                            "null"
+                          ],
                           "items": {
                             "type": "object",
                             "properties": {
@@ -703,7 +749,9 @@
     "/users/me": {
       "get": {
         "summary": "Get current authenticated user's profile",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Requires the user to be authenticated. Returns basic user information including ID, name, email, role, and other optional profile fields.",
         "operationId": "getCurrentUser",
         "responses": {
@@ -739,7 +787,10 @@
                           "example": "Software Engineer"
                         },
                         "bio": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "country": {
@@ -747,7 +798,10 @@
                           "example": "USA"
                         },
                         "imageUrl": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "dateJoined": {
@@ -756,11 +810,18 @@
                           "example": "2025-07-11T16:58:26.127Z"
                         },
                         "skills": {
-                          "type": ["array", "null"],
+                          "type": [
+                            "array",
+                            "null"
+                          ],
                           "items": {
                             "type": "string"
                           },
-                          "example": ["HTML", "CSS", "JavaScript"]
+                          "example": [
+                            "HTML",
+                            "CSS",
+                            "JavaScript"
+                          ]
                         },
                         "timezone": {
                           "type": "string",
@@ -801,7 +862,9 @@
       },
       "patch": {
         "summary": "Update authenticated user's profile",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Requires the user to be authenticated. Allows the user to update their profile information. At least one updatable field must be provided.",
         "operationId": "updateAuthenticatedUser",
         "requestBody": {
@@ -847,13 +910,21 @@
                       "type": "string",
                       "maxLength": 50
                     },
-                    "example": ["JavaScript", "React", "Node.js"]
+                    "example": [
+                      "JavaScript",
+                      "React",
+                      "Node.js"
+                    ]
                   }
                 },
                 "example": {
                   "headline": "Backend Engineer",
                   "bio": "10+ years in distributed systems",
-                  "skills": ["Node.js", "Docker", "PostgreSQL"]
+                  "skills": [
+                    "Node.js",
+                    "Docker",
+                    "PostgreSQL"
+                  ]
                 }
               }
             }
@@ -896,7 +967,10 @@
                           "example": "Backend Engineer"
                         },
                         "bio": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "10+ years in distributed systems"
                         },
                         "country": {
@@ -904,7 +978,10 @@
                           "example": "USA"
                         },
                         "imageUrl": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": null
                         },
                         "dateJoined": {
@@ -913,11 +990,18 @@
                           "example": "2025-07-11T16:58:26.127Z"
                         },
                         "skills": {
-                          "type": ["array", "null"],
+                          "type": [
+                            "array",
+                            "null"
+                          ],
                           "items": {
                             "type": "string"
                           },
-                          "example": ["Node.js", "Docker", "PostgreSQL"]
+                          "example": [
+                            "Node.js",
+                            "Docker",
+                            "PostgreSQL"
+                          ]
                         },
                         "timezone": {
                           "type": "string",
@@ -980,7 +1064,9 @@
     "/users/me/links": {
       "get": {
         "summary": "Get all links associated with the authenticated user",
-        "tags": ["UserLinks"],
+        "tags": [
+          "UserLinks"
+        ],
         "description": "Requires the user to be authenticated. Returns an array of all the user's added links.",
         "operationId": "getAuthenticatedUserLinks",
         "responses": {
@@ -1046,7 +1132,9 @@
       },
       "post": {
         "summary": "Add a new link to the authenticated user's profile",
-        "tags": ["UserLinks"],
+        "tags": [
+          "UserLinks"
+        ],
         "description": "Requires the user to be authenticated. Adds a new link (e.g. portfolio or social profile) to the user's profile.",
         "operationId": "addAuthenticatedUserLink",
         "requestBody": {
@@ -1055,7 +1143,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["linkName", "linkUrl"],
+                "required": [
+                  "linkName",
+                  "linkUrl"
+                ],
                 "properties": {
                   "linkName": {
                     "type": "string",
@@ -1139,7 +1230,9 @@
     "/users/me/links/{id}": {
       "patch": {
         "summary": "Update an existing link for the authenticated user",
-        "tags": ["UserLinks"],
+        "tags": [
+          "UserLinks"
+        ],
         "description": "Requires the user to be authenticated. Allows the user to update an existing link by its ID. At least one of `linkName` or `linkUrl` must be provided.",
         "operationId": "updateAuthenticatedUserLink",
         "parameters": [
@@ -1284,7 +1377,9 @@
       },
       "delete": {
         "summary": "Delete an existing link for the authenticated user",
-        "tags": ["UserLinks"],
+        "tags": [
+          "UserLinks"
+        ],
         "description": "Requires the user to be authenticated. Deletes a link belonging to the user by its ID.",
         "operationId": "deleteAuthenticatedUserLink",
         "parameters": [
@@ -1352,7 +1447,9 @@
     "/users/me/profile-picture": {
       "put": {
         "summary": "Upload or update profile picture",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Uploads a new profile picture for the authenticated user. If an image already exists, it will be replaced. Only image files are allowed, and the file size must not exceed 2MB.",
         "operationId": "uploadOrUpdateProfilePicture",
         "requestBody": {
@@ -1368,7 +1465,9 @@
                     "description": "The image file to upload (max 2MB)."
                   }
                 },
-                "required": ["image"]
+                "required": [
+                  "image"
+                ]
               }
             }
           }
@@ -1443,7 +1542,9 @@
       },
       "delete": {
         "summary": "Delete profile picture",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Deletes the authenticated user’s existing profile picture from Supabase storage.",
         "operationId": "deleteProfilePicture",
         "responses": {
@@ -1477,7 +1578,9 @@
       "post": {
         "summary": "Report a user",
         "description": "Report a user who violated platform guidelines.",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -1505,7 +1608,9 @@
                     "example": "Sent inappropriate messages"
                   }
                 },
-                "required": ["violation"]
+                "required": [
+                  "violation"
+                ]
               }
             }
           }
@@ -1617,7 +1722,9 @@
     "/communities": {
       "post": {
         "summary": "Create a new community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated user with the COMMUNITY_MANAGER role to create a new community. Each user may create only one community. All fields are required.",
         "operationId": "createCommunity",
         "requestBody": {
@@ -1643,7 +1750,11 @@
                     "example": "A community for developers, designers, and tech enthusiasts to collaborate and share ideas."
                   }
                 },
-                "required": ["id", "name", "description"]
+                "required": [
+                  "id",
+                  "name",
+                  "description"
+                ]
               }
             }
           }
@@ -1786,7 +1897,9 @@
     "/communities/my": {
       "get": {
         "summary": "Get authenticated user's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
         "operationId": "getAuthenticatedUserCommunity",
         "security": [
@@ -1871,7 +1984,9 @@
       },
       "patch": {
         "summary": "Update the authenticated manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to update their own community's information such as name or description. Requires authentication and appropriate role.",
         "operationId": "updateMyCommunity",
         "requestBody": {
@@ -1929,7 +2044,10 @@
                           "example": "A friendly community for developers, designers, and tech enthusiasts to collaborate and grow."
                         },
                         "imageUrl": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "uri",
                           "example": "https://example.com/images/tech-lounge.png"
                         },
@@ -2015,7 +2133,9 @@
     "/communities/my/picture": {
       "put": {
         "summary": "Upload or update the community image",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to upload or update the image associated with their community. The image must be provided as multipart/form-data under the key `image`. This endpoint replaces any previously uploaded image.",
         "operationId": "uploadOrUpdateCommunityImage",
         "requestBody": {
@@ -2031,7 +2151,9 @@
                     "description": "The image file to upload (must be an image type, max size 2MB)"
                   }
                 },
-                "required": ["image"]
+                "required": [
+                  "image"
+                ]
               }
             }
           }
@@ -2126,7 +2248,9 @@
       },
       "delete": {
         "summary": "Delete the community image",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to delete the image associated with their community. If no image exists, it returns a 404 error.",
         "operationId": "deleteCommunityImage",
         "responses": {
@@ -2179,7 +2303,9 @@
     "/communities/my/join-requests": {
       "get": {
         "summary": "Get join requests for the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
         "operationId": "getAuthenticatedManagerCommunityJoinRequests",
         "security": [
@@ -2253,7 +2379,9 @@
       },
       "put": {
         "summary": "Resolve a community join request",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated community manager to resolve a pending join request by either accepting or rejecting it. Accepting a request adds the user to the community participants and removes the request. Rejecting simply removes the request.",
         "operationId": "resolveCommunityJoinRequest",
         "security": [
@@ -2267,7 +2395,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id", "action"],
+                "required": [
+                  "id",
+                  "action"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2276,7 +2407,10 @@
                   },
                   "action": {
                     "type": "string",
-                    "enum": ["accept", "reject"],
+                    "enum": [
+                      "accept",
+                      "reject"
+                    ],
                     "description": "The action to perform on the join request",
                     "example": "accept"
                   }
@@ -2332,7 +2466,9 @@
     "/communities/my/memberships": {
       "get": {
         "summary": "Get communities where the user is a member",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Returns a list of communities that the currently authenticated user is a member of.",
         "operationId": "getAuthenticatedUserMemberships",
         "security": [
@@ -2370,7 +2506,10 @@
                             "example": "A community for developers, designers, and tech enthusiasts."
                           },
                           "imageUrl": {
-                            "type": ["string", "null"],
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "format": "uri",
                             "example": "https://xyz.supabase.co/storage/v1/object/public/growthly-storage/communities/iug.png"
                           },
@@ -2411,7 +2550,9 @@
       },
       "delete": {
         "summary": "Leave a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated MENTEE or MENTOR to leave a community they are a member of. This action removes the user's participation record from the specified community.",
         "operationId": "leaveCommunity",
         "security": [
@@ -2425,7 +2566,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id"],
+                "required": [
+                  "id"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2508,7 +2651,9 @@
     "/communities/my/members": {
       "get": {
         "summary": "Get all members of the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves all members of the community managed by the authenticated COMMUNITY_MANAGER. Includes member information such as ID, name, role, and joined date.",
         "operationId": "getAuthenticatedManagerCommunityMembers",
         "security": [
@@ -2548,7 +2693,11 @@
                           },
                           "role": {
                             "type": "string",
-                            "enum": ["MENTEE", "MENTOR", "ADMIN"],
+                            "enum": [
+                              "MENTEE",
+                              "MENTOR",
+                              "ADMIN"
+                            ],
                             "example": "MENTOR"
                           },
                           "joinedAt": {
@@ -2561,7 +2710,10 @@
                             "example": "Software Engineer at XYZ"
                           },
                           "imageUrl": {
-                            "type": ["string", "null"],
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "format": "uri",
                             "example": "https://your-supabase-url.storage.supabase.co/avatars/user_abc123.webp"
                           }
@@ -2617,7 +2769,9 @@
       },
       "delete": {
         "summary": "Remove a member from the manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows the authenticated COMMUNITY_MANAGER to remove a specific user from their community. The user must currently be a member of the manager's community.",
         "operationId": "removeCommunityMember",
         "security": [
@@ -2631,7 +2785,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id"],
+                "required": [
+                  "id"
+                ],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2694,7 +2850,9 @@
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
         "operationId": "getCommunityDetails",
         "parameters": [
@@ -2788,7 +2946,9 @@
     "/communities/{id}/join-requests": {
       "post": {
         "summary": "Request to join a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a Mentee or Mentor to request to join a specific community. A user cannot submit multiple requests to the same community.",
         "operationId": "requestToJoinCommunity",
         "security": [
@@ -2873,7 +3033,9 @@
       },
       "delete": {
         "summary": "Withdraw join request from a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a Mentee or Mentor to withdraw a previously submitted request to join a specific community.",
         "operationId": "withdrawCommunityJoinRequest",
         "security": [
@@ -2943,7 +3105,9 @@
     "/communities/{id}/members": {
       "get": {
         "summary": "Get all members of a community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Retrieves a list of all users who are members of the specified community. Accessible only to Admins, the community's manager, or existing MENTOR/MENTEE participants.",
         "operationId": "getCommunityMembers",
         "security": [
@@ -2995,7 +3159,11 @@
                           },
                           "role": {
                             "type": "string",
-                            "enum": ["MENTEE", "MENTOR", "ADMIN"],
+                            "enum": [
+                              "MENTEE",
+                              "MENTOR",
+                              "ADMIN"
+                            ],
                             "example": "MENTOR"
                           },
                           "joinedAt": {
@@ -3008,7 +3176,10 @@
                             "example": "Software Engineer at XYZ"
                           },
                           "imageUrl": {
-                            "type": ["string", "null"],
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "format": "uri",
                             "example": "https://your-supabase-url.storage.supabase.co/avatars/user_abc123.webp"
                           }
@@ -3046,7 +3217,9 @@
     "/users/me/enable-2fa": {
       "post": {
         "summary": "Enable Two-Factor Authentication (2FA)",
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "description": "Enables 2FA for the authenticated user. Requires a full session (email must be verified).",
         "operationId": "enable2FA",
         "security": [

@@ -1,10 +1,5 @@
 {
-  "printWidth": 80,
+  "printWidth": 20,
   "tabWidth": 2,
-  "useTabs": false,
-  "bracketSpacing": true,
-  "arrowParens": "always",
-  "trailingComma": "all",
-  "proseWrap": "preserve",
-  "jsonRecursiveSort": false
+  "trailingComma": "all"
 }
