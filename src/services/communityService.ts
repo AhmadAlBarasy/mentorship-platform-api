@@ -120,8 +120,46 @@ const structureMembers = (members: {
       headline: member.user.headline,
       imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
     }))
-
 };
+
+const getUserJoinRequestsService = async(userId: string) => {
+
+  const joinRequests = await prisma.communityJoinRequests.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      community: true,
+    },
+  });
+
+  return joinRequests.length === 0 ? [] : joinRequests.map((joinRequest:
+    {
+    id: string;
+    userId: string;
+    communityId: string;
+    createdAt: Date;
+    community: {
+      id: string;
+      name: string;
+      description: string;
+      imageUrl: string | null;
+      managerId: string | null;
+      createdAt: Date;
+    }
+  },
+  ) => {
+    return {
+      id: joinRequest.id,
+      communityId: joinRequest.communityId,
+      name: joinRequest.community.name,
+      imageUrl: joinRequest.community.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(joinRequest.community.imageUrl).data.publicUrl
+        : null,
+      createdAt: joinRequest.createdAt,
+    }
+  });
+}
 
 export {
   getCommunityByFieldService,
@@ -129,4 +167,5 @@ export {
   getAuthenticatedUserCommunitiesService,
   removeParticipantService,
   structureMembers,
+  getUserJoinRequestsService,
 };
