@@ -1719,6 +1719,121 @@
         }
       }
     },
+    "/users/me/disable-2fa": {
+        "post": {
+          "summary": "Disable Two-Factor Authentication (2FA)",
+          "tags": ["Users"],
+          "description": "Disables 2FA for the authenticated user. Requires a full session (email must be verified).",
+          "operationId": "disable2FA",
+          "security": [
+            {
+              "cookieAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "2FA has been successfully disabled.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Success"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Two-factor authentication has been disabled."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "2FA already disabled",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Fail"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "2FA is already disabled."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Auth record not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Fail"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Auth record not found."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - user not authenticated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Fail"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Unauthorized, No token provided"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Forbidden - partial sessions cannot disable 2FA",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Fail"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "You are not allowed to perform this action"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     "/communities": {
       "post": {
         "summary": "Create a new community",
