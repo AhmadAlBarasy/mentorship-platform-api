@@ -1574,6 +1574,82 @@
         }
       }
     },
+    "/users/me/join-requests": {
+      "get": {
+        "summary": "Get the authenticated user's community join requests",
+        "tags": ["Users"],
+        "description": "Retrieves all community join requests submitted by the currently authenticated user. Only MENTEEs and MENTORs can access this endpoint.",
+        "operationId": "getAuthenticatedUserJoinRequests",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Join requests retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "joinRequests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "17a11b27-3360-4bba-bcda-b004e08482cb"
+                          },
+                          "userId": {
+                            "type": "string",
+                            "example": "ahmad"
+                          },
+                          "communityId": {
+                            "type": "string",
+                            "example": "growthly-dev"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-07-27T18:26:02.720Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}/report": {
       "post": {
         "summary": "Report a user",
