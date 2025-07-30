@@ -142,6 +142,16 @@ const createUserReport = async(data: {
   });
 };
 
+const get2FAService = async(userId: string) => {
+  return prisma.authCredentials.findUnique({ where: { userId } });
+};
+const disable2FAService = async(userId: string) => {
+  return prisma.authCredentials.update({
+    where: { userId },
+    data: { twoFactorEnabled: false },
+  });
+};
+
 export {
   getUserService,
   createUserService,
@@ -150,4 +160,6 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
+  get2FAService,
+  disable2FAService,
 };

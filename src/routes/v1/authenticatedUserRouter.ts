@@ -3,6 +3,7 @@ import { authenticate } from '../../middlewares/authMiddlewares';
 import requestValidator from '../../middlewares/requestValidator';
 import {
   deleteAuthenticatedUserImage,
+  disable2FA,
   getAuthenticatedUser,
   updateAuthenticatedUser,
   updateAuthenticatedUserImage,
@@ -53,6 +54,13 @@ authenticatedUserRouter.route('/profile-picture')
   .delete(
     authenticate({ access: 'full' }),
     deleteAuthenticatedUserImage,
+  )
+  .all(notAllowedMethod);
+
+authenticatedUserRouter.route('/disable-2fa')
+  .post(
+    authenticate({ access: 'full' }),
+    disable2FA,
   )
   .all(notAllowedMethod);
 

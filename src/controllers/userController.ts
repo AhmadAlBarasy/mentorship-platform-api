@@ -6,7 +6,7 @@ import APIError from '../classes/APIError';
 import supabase from '../services/supabaseClient';
 import path from 'path';
 import mime from 'mime-types';
-import { checkExistingUserReport, createUserReport, getUserService } from '../services/userService';
+import { checkExistingUserReport, createUserReport, disable2FAService, get2FAService, getUserService } from '../services/userService';
 import { Role } from '@prisma/client';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 
@@ -176,6 +176,26 @@ const deleteAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
   res.status(204).json({});
 });
 
+const disable2FA = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+
+  const record = await get2FAService(userId);
+
+  if (!record) {
+    throw new APIError(404, 'Auth record not found.');
+  }
+
+  if (!record.twoFactorEnabled) {
+    throw new APIError(400, '2FA is already disabled.');
+  }
+  await disable2FAService(userId);
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Two-factor authentication has been disabled.',
+  });
+});
+
 export {
   getUser,
   getAuthenticatedUser,
@@ -183,4 +203,5 @@ export {
   reportUser,
   updateAuthenticatedUserImage,
   deleteAuthenticatedUserImage,
+  disable2FA,
 };
