@@ -84,7 +84,22 @@ const withdrawCommunityJoinRequest = errorHandler(async(req: Request, res: Respo
 
 });
 
+const getAuthenticatedUserJoinRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: userId } = req.user;
+  const joinRequests = await prisma.communityJoinRequests.findMany({
+    where: {
+      userId,
+    },
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    joinRequests,
+  });
+});
+
 export {
   requestToJoinCommunity,
   withdrawCommunityJoinRequest,
+  getAuthenticatedUserJoinRequests,
 };
