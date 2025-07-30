@@ -6,7 +6,7 @@ import APIError from '../classes/APIError';
 import supabase from '../services/supabaseClient';
 import path from 'path';
 import mime from 'mime-types';
-import { checkExistingUserReport, createUserReport, enable2FAService, getUserService } from '../services/userService';
+import { checkExistingUserReport, createUserReport, enable2FAService, get2FAService, getUserService } from '../services/userService';
 import { Role } from '@prisma/client';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 
@@ -181,6 +181,12 @@ const enable2FA = errorHandler(async(req: Request, res: Response, next: NextFunc
 
   if (!userId) {
     return next(new APIError(401, 'Unauthorized'));
+  }
+
+  const record = await get2FAService(userId);
+
+  if (record?.twoFactorEnabled) {
+    throw new APIError(400, '2FA is already enabled.');
   }
 
   await enable2FAService(userId);

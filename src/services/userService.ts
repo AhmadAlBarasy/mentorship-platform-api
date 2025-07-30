@@ -143,6 +143,10 @@ const createUserReport = async(data: {
   });
 };
 
+const get2FAService = async(userId: string) => {
+  return prisma.authCredentials.findUnique({ where: { userId } });
+};
+
 const enable2FAService = async(userId: string) => {
   const record = await prisma.authCredentials.findUnique({ where: { userId } });
 
@@ -164,5 +168,6 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
+  get2FAService,
   enable2FAService,
 };
