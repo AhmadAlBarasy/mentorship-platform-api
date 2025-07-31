@@ -1,8 +1,9 @@
-import { Role } from '@prisma/client';
+import { Communities, CommunityJoinRequests, Role, Users } from '@prisma/client';
 import prisma from '../db';
 import supabase from './supabaseClient';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
+const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
 const getCommunityByFieldService = async(options: {
   searchBy: {
@@ -161,6 +162,37 @@ const getUserJoinRequestsService = async(userId: string) => {
   });
 }
 
+const getUserCommunityMembershipStatusService = async(user: Users, community: Communities) => {
+  let status = 'NONE'; // default value
+
+  if (user.role === MENTEE || user.role === MENTOR){
+
+    const participation = await prisma.participations.findFirst({
+      where: {
+        userId: user.id,
+        communityId: community.id,
+      },
+    });
+
+    if (participation) {
+      status = 'MEMBER';
+    }
+
+    const joinRequest = await prisma.communityJoinRequests.findFirst({
+      where: {
+        userId: user.id,
+        communityId: community.id,
+      },
+    });
+
+    if (joinRequest) {
+      status = 'PENDING';
+    }
+  }
+
+  return status;
+};
+
 export {
   getCommunityByFieldService,
   getCommunityMembersService,
@@ -168,4 +200,5 @@ export {
   removeParticipantService,
   structureMembers,
   getUserJoinRequestsService,
+  getUserCommunityMembershipStatusService,
 };

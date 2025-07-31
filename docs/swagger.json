@@ -2909,10 +2909,8 @@
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
-        "tags": [
-          "Communities"
-        ],
-        "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
+        "tags": ["Communities"],
+        "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants, public image URL (if available), and the membership status of the authenticated user.",
         "operationId": "getCommunityDetails",
         "parameters": [
           {
@@ -2922,8 +2920,14 @@
             "description": "The ID of the community to retrieve",
             "schema": {
               "type": "string",
-              "maxLength": 32
+              "maxLength": 32,
+              "example": "growthly-dev"
             }
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": []
           }
         ],
         "responses": {
@@ -2973,6 +2977,12 @@
                           "example": 125
                         }
                       }
+                    },
+                    "membershipStatus": {
+                      "type": "string",
+                      "description": "Membership status of the authenticated user with respect to the requested community",
+                      "enum": ["NONE", "MEMBER", "PENDING"],
+                      "example": "MEMBER"
                     }
                   }
                 }
