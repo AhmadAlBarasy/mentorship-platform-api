@@ -143,23 +143,6 @@ const createUserReport = async(data: {
   });
 };
 
-const get2FAService = async(userId: string) => {
-  return prisma.authCredentials.findUnique({ where: { userId } });
-};
-
-const enable2FAService = async(userId: string) => {
-  const record = await prisma.authCredentials.findUnique({ where: { userId } });
-
-  if (record?.twoFactorEnabled) {
-    throw new APIError(400, '2FA is already enabled.');
-  }
-
-  return prisma.authCredentials.update({
-    where: { userId },
-    data: { twoFactorEnabled: true },
-  });
-};
-
 export {
   getUserService,
   createUserService,
@@ -168,6 +151,4 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
-  get2FAService,
-  enable2FAService,
 };
