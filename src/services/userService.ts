@@ -1,7 +1,6 @@
 import prisma from '../db';
 import { Role } from '@prisma/client';
 import supabase from './supabaseClient';
-import APIError from '../classes/APIError';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -142,6 +141,12 @@ const createUserReport = async(data: {
     },
   });
 };
+const update2FAService = async(userId: string, enable2FA: boolean) => {
+  return prisma.authCredentials.update({
+    where: { userId },
+    data: { twoFactorEnabled: enable2FA },
+  });
+};
 
 export {
   getUserService,
@@ -151,4 +156,5 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
+  update2FAService,
 };

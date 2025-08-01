@@ -184,7 +184,6 @@ const update2FA = errorHandler(async(req: Request, res: Response, next: NextFunc
     return next(new APIError(400, 'Invalid action. Use "enable" or "disable".'));
   }
 
-  //checks if action == 'enable'
   const enable2FA = action === 'enable';
   await update2FAService(userId, enable2FA);
 

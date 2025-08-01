@@ -56,6 +56,7 @@ authenticatedUserRouter.route('/profile-picture')
   )
   .all(notAllowedMethod);
 
+
 authenticatedUserRouter.route('/')
   .get(
     authenticate({ access: '*' }),

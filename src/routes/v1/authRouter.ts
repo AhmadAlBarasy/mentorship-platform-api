@@ -22,6 +22,7 @@ import {
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 import { authenticate } from '../../middlewares/authMiddlewares';
+import { update2FA } from '../../controllers/userController';
 
 const authRouter = Router();
 
@@ -74,6 +75,14 @@ authRouter.route('/update-password')
     authenticate({ access: 'full' }),
     requestValidator({ bodySchema: updatePasswordSchema }),
     updatePassword,
+  )
+  .all(notAllowedMethod);
+
+
+authRouter.route('/update-2fa')
+  .post(
+    authenticate({ access: 'full' }),
+    update2FA,
   )
   .all(notAllowedMethod);
 
