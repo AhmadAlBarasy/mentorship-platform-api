@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { SUCCESS } from '../constants/responseConstants';
 import APIError from '../classes/APIError';
 import prisma from '../db';
-import { getCommunityByFieldService } from '../services/communityService';
+import { getCommunityByFieldService, getUserJoinRequestsService } from '../services/communityService';
 
 const requestToJoinCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
@@ -84,7 +84,18 @@ const withdrawCommunityJoinRequest = errorHandler(async(req: Request, res: Respo
 
 });
 
+const getAuthenticatedUserJoinRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: userId } = req.user;
+  const joinRequests = await getUserJoinRequestsService(userId);
+
+  res.status(200).json({
+    status: SUCCESS,
+    joinRequests,
+  });
+});
+
 export {
   requestToJoinCommunity,
   withdrawCommunityJoinRequest,
+  getAuthenticatedUserJoinRequests,
 };

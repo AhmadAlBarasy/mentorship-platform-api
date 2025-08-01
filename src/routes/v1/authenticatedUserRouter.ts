@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../../middlewares/authMiddlewares';
+import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import requestValidator from '../../middlewares/requestValidator';
 import {
   deleteAuthenticatedUserImage,
@@ -17,8 +17,12 @@ import {
 } from '../../controllers/userLinksController';
 import { addUserLinkSchema, updateUserLinkSchema } from '../../validators/validate.userLinks';
 import upload from '../../utils/fileUpload';
+import { Role } from '@prisma/client';
+import { getAuthenticatedUserJoinRequests } from '../../controllers/communityJoinRequestsController';
 
 const authenticatedUserRouter = Router();
+
+const { MENTEE, MENTOR } = Role;
 
 authenticatedUserRouter.route('/links/:id')
   .patch(
@@ -56,6 +60,13 @@ authenticatedUserRouter.route('/profile-picture')
   )
   .all(notAllowedMethod);
 
+authenticatedUserRouter.route('/join-requests')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE, MENTOR]),
+    getAuthenticatedUserJoinRequests,
+  )
+  .all(notAllowedMethod);
 
 authenticatedUserRouter.route('/')
   .get(

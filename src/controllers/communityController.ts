@@ -10,10 +10,10 @@ import { getCommunityByFieldService,
   getAuthenticatedUserCommunitiesService,
   removeParticipantService,
   structureMembers,
+  getUserCommunityMembershipStatusService,
 } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
-import { Role } from '@prisma/client';
 
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
@@ -173,6 +173,7 @@ const deleteAuthenticatedUserCommunityImage = errorHandler(async(req: Request, r
 
 const getCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
+  const { user } = req;
 
   const community = await getCommunityByFieldService({ searchBy: { id } });
 
@@ -180,9 +181,12 @@ const getCommunity = errorHandler(async(req: Request, res: Response, next: NextF
     return next(new APIError(404, 'Community not found'));
   }
 
+  const membershipStatus = await getUserCommunityMembershipStatusService(user, community);
+
   res.status(200).json({
     status: SUCCESS,
     community,
+    membershipStatus,
   });
 });
 

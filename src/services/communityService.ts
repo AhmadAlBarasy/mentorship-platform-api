@@ -1,8 +1,9 @@
-import { Role } from '@prisma/client';
+import { Communities, CommunityJoinRequests, Role, Users } from '@prisma/client';
 import prisma from '../db';
 import supabase from './supabaseClient';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
+const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
 const getCommunityByFieldService = async(options: {
   searchBy: {
@@ -120,7 +121,76 @@ const structureMembers = (members: {
       headline: member.user.headline,
       imageUrl: member.user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(member.user.imageUrl).data.publicUrl : null,
     }))
+};
 
+const getUserJoinRequestsService = async(userId: string) => {
+
+  const joinRequests = await prisma.communityJoinRequests.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      community: true,
+    },
+  });
+
+  return joinRequests.length === 0 ? [] : joinRequests.map((joinRequest:
+    {
+    id: string;
+    userId: string;
+    communityId: string;
+    createdAt: Date;
+    community: {
+      id: string;
+      name: string;
+      description: string;
+      imageUrl: string | null;
+      managerId: string | null;
+      createdAt: Date;
+    }
+  },
+  ) => {
+    return {
+      id: joinRequest.id,
+      communityId: joinRequest.communityId,
+      name: joinRequest.community.name,
+      imageUrl: joinRequest.community.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(joinRequest.community.imageUrl).data.publicUrl
+        : null,
+      createdAt: joinRequest.createdAt,
+    }
+  });
+}
+
+const getUserCommunityMembershipStatusService = async(user: Users, community: Communities) => {
+  let status = 'NONE'; // default value
+
+  if (user.role === MENTEE || user.role === MENTOR){
+
+    const participation = await prisma.participations.findFirst({
+      where: {
+        userId: user.id,
+        communityId: community.id,
+      },
+    });
+
+    if (participation) {
+      status = 'MEMBER';
+    }
+
+    const joinRequest = await prisma.communityJoinRequests.findFirst({
+      where: {
+        userId: user.id,
+        communityId: community.id,
+      },
+    });
+
+    if (joinRequest) {
+      status = 'PENDING';
+    }
+  }
+
+  return status;
 };
 
 export {
@@ -129,4 +199,6 @@ export {
   getAuthenticatedUserCommunitiesService,
   removeParticipantService,
   structureMembers,
+  getUserJoinRequestsService,
+  getUserCommunityMembershipStatusService,
 };
