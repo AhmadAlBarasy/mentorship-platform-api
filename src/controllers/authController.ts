@@ -258,10 +258,6 @@ export const update2FA = errorHandler(async(req: Request, res: Response, next: N
   const userId = req.user.id;
   const { action } = req.body;
 
-  if (!['enable', 'disable'].includes(action)) {
-    return next(new APIError(400, 'Invalid action. Use "enable" or "disable".'));
-  }
-
   const enable2FA = action === 'enable';
   await update2FAService(userId, enable2FA);
 
