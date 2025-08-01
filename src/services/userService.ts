@@ -141,6 +141,12 @@ const createUserReport = async(data: {
     },
   });
 };
+const update2FAService = async(userId: string, enable2FA: boolean) => {
+  return prisma.authCredentials.update({
+    where: { userId },
+    data: { twoFactorEnabled: enable2FA },
+  });
+};
 
 export {
   getUserService,
@@ -150,4 +156,5 @@ export {
   updateUserService,
   checkExistingUserReport,
   createUserReport,
+  update2FAService,
 };

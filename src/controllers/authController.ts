@@ -7,6 +7,7 @@ import {
   createUserService,
   updateUserAuthCredentialsService,
   updateUserService,
+  update2FAService,
 } from '../services/userService';
 import APIError from '../classes/APIError';
 import bcrypt from 'bcrypt';
@@ -250,6 +251,19 @@ export const updatePassword = errorHandler(async(req: Request, res: Response, ne
   res.status(200).json({
     status: SUCCESS,
     message: 'Password has been updated successfully',
+  });
+});
+
+export const update2FA = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user.id;
+  const { action } = req.body;
+
+  const enable2FA = action === 'enable';
+  await update2FAService(userId, enable2FA);
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: `Two-factor authentication has been ${enable2FA ? 'enabled' : 'disabled'}.`,
   });
 });
 

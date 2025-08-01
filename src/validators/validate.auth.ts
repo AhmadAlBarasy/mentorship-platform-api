@@ -93,6 +93,15 @@ const googleAuthSchema = Joi.object({
     .required(),
 });
 
+const update2faSchema = Joi.object({
+  action: Joi.string()
+    .valid('enable', 'disable')
+    .required()
+    .messages({
+      'any.only': 'Action must be either "enable" or "disable".',
+      'any.required': 'Action field is required.',
+    }),
+});
 export {
   signupSchema,
   confirmEmailSchema,
@@ -101,4 +110,5 @@ export {
   resetPasswordSchema,
   googleAuthSchema,
   updatePasswordSchema,
+  update2faSchema,
 }

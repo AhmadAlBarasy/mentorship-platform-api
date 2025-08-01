@@ -8,6 +8,7 @@ import {
   resetPassword,
   logout,
   updatePassword,
+  update2FA,
   // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
@@ -18,6 +19,7 @@ import {
   loginSchema,
   resetPasswordSchema,
   updatePasswordSchema,
+  update2faSchema,
   // googleAuthSchema,
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
@@ -74,6 +76,15 @@ authRouter.route('/update-password')
     authenticate({ access: 'full' }),
     requestValidator({ bodySchema: updatePasswordSchema }),
     updatePassword,
+  )
+  .all(notAllowedMethod);
+
+
+authRouter.route('/update-2fa')
+  .post(
+    authenticate({ access: 'full' }),
+    requestValidator({ bodySchema: update2faSchema }),
+    update2FA,
   )
   .all(notAllowedMethod);
 

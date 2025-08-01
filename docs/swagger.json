@@ -569,6 +569,120 @@
         }
       }
     },
+    "/auth/update-2fa": {
+      "post": {
+        "summary": "Enable or disable Two-Factor Authentication (2FA)",
+        "tags": ["Authentication"],
+        "description": "Updates the 2FA status for the authenticated user based on the `action` provided in the request body. Requires a full session (email must be verified).",
+        "operationId": "update2FA",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["enable", "disable"],
+                    "example": "enable",
+                    "description": "Set to `enable` to turn on 2FA or `disable` to turn it off"
+                  }
+                },
+                "required": ["action"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "2FA status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Two-factor authentication has been enabled."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid action provided or 2FA already in requested state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid action. Use \"enable\" or \"disable\"."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - partial sessions cannot modify 2FA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not allowed to perform this action"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}": {
       "get": {
         "summary": "Get basic profile of a user by ID",
@@ -1794,8 +1908,7 @@
           }
         }
       }
-    },
-    "/communities": {
+    },"/communities": {
       "post": {
         "summary": "Create a new community",
         "tags": [

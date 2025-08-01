@@ -176,6 +176,7 @@ const deleteAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
   res.status(204).json({});
 });
 
+
 export {
   getUser,
   getAuthenticatedUser,
