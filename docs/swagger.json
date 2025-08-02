@@ -144,10 +144,8 @@
     "/auth/login": {
       "post": {
         "summary": "Logs a User into the platform",
-        "tags": [
-          "Authentication"
-        ],
-        "description": "Authenticates a user and returns a token. If 2FA is enabled, an OTP will be sent and the response will indicate partial authentication. If email is not verified, a temporary session is created.",
+        "tags": ["Authentication"],
+        "description": "Authenticates a user and returns a session token. If 2FA is enabled, an OTP is sent and the login is paused until verification.",
         "operationId": "loginUser",
         "requestBody": {
           "required": true,
@@ -174,19 +172,47 @@
                     "description": "User password (always required)"
                   }
                 },
-                "required": [
-                  "password"
-                ]
+                "required": ["password"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successfully logged in"
+            "description": "Successfully logged in (full session)",
+            "headers": {
+              "Set-Cookie": {
+                "description": "JWT session token cookie",
+                "schema": {
+                  "type": "string",
+                  "example": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Successfully logged in."
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
           },
           "202": {
-            "description": "OTP sent for 2FA",
+            "description": "OTP sent for 2FA — pending verification",
             "content": {
               "application/json": {
                 "schema": {
@@ -195,10 +221,6 @@
                     "message": {
                       "type": "string",
                       "example": "OTP sent to your email"
-                    },
-                    "partialAuth": {
-                      "type": "boolean",
-                      "example": true
                     },
                     "userId": {
                       "type": "string",
@@ -210,7 +232,7 @@
             }
           },
           "400": {
-            "description": "Bad request - validation error",
+            "description": "Validation error",
             "content": {
               "application/json": {
                 "schema": {
@@ -230,7 +252,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - invalid credentials",
+            "description": "Invalid ID/email or password",
             "content": {
               "application/json": {
                 "schema": {
@@ -587,142 +609,6 @@
                     "message": {
                       "type": "string",
                       "example": "Password must be at least 8 characters long"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/auth/verify-otp": {
-      "post": {
-        "summary": "Verify OTP for 2FA login",
-        "tags": [
-          "Authentication"
-        ],
-        "description": "Verifies the OTP sent to the user's email for 2FA login. If successful, issues a full session token.",
-        "operationId": "verifyOTP",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "userId": {
-                    "type": "string",
-                    "example": "user_abc123",
-                    "description": "The user's unique ID"
-                  },
-                  "otp": {
-                    "type": "string",
-                    "example": "482139",
-                    "description": "The OTP code sent to the user's email"
-                  }
-                },
-                "required": [
-                  "userId",
-                  "otp"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OTP verified successfully. Full session started.",
-            "headers": {
-              "Set-Cookie": {
-                "description": "JWT token cookie for full session",
-                "schema": {
-                  "type": "string",
-                  "example": "token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly"
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Success"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "OTP verified. Session complete."
-                    },
-                    "token": {
-                      "type": "string",
-                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation error in input",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "\"userId\" is required"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired OTP",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Invalid or expired OTP."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "OTP not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "OTP not found or expired."
                     }
                   }
                 }
@@ -1885,7 +1771,9 @@
     "/communities": {
       "post": {
         "summary": "Create a new community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows an authenticated user with the COMMUNITY_MANAGER role to create a new community. Each user may create only one community. All fields are required.",
         "operationId": "createCommunity",
         "requestBody": {
@@ -2143,7 +2031,9 @@
       },
       "patch": {
         "summary": "Update the authenticated manager's community",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to update their own community's information such as name or description. Requires authentication and appropriate role.",
         "operationId": "updateMyCommunity",
         "requestBody": {
@@ -2290,7 +2180,9 @@
     "/communities/my/picture": {
       "put": {
         "summary": "Upload or update the community image",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to upload or update the image associated with their community. The image must be provided as multipart/form-data under the key `image`. This endpoint replaces any previously uploaded image.",
         "operationId": "uploadOrUpdateCommunityImage",
         "requestBody": {
@@ -2403,7 +2295,9 @@
       },
       "delete": {
         "summary": "Delete the community image",
-        "tags": ["Communities"],
+        "tags": [
+          "Communities"
+        ],
         "description": "Allows a COMMUNITY_MANAGER to delete the image associated with their community. If no image exists, it returns a 404 error.",
         "operationId": "deleteCommunityImage",
         "responses": {
