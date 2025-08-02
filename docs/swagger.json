@@ -1885,9 +1885,7 @@
     "/communities": {
       "post": {
         "summary": "Create a new community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows an authenticated user with the COMMUNITY_MANAGER role to create a new community. Each user may create only one community. All fields are required.",
         "operationId": "createCommunity",
         "requestBody": {
@@ -2060,9 +2058,7 @@
     "/communities/my": {
       "get": {
         "summary": "Get authenticated user's community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Retrieves the community that is managed by the currently authenticated user. Only users with the COMMUNITY_MANAGER role can access this endpoint.",
         "operationId": "getAuthenticatedUserCommunity",
         "security": [
@@ -2147,9 +2143,7 @@
       },
       "patch": {
         "summary": "Update the authenticated manager's community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows a COMMUNITY_MANAGER to update their own community's information such as name or description. Requires authentication and appropriate role.",
         "operationId": "updateMyCommunity",
         "requestBody": {
@@ -2296,9 +2290,7 @@
     "/communities/my/picture": {
       "put": {
         "summary": "Upload or update the community image",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows a COMMUNITY_MANAGER to upload or update the image associated with their community. The image must be provided as multipart/form-data under the key `image`. This endpoint replaces any previously uploaded image.",
         "operationId": "uploadOrUpdateCommunityImage",
         "requestBody": {
@@ -2411,9 +2403,7 @@
       },
       "delete": {
         "summary": "Delete the community image",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows a COMMUNITY_MANAGER to delete the image associated with their community. If no image exists, it returns a 404 error.",
         "operationId": "deleteCommunityImage",
         "responses": {
@@ -2466,9 +2456,7 @@
     "/communities/my/join-requests": {
       "get": {
         "summary": "Get join requests for the manager's community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
         "operationId": "getAuthenticatedManagerCommunityJoinRequests",
         "security": [
@@ -2542,9 +2530,7 @@
       },
       "put": {
         "summary": "Resolve a community join request",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows an authenticated community manager to resolve a pending join request by either accepting or rejecting it. Accepting a request adds the user to the community participants and removes the request. Rejecting simply removes the request.",
         "operationId": "resolveCommunityJoinRequest",
         "security": [
@@ -2558,10 +2544,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "id",
-                  "action"
-                ],
+                "required": ["id", "action"],
                 "properties": {
                   "id": {
                     "type": "string",
@@ -2570,10 +2553,7 @@
                   },
                   "action": {
                     "type": "string",
-                    "enum": [
-                      "accept",
-                      "reject"
-                    ],
+                    "enum": ["accept", "reject"],
                     "description": "The action to perform on the join request",
                     "example": "accept"
                   }
@@ -2629,9 +2609,7 @@
     "/communities/{id}": {
       "get": {
         "summary": "Get community details",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Fetches the public details of a specific community by its ID. The response includes the number of participants and the public image URL (if available).",
         "operationId": "getCommunityDetails",
         "parameters": [
@@ -2725,9 +2703,7 @@
     "/communities/{id}/join-requests": {
       "post": {
         "summary": "Request to join a community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows a Mentee or Mentor to request to join a specific community. A user cannot submit multiple requests to the same community.",
         "operationId": "requestToJoinCommunity",
         "security": [
@@ -2812,9 +2788,7 @@
       },
       "delete": {
         "summary": "Withdraw join request from a community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Allows a Mentee or Mentor to withdraw a previously submitted request to join a specific community.",
         "operationId": "withdrawCommunityJoinRequest",
         "security": [
