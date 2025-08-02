@@ -35,6 +35,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
       message: 'OTP sent to your email',
       userId: user.id,
     });
+    return;
   }
 
   const emailVerified = user.authCredentials?.emailVerified;
