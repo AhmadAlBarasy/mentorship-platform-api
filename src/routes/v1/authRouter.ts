@@ -9,6 +9,8 @@ import {
   logout,
   updatePassword,
   update2FA,
+  connectToCalendarAPI,
+  getAppConnectionsState,
   // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
@@ -88,6 +90,19 @@ authRouter.route('/update-2fa')
   )
   .all(notAllowedMethod);
 
+authRouter.route('/google-callback')
+  .get(
+    authenticate({ access: 'full' }),
+    connectToCalendarAPI,
+  )
+  .all(notAllowedMethod);
+
+authRouter.route('/app-connections')
+  .get(
+    authenticate({ access: 'full' }),
+    getAppConnectionsState,
+  )
+  .all(notAllowedMethod);
 
 // authRouter.route("/google-auth")
 //   .post(
