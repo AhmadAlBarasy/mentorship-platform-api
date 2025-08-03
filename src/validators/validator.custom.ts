@@ -1,6 +1,16 @@
 import Joi from 'joi';
 import iso from 'iso-3166-1';
 
+const validDays = [
+  'saturday',
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+];
+
 const validateContryAlpha3Code = (code: string, helpers: Joi.CustomHelpers<string>) => {
   code = code.toUpperCase();
   if (!iso.whereAlpha3(code)) {
@@ -18,8 +28,24 @@ const validateIANADatabaseTimeZone = (timeZone: string, helpers: Joi.CustomHelpe
   }
 }
 
+const validateSessionTime = (sessionTime: number, helpers: Joi.CustomHelpers<number>) => {
+  if (sessionTime % 5 !== 0) {
+    return helpers.error('number.invalidSessionTime');
+  }
+  return sessionTime;
+}
+
+const validateDateKeys = (date: string, helpers: Joi.CustomHelpers<string>) => {
+  const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(date) && !isNaN(Date.parse(date));
+  return isValidDate
+    ? date
+    : helpers.error('string.pattern.base', { date });
+}
+
 export {
   validateContryAlpha3Code,
   validateIANADatabaseTimeZone,
-
+  validateSessionTime,
+  validateDateKeys,
+  validDays,
 };

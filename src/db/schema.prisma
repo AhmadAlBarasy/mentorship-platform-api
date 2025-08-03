@@ -143,12 +143,13 @@ model AuthCredentials {
 model Services {
   @@map("services")
 
-  id String @db.VarChar(32) @id @default(uuid())
-  name String @db.VarChar(50)
-  decsription String @db.VarChar(300)
+  id String @db.VarChar(32) @map("id")
+  type String @db.VarChar(50)
+  description String @db.VarChar(300)
   sessionTime Int @map("session_time")
   deletedAt DateTime? @db.Date @map("deleted_at")
   mentorId String @db.VarChar(32) @map("mentor_id")
+  @@id(fields: [mentorId, id], name: "service")
   mentor Users @relation(fields: [mentorId], references: [id])
   requests SessionRequests[]
   dayAvailabilites DayAvailabilities[]
@@ -162,6 +163,7 @@ model SessionRequests {
   id String @db.VarChar(32) @id @default(uuid())
   serviceId String @db.VarChar(32) @map("service_id")
   menteeId String @db.VarChar(32) @map("mentee_id")
+  mentorId String @db.VarChar(32) @map("mentor_id")
   startTime DateTime @db.Time() @map("start_time")
   communityId String? @db.VarChar(32) @map("community_id")
 
@@ -170,7 +172,7 @@ model SessionRequests {
   agenda String? @db.VarChar(5000)
   rejectionReason String? @db.VarChar(100) @map("rejection_reason")
   createdAt DateTime @default(now())
-  service Services @relation(fields: [serviceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Restrict, onUpdate: Cascade)
   mentee Users @relation(fields: [menteeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
 }
@@ -178,24 +180,26 @@ model SessionRequests {
 model DayAvailabilities {
   @@map("day_availabilities")
 
-  id String @db.VarChar(32) @id @default(uuid())
-  day_of_week Int @map("day_of_week")
+  id String @db.VarChar(36) @id @default(uuid())
+  dayOfWeek Int @map("day_of_week")
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
+  mentorId String @db.VarChar(32) @map("mentor_id")
   serviceId String @db.VarChar(32) @map("service_id")
-  service Services @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Cascade, onUpdate: Cascade)
 
 }
 
 model AvailabilityExceptions {
   @@map("availability_exceptions")
 
-  id String @db.VarChar(32) @id @default(uuid())
+  id String @db.VarChar(36) @id @default(uuid())
   date DateTime @db.Date
   startTime DateTime @db.Time() @map("start_time")
   endTime DateTime @db.Time() @map("end_time")
+  mentorId String @db.VarChar(32) @map("mentor_id")
   serviceId String @db.VarChar(32) @map("service_id")
-  service Services @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Cascade, onUpdate: Cascade)
 
 }
 
