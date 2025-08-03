@@ -333,6 +333,27 @@ export const getAppConnectionsState = errorHandler(async(req: Request, res: Resp
 
 });
 
+export const disconnectApp = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { appName } = req.body;
+  const { id: userId } = req.user;
+
+  if (appName === 'GoogleCalendar'){
+    await prisma.authCredentials.update({
+      where: {
+        userId,
+      },
+      data: {
+        googleAccessToken: null,
+        googleRefreshToken: null,
+        googleTokenExpiry: null,
+      },
+    });
+  }
+
+  res.status(204).json({});
+
+});
+
 // export const googleAuth = errorHandler(async (req: Request, res: Response, next: NextFunction)=> {
 //   const { token } = req.body;
 //   // get user's id_token and access_token

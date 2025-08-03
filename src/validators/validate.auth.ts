@@ -102,6 +102,18 @@ const update2faSchema = Joi.object({
       'any.required': 'Action field is required.',
     }),
 });
+
+const disconnectAppSchema = Joi.object({
+  appName: Joi.string()
+    .valid('GoogleCalendar')
+    .required()
+    .messages({
+      'any.only': 'appName must be one of ["GoogleCalendar"]',
+      'any.required': 'appName is required.',
+
+    }),
+});
+
 export {
   signupSchema,
   confirmEmailSchema,
@@ -111,4 +123,5 @@ export {
   googleAuthSchema,
   updatePasswordSchema,
   update2faSchema,
+  disconnectAppSchema,
 }
