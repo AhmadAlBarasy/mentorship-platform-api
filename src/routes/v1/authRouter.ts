@@ -9,6 +9,9 @@ import {
   logout,
   updatePassword,
   update2FA,
+  connectToCalendarAPI,
+  getAppConnectionsState,
+  disconnectApp,
   // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
@@ -20,6 +23,7 @@ import {
   resetPasswordSchema,
   updatePasswordSchema,
   update2faSchema,
+  disconnectAppSchema,
   // googleAuthSchema,
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
@@ -88,6 +92,24 @@ authRouter.route('/update-2fa')
   )
   .all(notAllowedMethod);
 
+authRouter.route('/google-callback')
+  .get(
+    authenticate({ access: 'full' }),
+    connectToCalendarAPI,
+  )
+  .all(notAllowedMethod);
+
+authRouter.route('/app-connections')
+  .get(
+    authenticate({ access: 'full' }),
+    getAppConnectionsState,
+  )
+  .delete(
+    authenticate({ access: 'full' }),
+    requestValidator({ bodySchema: disconnectAppSchema }),
+    disconnectApp,
+  )
+  .all(notAllowedMethod);
 
 // authRouter.route("/google-auth")
 //   .post(

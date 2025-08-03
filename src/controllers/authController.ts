@@ -16,6 +16,8 @@ import { emailVerficationLinkTemplate, resetPasswordTemplate } from '../utils/ma
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../utils/mail/mailSender';
+import axios from 'axios';
+import prisma from '../db';
 // import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
 
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
@@ -265,6 +267,91 @@ export const update2FA = errorHandler(async(req: Request, res: Response, next: N
     status: SUCCESS,
     message: `Two-factor authentication has been ${enable2FA ? 'enabled' : 'disabled'}.`,
   });
+});
+
+export const connectToCalendarAPI = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+
+  const FRONTEND_URL = process.env.FRONTEND_URL || 'localhost:5173';
+
+  const code = req.query.code as string;
+
+  if (!code) {
+    return next(new APIError(400, 'Missing authorization code'));
+  }
+
+  const { data } = await axios.post('https://oauth2.googleapis.com/token', null, {
+    params: {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: 'http://localhost:3000/api/v1/auth/google-callback',
+      grant_type: 'authorization_code',
+    },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+
+  const {
+    access_token,
+    refresh_token,
+    expires_in,
+  } = data;
+
+  const userId = req.user.id;
+
+  await prisma.authCredentials.update({
+    where: { userId },
+    data: {
+      googleRefreshToken: refresh_token,
+      googleAccessToken: access_token,
+      googleTokenExpiry: new Date(Date.now() + expires_in * 1000),
+    },
+  });
+  res.redirect(`${FRONTEND_URL}/my/settings`);
+});
+
+export const getAppConnectionsState = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+
+  const { id: userId } = req.user;
+
+  const authCredentials = await prisma.authCredentials.findFirst({
+    where: {
+      userId,
+    },
+    select: {
+      googleRefreshToken: true,
+    },
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    appConnections: {
+      GoogleCalendar: authCredentials?.googleRefreshToken === null ? false : true,
+    },
+  });
+
+});
+
+export const disconnectApp = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { appName } = req.body;
+  const { id: userId } = req.user;
+
+  if (appName === 'GoogleCalendar'){
+    await prisma.authCredentials.update({
+      where: {
+        userId,
+      },
+      data: {
+        googleAccessToken: null,
+        googleRefreshToken: null,
+        googleTokenExpiry: null,
+      },
+    });
+  }
+
+  res.status(204).json({});
+
 });
 
 // export const googleAuth = errorHandler(async (req: Request, res: Response, next: NextFunction)=> {
