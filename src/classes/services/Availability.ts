@@ -5,10 +5,8 @@ import { Time } from './Time';
 export class Availability {
   startTime: Time;
   endTime: Time;
-  dayOfWeek?: number | null;
-  date?: Date | null;
 
-  constructor(startTime: Time, endTime: Time, options?: { dayOfWeek?: number; date?: Date }) {
+  constructor(startTime: Time, endTime: Time) {
 
     if (!startTime.isBefore(endTime)){
       throw new APIError(400, 'startTime must be before endTime');
@@ -16,14 +14,8 @@ export class Availability {
     if (startTime.isEqual(endTime)){
       throw new APIError(400, 'startTime and endTime cannot be the same');
     }
-    if (options && options.date && options.dayOfWeek){
-      throw new Error('Invalid class usage: can\'t combine between date and dayOfWeek');
-    }
     this.startTime = startTime;
     this.endTime = endTime;
-
-    this.date = options?.date;
-    this.dayOfWeek = options?.dayOfWeek;
   }
 
   conflictsWith(availability: Availability): boolean {
