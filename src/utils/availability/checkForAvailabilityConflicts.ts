@@ -1,25 +1,31 @@
 import APIError from '../../classes/APIError';
-import { Availability } from '../../classes/services/Availability';
+import { AvailabilityException } from '../../classes/services/AvailabilityException';
+import { DayAvailability } from '../../classes/services/DayAvailability';
 import { Time } from '../../classes/services/Time';
 import { validDays } from '../../validators/validator.custom';
 
 
 function checkForAvailabilityWindowsConflictsOnCreate(dayOrDate: string, availabilities: any[], sessionTime: number) {
 
-  const result: Availability[] = [];
+  const result: any[] = [];
 
-  const dayProvided = validDays.indexOf(dayOrDate); // checks if the dayOrDate parameter contains a date or a day of the week
+  const dayProvided = validDays.indexOf(dayOrDate) !== -1; // checks if the dayOrDate parameter contains a date or a day of the week
 
   availabilities.forEach((availability) => {
-
-    const newAvailability = new Availability(
-      Time.fromString(availability.startTime),
-      Time.fromString(availability.endTime),
-      {
-        dayOfWeek: dayProvided !== -1 ? dayProvided : undefined,
-        date: dayProvided === -1 ? new Date(dayOrDate) : undefined,
-      },
-    );
+    let newAvailability;
+    if (dayProvided){
+      newAvailability = new DayAvailability(
+        Time.fromString(availability.startTime),
+        Time.fromString(availability.endTime),
+        validDays.indexOf(dayOrDate),
+      );
+    } else {
+      newAvailability = new AvailabilityException(
+        Time.fromString(availability.startTime),
+        Time.fromString(availability.endTime),
+        new Date(dayOrDate),
+      );
+    }
 
     // check if the session time is greater than the new availability time window
     if (sessionTime > newAvailability.timeInMinutes()){
