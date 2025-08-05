@@ -183,7 +183,7 @@ model DayAvailabilities {
   id String @db.VarChar(36) @id @default(uuid())
   dayOfWeek Int @map("day_of_week")
   startTime DateTime @db.Time() @map("start_time")
-  endTime DateTime @db.Time() @map("end_time")
+  duration Int @map("duration")
   mentorId String @db.VarChar(32) @map("mentor_id")
   serviceId String @db.VarChar(32) @map("service_id")
   service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Cascade, onUpdate: Cascade)
@@ -196,7 +196,7 @@ model AvailabilityExceptions {
   id String @db.VarChar(36) @id @default(uuid())
   date DateTime @db.Date
   startTime DateTime @db.Time() @map("start_time")
-  endTime DateTime @db.Time() @map("end_time")
+  duration Int @map("duration")
   mentorId String @db.VarChar(32) @map("mentor_id")
   serviceId String @db.VarChar(32) @map("service_id")
   service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Cascade, onUpdate: Cascade)
