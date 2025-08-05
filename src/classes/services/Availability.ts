@@ -1,44 +1,26 @@
-
-import APIError from '../APIError';
 import { Time } from './Time';
 
-export class Availability {
+export abstract class Availability {
   startTime: Time;
-  endTime: Time;
+  duration: number;
 
-  constructor(startTime: Time, endTime: Time) {
+  constructor(startTime: Time, duration: number) {
+    if (duration < 10 || duration > 360){
+      throw new Error('Invalid class usage: Availability window duration must be between 10 and 360 minutes');
+    }
 
-    if (!startTime.isBefore(endTime)){
-      throw new APIError(400, 'startTime must be before endTime');
-    }
-    if (startTime.isEqual(endTime)){
-      throw new APIError(400, 'startTime and endTime cannot be the same');
-    }
     this.startTime = startTime;
-    this.endTime = endTime;
+    this.duration = duration;
   }
 
-  conflictsWith(availability: Availability): boolean {
-    return (
-      (
-        this.startTime.isBefore(availability.endTime) &&
-      availability.startTime.isBefore(this.endTime)
-      ) ||
-    this.equalTo(availability)
-    );
-  }
+  abstract conflictsWith(availability: Availability): boolean;
 
-  equalTo(availability: Availability): boolean {
-    return (
-      this.startTime.isEqual(availability.startTime) &&
-      this.endTime.isEqual(availability.endTime)
-    );
-  }
+  // abstract equalTo(availability: Availability): boolean;
+
+  // abstract shiftToTimezone(currentTimezone: string, targetTimezone: string): this;
 
   timeInMinutes(): number {
-    const startMinutes = this.startTime.hour * 60 + this.startTime.minute;
-    const endMinutes = this.endTime.hour * 60 + this.endTime.minute;
-    return endMinutes - startMinutes;
+    return this.duration;
   }
 
 }

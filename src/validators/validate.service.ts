@@ -10,11 +10,14 @@ const availabilitySchema = Joi.object({
     .messages({
       'string.pattern.base': 'start_time must be in HH:mm format (24-hour)',
     }),
-  endTime: Joi.string()
-    .pattern(timeRegex)
+  duration: Joi.number()
+    .min(10)
+    .max(360)
     .required()
     .messages({
-      'string.pattern.base': 'end_time must be in HH:mm format (24-hour)',
+      'any.required': 'duration is required',
+      'number.min': 'duration must be at least 10 minutes',
+      'number.max': 'duration must be at most 360',
     }),
 });
 

@@ -2,16 +2,16 @@ export class Time {
   hour: number;
   minute: number;
 
-  constructor(hour: number, minute: number){
+  constructor(hour: number, minute: number, skipBoundaries: boolean = false){
     if (!Number.isInteger(hour) || !Number.isInteger(minute)) {
       throw new Error('hour and minute must be integers');
     }
 
-    if (hour < 0 || hour > 23) {
+    if (!skipBoundaries && (hour < 0 || hour > 23)) {
       throw new Error('hour must be between 0 and 23');
     }
 
-    if (minute < 0 || minute > 59) {
+    if (!skipBoundaries && (minute < 0 || minute > 59)) {
       throw new Error('minute must be between 0 and 59');
     }
 
@@ -31,6 +31,26 @@ export class Time {
     const minute = parseInt(minuteStr, 10);
 
     return new Time(hour, minute);
+  }
+
+  addMinutes(minutes: number, skipBoundaries: boolean): Time {
+    const totalMinutes = this.hour * 60 + this.minute + minutes;
+
+    if (skipBoundaries) {
+    // Minutes always wrap at 60
+      const newHour = Math.floor(totalMinutes / 60);
+      const newMinute = ((totalMinutes % 60) + 60) % 60; // keep 0–59 range
+      return new Time(newHour, newMinute, true);
+    }
+
+    // Normal mode: wrap around midnight (0–23 hours, 0–59 minutes)
+    const wrappedMinutes =
+    ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
+
+    const newHour = Math.floor(wrappedMinutes / 60);
+    const newMinute = wrappedMinutes % 60;
+
+    return new Time(newHour, newMinute, false);
   }
 
   isBefore(other: Time): boolean {
