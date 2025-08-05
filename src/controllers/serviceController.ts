@@ -3,8 +3,11 @@ import { SUCCESS } from '../constants/responseConstants';
 import errorHandler from '../utils/asyncErrorHandler';
 import APIError from '../classes/APIError';
 import prisma from '../db';
-import { checkForAvailabilityWindowsConflictsOnCreate } from '../utils/availability/checkForAvailabilityConflicts';
-import { timeOnly } from '../utils/availability/helpers';
+import {
+  createAvailabilityObjects,
+  prepareDateAvailabilitiesAndCheckForConflicts,
+  prepareDayAvailabilitiesAndCheckForConflicts,
+} from '../utils/availability/availabilityUtils';
 
 const createService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
@@ -35,42 +38,18 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
 
   // 2. Check for conflicts in the day availabilities for each day (overlapping time windows)
   for (const day of Object.keys(days)){
-    const oneDayAvailability = checkForAvailabilityWindowsConflictsOnCreate(day, days[day], sessionTime);
+    const oneDayAvailability = createAvailabilityObjects(day, days[day], sessionTime);
     dayAvailabilities.push(oneDayAvailability);
   }
   // 3. Check for conflicts in the availability exceptions for each date (overlapping time windows)
   for (const date of Object.keys(exceptions)){
-    const oneDateAvailability = checkForAvailabilityWindowsConflictsOnCreate(date, exceptions[date], sessionTime);
+    const oneDateAvailability = createAvailabilityObjects(date, exceptions[date], sessionTime);
     availabilityExceptions.push(oneDateAvailability);
   }
 
   // 5. create the service and structure the availabilites for insertion in the database
-  const dayAvailabilitiesToInsert: any = [];
-  const availabilityExceptionsToInsert: any = [];
-
-  dayAvailabilities.forEach((oneDayAvailability) => {
-    oneDayAvailability.map((availability) => {
-      dayAvailabilitiesToInsert.push({
-        mentorId,
-        serviceId: id,
-        startTime: timeOnly(availability.startTime.hour, availability.startTime.minute),
-        endTime: timeOnly(availability.endTime.hour, availability.endTime.minute),
-        dayOfWeek: availability.dayOfWeek,
-      });
-    });
-  });
-
-  availabilityExceptions.forEach((oneDateAvailability) => {
-    oneDateAvailability.map((availability) => {
-      availabilityExceptionsToInsert.push({
-        mentorId,
-        serviceId: id,
-        startTime: timeOnly(availability.startTime.hour, availability.startTime.minute),
-        endTime: timeOnly(availability.endTime.hour, availability.endTime.minute),
-        date: availability.date,
-      });
-    });
-  });
+  const dayAvailabilitiesToInsert = prepareDayAvailabilitiesAndCheckForConflicts(mentorId, id, dayAvailabilities);
+  const availabilityExceptionsToInsert = prepareDateAvailabilitiesAndCheckForConflicts(mentorId, id, availabilityExceptions);
 
   await prisma.services.create({
     data: {

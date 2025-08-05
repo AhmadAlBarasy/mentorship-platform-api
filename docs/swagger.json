@@ -3389,9 +3389,9 @@
     },
     "/services": {
       "post": {
-        "summary": "Create a service",
+        "summary": "Create a new service (Mentor only)",
         "tags": ["Services"],
-        "description": "Allows an authenticated MENTOR to create a new service with recurring weekly availabilities and optional exception dates. Each time window must be non-conflicting and long enough to accommodate the specified session time.",
+        "description": "Creates a new mentoring service for the authenticated mentor. A service includes its details, session duration, and availability windows (both recurring weekly days and one-off exceptions). Availability windows are validated to ensure they meet duration constraints, do not overlap, and meet the session time requirement.",
         "operationId": "createService",
         "security": [
           {
@@ -3411,92 +3411,103 @@
                     "pattern": "^[a-zA-Z0-9_]+$",
                     "minLength": 3,
                     "maxLength": 32,
-                    "example": "career_coaching"
+                    "description": "Unique service identifier (within the mentor's account). Letters, numbers, and underscores only."
                   },
                   "type": {
                     "type": "string",
                     "maxLength": 50,
-                    "example": "Career Coaching"
+                    "description": "Service type or category (e.g., 'Career Coaching')."
                   },
                   "description": {
                     "type": "string",
                     "maxLength": 300,
-                    "example": "Get tailored career advice and interview preparation from an experienced mentor."
+                    "description": "Detailed description of the service."
                   },
                   "sessionTime": {
                     "type": "integer",
                     "minimum": 10,
                     "maximum": 360,
-                    "example": 30,
-                    "description": "Duration of a single session in minutes. Must be a multiple of 5."
+                    "description": "Length of a single bookable session in minutes. Must be a multiple of 5."
                   },
                   "days": {
                     "type": "object",
-                    "description": "Weekly recurring availability grouped by day of the week.",
+                    "description": "Recurring weekly availabilities. Keys are day names, values are arrays of availability windows.",
                     "additionalProperties": {
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["startTime", "endTime"],
+                        "required": ["startTime", "duration"],
                         "properties": {
                           "startTime": {
                             "type": "string",
                             "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
-                            "example": "09:00",
-                            "description": "Start time in 24-hour HH:mm format"
+                            "description": "Start time in HH:mm 24-hour format."
                           },
-                          "endTime": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
-                            "example": "12:00",
-                            "description": "End time in 24-hour HH:mm format"
+                          "duration": {
+                            "type": "integer",
+                            "minimum": 10,
+                            "maximum": 360,
+                            "description": "Duration of the availability window in minutes."
                           }
                         }
-                      }
+                      },
+                      "minItems": 1
                     },
                     "example": {
                       "monday": [
-                        {
-                          "startTime": "09:00",
-                          "endTime": "12:00"
-                        }
-                      ],
-                      "wednesday": [
-                        {
-                          "startTime": "14:00",
-                          "endTime": "17:00"
-                        }
+                        { "startTime": "09:00", "duration": 60 },
+                        { "startTime": "13:00", "duration": 120 }
                       ]
                     }
                   },
                   "exceptions": {
                     "type": "object",
-                    "description": "Date-specific availability exceptions (e.g., holidays or special openings). Keys must be valid dates in YYYY-MM-DD format.",
+                    "description": "One-off date-specific availabilities. Keys are dates in YYYY-MM-DD format.",
                     "additionalProperties": {
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["startTime", "endTime"],
+                        "required": ["startTime", "duration"],
                         "properties": {
                           "startTime": {
                             "type": "string",
                             "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
-                            "example": "10:00"
+                            "description": "Start time in HH:mm 24-hour format."
                           },
-                          "endTime": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
-                            "example": "13:00"
+                          "duration": {
+                            "type": "integer",
+                            "minimum": 10,
+                            "maximum": 360,
+                            "description": "Duration of the availability window in minutes."
                           }
                         }
-                      }
+                      },
+                      "minItems": 1
                     },
                     "example": {
-                      "2025-08-10": [
-                        {
-                          "startTime": "10:00",
-                          "endTime": "13:00"
-                        }
+                      "2025-08-20": [
+                        { "startTime": "14:00", "duration": 60 }
+                      ]
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Standard Service Creation": {
+                  "value": {
+                    "id": "career_coaching",
+                    "type": "Career Coaching",
+                    "description": "Helping mentees prepare for job interviews and career growth.",
+                    "sessionTime": 60,
+                    "days": {
+                      "monday": [
+                        { "startTime": "09:00", "duration": 120 },
+                        { "startTime": "14:00", "duration": 60 }
+                      ]
+                    },
+                    "exceptions": {
+                      "2025-08-15": [
+                        { "startTime": "10:00", "duration": 90 }
                       ]
                     }
                   }
@@ -3513,78 +3524,35 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Success"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Service created successfully"
-                    }
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Service created successfully" }
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad request - input validation failed or time window conflicts",
+            "description": "Validation error — request body failed schema or availability windows overlap / are shorter than sessionTime.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Invalid time window on monday: [09:00 - 09:25] is less than the specified session time of 30 minutes"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict - service ID already exists for this mentor",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "You already have a service with an ID of career_coaching"
-                    }
+                    "status": { "type": "string", "example": "error" },
+                    "message": { "type": "string", "example": "Conflict on monday: [09:00 - 10:00] overlaps with [09:30 - 10:30]" }
                   }
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - user is not authenticated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized, No token provided"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Unauthorized — user not authenticated or session expired."
+          },
+          "403": {
+            "description": "Forbidden — user is not a mentor."
+          },
+          "409": {
+            "description": "Conflict — service ID already exists for this mentor."
           }
         }
       }
