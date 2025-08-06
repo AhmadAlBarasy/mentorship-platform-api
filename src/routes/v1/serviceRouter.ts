@@ -5,10 +5,13 @@ import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
 import { createService } from '../../controllers/serviceController';
 import { createServiceSchema } from '../../validators/validate.service';
+import authenticatedUserServicesRouter from './authenticatedUserServicesRouter';
 
 const { MENTOR } = Role;
 
 const serviceRouter = Router();
+
+serviceRouter.use('/my', authenticatedUserServicesRouter);
 
 serviceRouter.route('/')
   .post(

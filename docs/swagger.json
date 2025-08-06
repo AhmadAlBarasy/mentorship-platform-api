@@ -3556,6 +3556,148 @@
           }
         }
       }
+    },
+    "/services/my/{id}": {
+      "get": {
+        "summary": "Get your own service by ID",
+        "tags": ["Services"],
+        "description": "Retrieves a service that belongs to the authenticated mentor, including availability and exceptions.",
+        "operationId": "getMyServiceById",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the service to retrieve",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Service fetched successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "example": "svc_abc123"
+                        },
+                        "type": {
+                          "type": "string",
+                          "example": "MENTORSHIP"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Guidance for junior developers"
+                        },
+                        "sessionTime": {
+                          "type": "integer",
+                          "example": 60,
+                          "description": "Duration of each session in minutes"
+                        },
+                        "days": {
+                          "type": "object",
+                          "example": {
+                            "monday": [
+                              {
+                                "startTime": "09:00",
+                                "duration": 60
+                              }
+                            ],
+                            "wednesday": [
+                              {
+                                "startTime": "15:30",
+                                "duration": 45
+                              }
+                            ]
+                          }
+                        },
+                        "exceptions": {
+                          "type": "object",
+                          "example": {
+                            "2025-08-15": [
+                              {
+                                "startTime": "10:00",
+                                "duration": 60
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found or does not belong to the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": {
+                      "type": "string",
+                      "example": "No service found with ID 'svc_abc123' for this mentor"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
