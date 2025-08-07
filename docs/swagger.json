@@ -3698,6 +3698,87 @@
           }
         }
       }
+    },
+    "/services/my": {
+      "get": {
+        "summary": "Get mentor services",
+        "tags": ["Services"],
+        "description": "Retrieves all non-deleted services created by the authenticated mentor. Each service includes the number of pending session requests.",
+        "operationId": "getMentorServices",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of mentor services retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "services": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "career_coaching"
+                          },
+                          "type": {
+                            "type": "string",
+                            "example": "Career Coaching"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "Get tailored career advice and interview prep from an experienced mentor."
+                          },
+                          "sessionTime": {
+                            "type": "integer",
+                            "example": 30,
+                            "description": "Duration of one session in minutes"
+                          },
+                          "pendingRequestsCount": {
+                            "type": "integer",
+                            "example": 3,
+                            "description": "Number of pending session requests"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

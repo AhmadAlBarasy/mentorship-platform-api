@@ -160,7 +160,7 @@ model Services {
 model SessionRequests {
   @@map("session_requests")
 
-  id String @db.VarChar(32) @id @default(uuid())
+  id String @db.VarChar(36) @id @default(uuid())
   serviceId String @db.VarChar(32) @map("service_id")
   menteeId String @db.VarChar(32) @map("mentee_id")
   mentorId String @db.VarChar(32) @map("mentor_id")
