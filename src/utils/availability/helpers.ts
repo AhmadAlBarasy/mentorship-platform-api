@@ -3,7 +3,7 @@ function timeOnly(hour: number, minute: number) {
 }
 
 const getDayName = (dayOfWeek: number): string => {
-  const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   return days[dayOfWeek];
 };
 

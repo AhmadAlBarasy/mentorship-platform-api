@@ -6,7 +6,7 @@ import { validDays } from '../../validators/validator.custom';
 import { timeOnly } from './helpers';
 
 
-function createAvailabilityObjects(dayOrDate: string, availabilities: any[], sessionTime: number) {
+function createAvailabilityObjects(dayOrDate: string, availabilities: any[], sessionTime: number, userTimeZone: string) {
 
   const result: any[] = [];
 
@@ -20,12 +20,14 @@ function createAvailabilityObjects(dayOrDate: string, availabilities: any[], ses
         availability.duration,
         validDays.indexOf(dayOrDate),
       );
+      newAvailability.shiftToTimezone(userTimeZone, 'Etc/UTC'); // shift window time zone to UTC before proceeding
     } else {
       newAvailability = new AvailabilityException(
         Time.fromString(availability.startTime),
         availability.duration,
         new Date(dayOrDate),
       );
+      newAvailability.shiftToTimezone(userTimeZone, 'Etc/UTC'); // shift window time zone to UTC before proceeding
     }
 
     // check if the session time is greater than the new availability time window
