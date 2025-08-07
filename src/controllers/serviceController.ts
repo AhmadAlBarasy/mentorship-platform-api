@@ -8,6 +8,7 @@ import {
   prepareDateAvailabilitiesAndCheckForConflicts,
   prepareDayAvailabilitiesAndCheckForConflicts,
 } from '../utils/availability/availabilityUtils';
+import { getDayName } from '../utils/availability/helpers';
 
 const createService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
@@ -75,7 +76,68 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
   });
 });
 
+
+const getServiceById = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  const { id: mentorId } = req.user;
+
+  const service = await prisma.services.findFirst({
+    where: {
+      id,
+      mentorId,
+    },
+    include: {
+      dayAvailabilites: true,
+      availabilityExceptions: true,
+    },
+  });
+
+  if (!service) {
+    return next(new APIError(404, `No service found with ID '${id}' for this mentor`));
+  }
+
+  // Transform day availabilities into grouped-by-day object
+  const days: Record<string, { startTime: string; duration: number }[]> = {};
+  for (const avail of service.dayAvailabilites) {
+    const day = getDayName(avail.dayOfWeek); // 0 = Sunday, 6 = Saturday
+    if (!days[day]) {
+      days[day] = [];
+    }
+    days[day].push({
+      startTime: avail.startTime.toISOString().slice(11, 16), // "HH:mm"
+      duration: avail.duration,
+    });
+  }
+
+  // Transform availability exceptions into grouped-by-date object
+  const exceptions: Record<string, { startTime: string; duration: number }[]> = {};
+  for (const ex of service.availabilityExceptions) {
+    const dateKey = ex.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    if (!exceptions[dateKey]) {
+      exceptions[dateKey] = [];
+    }
+    exceptions[dateKey].push({
+      startTime: ex.startTime.toISOString().slice(11, 16), // "HH:mm"
+      duration: ex.duration,
+    });
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Service fetched successfully',
+    data: {
+      id: service.id,
+      type: service.type,
+      description: service.description,
+      sessionTime: service.sessionTime,
+      days,
+      exceptions,
+    },
+  });
+});
+
 export {
   createService,
+  getServiceById,
 };
 
