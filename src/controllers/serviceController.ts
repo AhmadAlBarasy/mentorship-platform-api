@@ -149,26 +149,39 @@ const getMentorServices = errorHandler(async(req: Request, res: Response, next: 
       deletedAt: true,
     },
     include: {
-      _count: {
+      requests: {
+        where: {
+          OR: [
+            { status: 'PENDING' },
+            { status: 'ACCEPTED' },
+          ],
+          mentorId,
+        },
         select: {
-          requests: {
-            where: {
-              status: 'PENDING',
-              mentorId,
-            },
-          },
+          status: true,
         },
       },
     },
   });
 
   const structuredServices = services.map((service) => {
+    const pendingRequestsCount = service.requests.filter(
+      (r) => r.status === 'PENDING',
+    ).length;
+
+    const acceptedRequestsCount = service.requests.filter(
+      (r) => r.status === 'ACCEPTED',
+    ).length;
+
     return {
       id: service.id,
       type: service.type,
       description: service.description,
       sessionTime: service.sessionTime,
-      pendingRequestsCount: service._count.requests,
+      createdAt: service.createdAt,
+      active: true,
+      pendingRequestsCount,
+      acceptedRequestsCount,
     };
   });
 

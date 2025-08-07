@@ -149,6 +149,7 @@ model Services {
   sessionTime Int @map("session_time")
   deletedAt DateTime? @db.Date @map("deleted_at")
   mentorId String @db.VarChar(32) @map("mentor_id")
+  createdAt DateTime @default(now()) @map("created_at")
   @@id(fields: [mentorId, id], name: "service")
   mentor Users @relation(fields: [mentorId], references: [id])
   requests SessionRequests[]
