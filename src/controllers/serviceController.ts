@@ -136,8 +136,52 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
   });
 });
 
+const getMentorServices = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+
+  const { id: mentorId } = req.user;
+
+  const services = await prisma.services.findMany({
+    where: {
+      mentorId,
+      deletedAt: null, // Exclude deleted services
+    },
+    omit: {
+      deletedAt: true,
+    },
+    include: {
+      _count: {
+        select: {
+          requests: {
+            where: {
+              status: 'PENDING',
+              mentorId,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const structuredServices = services.map((service) => {
+    return {
+      id: service.id,
+      type: service.type,
+      description: service.description,
+      sessionTime: service.sessionTime,
+      pendingRequestsCount: service._count.requests,
+    };
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    services: structuredServices,
+  });
+
+});
+
 export {
   createService,
   getServiceById,
+  getMentorServices,
 };
 
