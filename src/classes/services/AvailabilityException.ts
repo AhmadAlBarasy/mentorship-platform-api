@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { Availability } from './Availability';
 import { Time } from './Time';
 
@@ -73,6 +74,25 @@ export class AvailabilityException extends Availability {
 
   formatDate(): string {
     return new Intl.DateTimeFormat('en-CA').format(this.date);
+  }
+
+  shiftToTimezone(currentTimezone: string, targetTimezone: string): void {
+    const dtStart = DateTime.fromObject(
+      {
+        year: this.date.getFullYear(),
+        month: this.date.getMonth() + 1,
+        day: this.date.getDate(),
+        hour: this.startTime.hour,
+        minute: this.startTime.minute,
+      },
+      { zone: currentTimezone },
+    );
+
+    const shifted = dtStart.setZone(targetTimezone);
+
+    // Update date and time using the shifted DateTime
+    this.date = new Date(`${shifted.year}-${shifted.month.toString().padStart(2, '0')}-${shifted.day.toString().padStart(2, '0')}`);
+    this.startTime = new Time(shifted.hour, shifted.minute);
   }
 
 };
