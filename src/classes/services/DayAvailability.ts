@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import { Availability } from './Availability';
 import { Time } from './Time';
 
@@ -59,4 +60,28 @@ export class DayAvailability extends Availability {
     const diff = Math.abs(this.dayOfWeek - availability.dayOfWeek);
     return diff === 1 || diff === 6;
   }
+
+  shiftToTimezone(currentTimezone: string, targetTimezone: string): void {
+    // Use an arbitrary date (e.g., 2025-01-06 is a Monday)
+    const referenceDate = DateTime.fromObject({
+      year: 2025,
+      month: 1,
+      day: 6 + this.dayOfWeek, // Ensures correct weekday
+      hour: this.startTime.hour,
+      minute: this.startTime.minute,
+    },
+    {
+      zone: currentTimezone,
+    });
+
+    const shifted = referenceDate.setZone(targetTimezone);
+
+    // Update time
+    this.startTime = new Time(shifted.hour, shifted.minute);
+
+    // Update dayOfWeek if the weekday changed
+    const newWeekday = ((shifted.weekday - 1) % 7); // Luxon: 1 = Monday, 7 = Sunday
+    this.dayOfWeek = newWeekday;
+  }
+
 };

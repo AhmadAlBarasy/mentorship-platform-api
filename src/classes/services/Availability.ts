@@ -15,9 +15,10 @@ export abstract class Availability {
 
   abstract conflictsWith(availability: Availability): boolean;
 
+  abstract shiftToTimezone(currentTimezone: string, targetTimezone: string): void;
+
   // abstract equalTo(availability: Availability): boolean;
 
-  // abstract shiftToTimezone(currentTimezone: string, targetTimezone: string): this;
 
   timeInMinutes(): number {
     return this.duration;

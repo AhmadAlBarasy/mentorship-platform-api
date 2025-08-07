@@ -2,13 +2,13 @@ import Joi from 'joi';
 import iso from 'iso-3166-1';
 
 const validDays = [
-  'saturday',
-  'sunday',
   'monday',
   'tuesday',
   'wednesday',
   'thursday',
   'friday',
+  'saturday',
+  'sunday',
 ];
 
 const validateContryAlpha3Code = (code: string, helpers: Joi.CustomHelpers<string>) => {
