@@ -3701,18 +3701,13 @@
     },
     "/services/my": {
       "get": {
-        "summary": "Get mentor services",
+        "summary": "Get authenticated mentor's services",
         "tags": ["Services"],
-        "description": "Retrieves all non-deleted services created by the authenticated mentor. Each service includes the number of pending session requests.",
+        "description": "Fetches all services offered by the authenticated mentor. The response includes availability information and counts for pending and accepted session requests.",
         "operationId": "getMentorServices",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
         "responses": {
           "200": {
-            "description": "List of mentor services retrieved successfully",
+            "description": "List of mentor's services retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -3729,7 +3724,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "example": "career_coaching"
+                            "example": "growth_coaching"
                           },
                           "type": {
                             "type": "string",
@@ -3737,17 +3732,32 @@
                           },
                           "description": {
                             "type": "string",
-                            "example": "Get tailored career advice and interview prep from an experienced mentor."
+                            "example": "1-on-1 sessions to help you grow in your tech career."
                           },
                           "sessionTime": {
                             "type": "integer",
                             "example": 30,
-                            "description": "Duration of one session in minutes"
+                            "description": "Duration of each session in minutes"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-08-07T09:00:00.000Z"
+                          },
+                          "active": {
+                            "type": "boolean",
+                            "example": true,
+                            "description": "Indicates if the service is currently active"
                           },
                           "pendingRequestsCount": {
                             "type": "integer",
-                            "example": 3,
-                            "description": "Number of pending session requests"
+                            "example": 4,
+                            "description": "Number of pending session requests for this service"
+                          },
+                          "acceptedRequestsCount": {
+                            "type": "integer",
+                            "example": 2,
+                            "description": "Number of accepted session requests for this service"
                           }
                         }
                       }
@@ -3757,25 +3767,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized - user is not authenticated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Fail"
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Unauthorized, No token provided"
-                    }
-                  }
-                }
-              }
-            }
+          "403": {
+            "description": "Only mentors can access this endpoint"
           }
         }
       }
