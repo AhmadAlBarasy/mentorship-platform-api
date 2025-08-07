@@ -9,13 +9,16 @@ import {
   prepareDayAvailabilitiesAndCheckForConflicts,
 } from '../utils/availability/availabilityUtils';
 import { getDayName } from '../utils/availability/helpers';
+import { DayAvailability } from '../classes/services/DayAvailability';
+import { Time } from '../classes/services/Time';
+import { AvailabilityException } from '../classes/services/AvailabilityException';
 
 const createService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const dayAvailabilities = [];
   const availabilityExceptions = [];
 
-  const { id: mentorId } = req.user;
+  const { id: mentorId, timezone: userTimeZone } = req.user;
   const {
     id,
     type,
@@ -39,12 +42,12 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
 
   // 2. Check for conflicts in the day availabilities for each day (overlapping time windows)
   for (const day of Object.keys(days)){
-    const oneDayAvailability = createAvailabilityObjects(day, days[day], sessionTime);
+    const oneDayAvailability = createAvailabilityObjects(day, days[day], sessionTime, userTimeZone);
     dayAvailabilities.push(oneDayAvailability);
   }
   // 3. Check for conflicts in the availability exceptions for each date (overlapping time windows)
   for (const date of Object.keys(exceptions)){
-    const oneDateAvailability = createAvailabilityObjects(date, exceptions[date], sessionTime);
+    const oneDateAvailability = createAvailabilityObjects(date, exceptions[date], sessionTime, userTimeZone);
     availabilityExceptions.push(oneDateAvailability);
   }
 
@@ -79,7 +82,7 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
 
 const getServiceById = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
-  const { id: mentorId } = req.user;
+  const { id: mentorId, timezone: userTimeZone } = req.user;
 
   const service = await prisma.services.findFirst({
     where: {
@@ -96,30 +99,55 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
     return next(new APIError(404, `No service found with ID '${id}' for this mentor`));
   }
 
-  // Transform day availabilities into grouped-by-day object
   const days: Record<string, { startTime: string; duration: number }[]> = {};
+  const exceptions: Record<string, { startTime: string; duration: number }[]> = {};
+
+  // Transform day availabilities into grouped-by-day object
   for (const avail of service.dayAvailabilites) {
-    const day = getDayName(avail.dayOfWeek); // 0 = Sunday, 6 = Saturday
+
+    const dayAvailability = new DayAvailability(
+      Time.fromString(avail.startTime.toISOString().slice(11, 16)), // HH:MM
+      avail.duration,
+      avail.dayOfWeek,
+    );
+
+    dayAvailability.shiftToTimezone('Etc/UTC', userTimeZone); // shift the window back to the user time zone
+
+    const day = getDayName(dayAvailability.dayOfWeek); // 0 = Monday, 6 = Sunday
+
     if (!days[day]) {
       days[day] = [];
     }
+
     days[day].push({
-      startTime: avail.startTime.toISOString().slice(11, 16), // "HH:mm"
-      duration: avail.duration,
+      startTime: dayAvailability.startTime.toString(),
+      duration: dayAvailability.duration,
     });
+
   }
 
   // Transform availability exceptions into grouped-by-date object
-  const exceptions: Record<string, { startTime: string; duration: number }[]> = {};
   for (const ex of service.availabilityExceptions) {
+
     const dateKey = ex.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+    const availabilityException = new AvailabilityException(
+      Time.fromString(ex.startTime.toISOString().slice(11, 16)), // HH:MM
+      ex.duration,
+      new Date(dateKey),
+    );
+
+    availabilityException.shiftToTimezone('Etc/UTC', userTimeZone);
+
     if (!exceptions[dateKey]) {
       exceptions[dateKey] = [];
     }
+
     exceptions[dateKey].push({
-      startTime: ex.startTime.toISOString().slice(11, 16), // "HH:mm"
-      duration: ex.duration,
+      startTime: availabilityException.startTime.toString(),
+      duration: availabilityException.duration,
     });
+
   }
 
   res.status(200).json({
