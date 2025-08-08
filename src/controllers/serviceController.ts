@@ -99,8 +99,8 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
     return next(new APIError(404, `No service found with ID '${id}' for this mentor`));
   }
 
-  const days: Record<string, { startTime: string; duration: number }[]> = {};
-  const exceptions: Record<string, { startTime: string; duration: number }[]> = {};
+  const days: Record<string, { startTime: string; duration: number, id?: string }[]> = {};
+  const exceptions: Record<string, { startTime: string; duration: number, id?: string }[]> = {};
 
   // Transform day availabilities into grouped-by-day object
   for (const avail of service.dayAvailabilites) {
@@ -109,6 +109,7 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
       Time.fromString(avail.startTime.toISOString().slice(11, 16)), // HH:MM
       avail.duration,
       avail.dayOfWeek,
+      avail.id,
     );
 
     dayAvailability.shiftToTimezone('Etc/UTC', userTimeZone); // shift the window back to the user time zone
@@ -122,6 +123,7 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
     days[day].push({
       startTime: dayAvailability.startTime.toString(),
       duration: dayAvailability.duration,
+      id: dayAvailability.id,
     });
 
   }
@@ -135,6 +137,7 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
       Time.fromString(ex.startTime.toISOString().slice(11, 16)), // HH:MM
       ex.duration,
       new Date(dateKey),
+      ex.id,
     );
 
     availabilityException.shiftToTimezone('Etc/UTC', userTimeZone);
@@ -146,6 +149,7 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
     exceptions[dateKey].push({
       startTime: availabilityException.startTime.toString(),
       duration: availabilityException.duration,
+      id: availabilityException.id,
     });
 
   }
