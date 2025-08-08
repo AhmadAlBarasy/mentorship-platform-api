@@ -5,9 +5,13 @@ import { Time } from './Time';
 export class AvailabilityException extends Availability {
   date: Date;
 
-  constructor(startTime: Time, duration: number, date: Date){
+  constructor(startTime: Time, duration: number, date: Date, id?: string){
     super(startTime, duration);
     this.date = date;
+    this.id = id;
+    if (id) {
+      this.id = id;
+    }
   }
 
   conflictsWith(availability: AvailabilityException): boolean {
