@@ -5,12 +5,15 @@ import { Time } from './Time';
 export class DayAvailability extends Availability {
   dayOfWeek: number;
 
-  constructor(startTime: Time, duration: number, dayOfWeek: number){
+  constructor(startTime: Time, duration: number, dayOfWeek: number, id?: string){
     if (dayOfWeek < 0 || dayOfWeek > 6){
       throw new Error('Invalid class usage: dayOfWeek must be between 0 and 6');
     }
     super(startTime, duration);
     this.dayOfWeek = dayOfWeek;
+    if (id) {
+      this.id = id;
+    }
   }
 
   conflictsWith(availability: DayAvailability): boolean {

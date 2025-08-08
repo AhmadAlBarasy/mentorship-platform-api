@@ -3,6 +3,7 @@ import { Time } from './Time';
 export abstract class Availability {
   startTime: Time;
   duration: number;
+  id?: string;
 
   constructor(startTime: Time, duration: number) {
     if (duration < 10 || duration > 360){
