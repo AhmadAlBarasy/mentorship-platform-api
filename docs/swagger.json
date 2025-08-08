@@ -3621,12 +3621,14 @@
                           "example": {
                             "monday": [
                               {
+                                "id": "a81bc81b-dead-4e5d-abff-90865d1e13b1",
                                 "startTime": "09:00",
                                 "duration": 60
                               }
                             ],
                             "wednesday": [
                               {
+                                "id": "a81bc81b-dead-4e5d-abff-90865d1e13b1",
                                 "startTime": "15:30",
                                 "duration": 45
                               }
@@ -3638,6 +3640,7 @@
                           "example": {
                             "2025-08-15": [
                               {
+                                "id": "a81bc81b-dead-4e5d-abff-90865d1e13b1",
                                 "startTime": "10:00",
                                 "duration": 60
                               }
