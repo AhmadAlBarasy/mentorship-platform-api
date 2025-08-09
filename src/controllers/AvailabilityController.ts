@@ -25,7 +25,7 @@ const deleteDayAvailability = errorHandler(async(req: Request, res: Response, ne
     return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
   }
 
-  const deleteionCount = await prisma.dayAvailabilities.deleteMany({
+  const deletionCount = await prisma.dayAvailabilities.deleteMany({
     where: {
       id: availabilityId,
       mentorId,
@@ -33,7 +33,7 @@ const deleteDayAvailability = errorHandler(async(req: Request, res: Response, ne
     },
   });
 
-  if (deleteionCount){
+  if (deletionCount.count === 0){
     return next(new APIError(404, `Day Availability with an ID of ${availabilityId} was not found`));
   }
 
@@ -193,8 +193,40 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
 
 });
 
+const deleteAvailabilityException = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: serviceId, avId: availabilityId } = req.params;
+  const { id: mentorId } = req.user;
+
+  const service = await prisma.services.findFirst({
+    where: {
+      id: serviceId,
+      mentorId,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
+  }
+
+  const deletionCount = await prisma.availabilityExceptions.deleteMany({
+    where: {
+      id: availabilityId,
+      mentorId,
+      serviceId,
+    },
+  });
+
+  if (deletionCount.count === 0){
+    return next(new APIError(404, `Day Availability with an ID of ${availabilityId} was not found`));
+  }
+
+  res.status(204).json({});
+
+});
+
 export {
   deleteDayAvailability,
   updateDayAvailability,
   addDayAvailability,
+  deleteAvailabilityException,
 }

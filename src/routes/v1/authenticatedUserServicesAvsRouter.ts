@@ -2,7 +2,12 @@ import { Role } from '@prisma/client';
 import { Router } from 'express';
 import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
-import { addDayAvailability, deleteDayAvailability, updateDayAvailability } from '../../controllers/AvailabilityController';
+import {
+  addDayAvailability,
+  deleteAvailabilityException,
+  deleteDayAvailability,
+  updateDayAvailability,
+} from '../../controllers/AvailabilityController';
 import requestValidator from '../../middlewares/requestValidator';
 import { addDayAvailabilitySchema, updateDayAvailabilitySchema } from '../../validators/validate.availability';
 
@@ -43,6 +48,7 @@ authenticatedUserServicesAvsRouter.route('/availability-exceptions/:avId')
   .delete(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTOR]),
+    deleteAvailabilityException,
   )
   .all(notAllowedMethod);
 
