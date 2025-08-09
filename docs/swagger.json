@@ -3775,6 +3775,92 @@
           }
         }
       }
+    },
+    "/SessionRequest/my/mentee-requests": {
+      "get": {
+        "summary": "Get mentee's own session requests",
+        "tags": ["Session Requests"],
+        "description": "Retrieves all session requests created by the authenticated mentee.",
+        "operationId": "getMenteeSessionRequests",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mentee session requests retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Mentee session requests retrieved successfully" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "example": "req_123abc" },
+                          "serviceId": { "type": "string", "example": "svc_456def" },
+                          "menteeId": { "type": "string", "example": "user_789ghi" },
+                          "mentorId": { "type": "string", "example": "user_101jkl" },
+                          "startTime": { "type": "string", "format": "time", "example": "14:00" },
+                          "date": { "type": "string", "format": "date", "example": "2025-08-09" },
+                          "status": { "type": "string", "example": "PENDING" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a mentee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No session requests found for this mentee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "No session requests found for this mentee" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
