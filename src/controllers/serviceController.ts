@@ -224,9 +224,76 @@ const getMentorServices = errorHandler(async(req: Request, res: Response, next: 
 
 });
 
+const updateService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const {
+    type,
+    description,
+    sessionTime,
+  } = req.body;
+  const { id } = req.params;
+  const { id: mentorId } = req.user;
+
+  const service = await prisma.services.findFirst({
+    where: {
+      mentorId,
+      id,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, `You don't have a service with an ID of ${id}`));
+  }
+
+  if (sessionTime){
+    const dayWindowsWithTimeLessThanSessionTime = await prisma.dayAvailabilities.findMany({
+      where: {
+        mentorId,
+        serviceId: id,
+        duration: {
+          lt: sessionTime,
+        },
+      },
+    });
+    if (dayWindowsWithTimeLessThanSessionTime.length !== 0){
+      return next(new APIError(400, 'The new session time is greater than at least one of the day availability windows'));
+    }
+    const dateWindowsWithTimeLessThanSessionTime = await prisma.availabilityExceptions.findMany({
+      where: {
+        mentorId,
+        id,
+        duration: {
+          lt: sessionTime,
+        },
+      },
+    });
+    if (dateWindowsWithTimeLessThanSessionTime.length !== 0){
+      return next(new APIError(400, 'The new session time is greater than at least one of the date availability windows'));
+    }
+  }
+
+  await prisma.services.updateMany({
+    where: {
+      mentorId,
+      id,
+    },
+    data: {
+      type,
+      description,
+      sessionTime,
+    },
+  })
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Service updated successfully',
+  })
+
+});
+
 export {
   createService,
   getServiceById,
   getMentorServices,
+  updateService,
 };
 

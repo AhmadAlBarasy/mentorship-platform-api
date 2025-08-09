@@ -129,8 +129,24 @@ function prepareDateAvailabilitiesAndCheckForConflicts(
   return dateAvailabilitiesToInsert;
 }
 
+function createDayAvailabilityInstances(dayAvailabilities: any[]): DayAvailability[] {
+
+  const result = dayAvailabilities.map((availability) => {
+
+    return new DayAvailability(
+      Time.fromString(availability.startTime.toISOString().slice(11, 16)), // HH:MM
+      availability.duration,
+      availability.dayOfWeek,
+      availability.id,
+    );
+  });
+
+  return result;
+}
+
 export {
   createAvailabilityObjects,
   prepareDayAvailabilitiesAndCheckForConflicts,
   prepareDateAvailabilitiesAndCheckForConflicts,
+  createDayAvailabilityInstances,
 }
