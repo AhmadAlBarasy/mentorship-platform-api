@@ -7,12 +7,12 @@ import { getSessionRequestByFieldService } from '../services/sessionRequestsServ
 const getMenteeSessionRequests = errorHandler( async (req: Request, res: Response, next: NextFunction) => {
     const menteeId = req.user.id;
 
+    const userTimeZone = req.user.timezone ?? 'UTC';
+
     const sessionRequests = await getSessionRequestByFieldService({
       searchBy: { menteeId },
-      includeService: false,
-      includeMentee: false,
+      userTimezone: userTimeZone, // <- ask service to return formatted strings in user tz
     });
-
     if (!sessionRequests || sessionRequests.length === 0) {
       return next(new APIError(404, 'No session requests found for this mentee'));
     }
