@@ -1,25 +1,6 @@
 import Joi from 'joi';
 import { validateDateKeys, validateSessionTime, validDays } from './validator.custom';
-
-const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
-const availabilitySchema = Joi.object({
-  startTime: Joi.string()
-    .pattern(timeRegex)
-    .required()
-    .messages({
-      'string.pattern.base': 'start_time must be in HH:mm format (24-hour)',
-    }),
-  duration: Joi.number()
-    .min(10)
-    .max(360)
-    .required()
-    .messages({
-      'any.required': 'duration is required',
-      'number.min': 'duration must be at least 10 minutes',
-      'number.max': 'duration must be at most 360',
-    }),
-});
+import { availabilitySchema } from './validate.availability';
 
 const daysAvailabilitiesSchema = Joi.object()
   .pattern(
@@ -67,10 +48,11 @@ const createServiceSchema = Joi.object({
     }),
 
   sessionTime: Joi.number()
-    .required()
+    .integer()
     .min(10)
     .max(360)
     .custom(validateSessionTime)
+    .required()
     .messages({
       'any.required': 'sessionTime is required',
       'number.invalidSessionTime': 'sessionTime must be a multiple of 5',
@@ -81,7 +63,37 @@ const createServiceSchema = Joi.object({
   exceptions: exceptionsAvailabilitySchema,
 });
 
+const updateServiceSchema = Joi.object({
+  type: Joi.string()
+    .max(50)
+    .optional()
+    .messages({
+      'any.required': 'type is required',
+      'string.max': 'type must be at most 50 characters',
+    }),
+
+  description: Joi.string()
+    .max(300)
+    .optional()
+    .messages({
+      'any.required': 'description is required',
+      'string.max': 'description must be at most 300 characters',
+    }),
+
+  sessionTime: Joi.number()
+    .integer()
+    .min(10)
+    .max(360)
+    .custom(validateSessionTime)
+    .optional()
+    .messages({
+      'number.invalidSessionTime': 'sessionTime must be a multiple of 5',
+      'number.max': 'sessionTime must be at most 360',
+    }),
+
+}).min(1).message('Stop wasting our resources, these don\'t grow on trees :)');
+
 export {
   createServiceSchema,
-  daysAvailabilitiesSchema,
+  updateServiceSchema,
 };

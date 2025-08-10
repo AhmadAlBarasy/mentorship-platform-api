@@ -11,7 +11,6 @@ export default function errorHandler(err: Error, req: Request, res: Response, ne
       message: err.message,
     });
   } else {
-    console.log(err)
     logger.error(err.message);
     if (err instanceof SyntaxError){
       return res.status(400).json({

@@ -3557,6 +3557,80 @@
         }
       }
     },
+    "/services/my": {
+      "get": {
+        "summary": "Get authenticated mentor's services",
+        "tags": ["Services"],
+        "description": "Fetches all services offered by the authenticated mentor. The response includes availability information and counts for pending and accepted session requests.",
+        "operationId": "getMentorServices",
+        "responses": {
+          "200": {
+            "description": "List of mentor's services retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "services": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "growth_coaching"
+                          },
+                          "type": {
+                            "type": "string",
+                            "example": "Career Coaching"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "1-on-1 sessions to help you grow in your tech career."
+                          },
+                          "sessionTime": {
+                            "type": "integer",
+                            "example": 30,
+                            "description": "Duration of each session in minutes"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-08-07T09:00:00.000Z"
+                          },
+                          "active": {
+                            "type": "boolean",
+                            "example": true,
+                            "description": "Indicates if the service is currently active"
+                          },
+                          "pendingRequestsCount": {
+                            "type": "integer",
+                            "example": 4,
+                            "description": "Number of pending session requests for this service"
+                          },
+                          "acceptedRequestsCount": {
+                            "type": "integer",
+                            "example": 2,
+                            "description": "Number of accepted session requests for this service"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only mentors can access this endpoint"
+          }
+        }
+      }
+    },
     "/services/my/{id}": {
       "get": {
         "summary": "Get your own service by ID",
@@ -3700,78 +3774,791 @@
             }
           }
         }
-      }
-    },
-    "/services/my": {
-      "get": {
-        "summary": "Get authenticated mentor's services",
+      },
+      "patch": {
+        "summary": "Update your own service",
         "tags": ["Services"],
-        "description": "Fetches all services offered by the authenticated mentor. The response includes availability information and counts for pending and accepted session requests.",
-        "operationId": "getMentorServices",
+        "description": "Updates a service that belongs to the authenticated mentor. At least one updatable field must be provided.",
+        "operationId": "updateMyService",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the service to update",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "example": "Career Coaching"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "example": "Focused guidance on resumes, interviews, and career growth."
+                  },
+                  "sessionTime": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 360,
+                    "description": "Duration of each session in minutes. Must be a multiple of 5.",
+                    "example": 45
+                  }
+                },
+                "example": {
+                  "type": "Career Coaching",
+                  "sessionTime": 45
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "List of mentor's services retrieved successfully",
+            "description": "Service updated successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Success"
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Service updated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or incompatible session time with existing availability windows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Stop wasting our resources, these don't grow on trees :)" }
+                      }
                     },
-                    "services": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "example": "growth_coaching"
-                          },
-                          "type": {
-                            "type": "string",
-                            "example": "Career Coaching"
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "1-on-1 sessions to help you grow in your tech career."
-                          },
-                          "sessionTime": {
-                            "type": "integer",
-                            "example": 30,
-                            "description": "Duration of each session in minutes"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2025-08-07T09:00:00.000Z"
-                          },
-                          "active": {
-                            "type": "boolean",
-                            "example": true,
-                            "description": "Indicates if the service is currently active"
-                          },
-                          "pendingRequestsCount": {
-                            "type": "integer",
-                            "example": 4,
-                            "description": "Number of pending session requests for this service"
-                          },
-                          "acceptedRequestsCount": {
-                            "type": "integer",
-                            "example": 2,
-                            "description": "Number of accepted session requests for this service"
-                          }
-                        }
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "sessionTime must be a multiple of 5" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "sessionTime must be at most 360" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "The new session time is greater than at least one of the day availability windows" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "The new session time is greater than at least one of the date availability windows" }
                       }
                     }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
                   }
                 }
               }
             }
           },
           "403": {
-            "description": "Only mentors can access this endpoint"
+            "description": "Forbidden - user is not a mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found or does not belong to the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/my/{id}/day-availabilities": {
+      "post": {
+        "summary": "Add a day availability window to your service",
+        "tags": ["Services"],
+        "description": "Creates a new weekly day availability window for the authenticated mentor's service. Validates minimum duration against the service's session time and checks for conflicts with existing day windows (including adjacent days for after‑midnight spillover).",
+        "operationId": "addDayAvailability",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["dayOfWeek", "startTime", "duration"],
+                "properties": {
+                  "dayOfWeek": {
+                    "type": "string",
+                    "description": "Weekday name; must be one of your validDays list (e.g., monday…sunday).",
+                    "example": "monday"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "description": "Start time in 24-hour HH:mm format",
+                    "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                    "example": "09:00"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 360,
+                    "description": "Duration (minutes)",
+                    "example": 60
+                  }
+                },
+                "examples": {
+                  "basic": {
+                    "value": { "dayOfWeek": "monday", "startTime": "09:00", "duration": 60 }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Day availability added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Day availability added successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or conflict with existing windows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "duration must be at least 10 minutes" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "duration value is less than the specified session time for the service" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": {
+                          "type": "string",
+                          "example": "Conflict between newly created availability on Monday and other availability on Sunday: [09:00 - 10:00] conflicts with [23:30 - 00:30]"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token"
+          },
+          "403": {
+            "description": "Forbidden - user is not a mentor"
+          },
+          "404": {
+            "description": "Service not found or does not belong to the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/my/{id}/day-availabilities/{avId}": {
+      "patch": {
+        "summary": "Update a day availability window",
+        "tags": ["Services"],
+        "description": "Updates a specific weekly day availability window for the authenticated mentor's service. Validates that any new duration is not less than the service's session time and checks conflicts with other day windows (including adjacent days for after‑midnight spillover). At least one attribute must be provided.",
+        "operationId": "updateDayAvailability",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID",
+            "schema": { "type": "string", "example": "svc_abc123" }
+          },
+          {
+            "name": "avId",
+            "in": "path",
+            "required": true,
+            "description": "Day availability ID (UUID)",
+            "schema": { "type": "string", "format": "uuid", "example": "2f5a0a1d-0a4c-4a54-9e09-4f6e9d6b2f11" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "startTime": {
+                    "type": "string",
+                    "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                    "description": "Start time in 24-hour HH:mm format",
+                    "example": "10:30"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 360,
+                    "description": "Duration (minutes)",
+                    "example": 45
+                  }
+                },
+                "examples": {
+                  "updateStart": { "value": { "startTime": "10:30" } },
+                  "updateDuration": { "value": { "duration": 45 } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Day availability updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Day availability updated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or conflict with existing windows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "At least 1 attribute is required to update" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "new duration value is less than the specified session time for the service" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": {
+                          "type": "string",
+                          "example": "Conflict between updated availability on Monday and other availability on Sunday: [10:30 - 11:15] conflicts with [23:30 - 00:30]"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized - missing or invalid token" },
+          "403": { "description": "Forbidden - user is not a mentor" },
+          "404": {
+            "description": "Service not found or availability not found/belongs to another user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Day availability with an ID of 2f5a0a1d-0a4c-4a54-9e09-4f6e9d6b2f11 was not found" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a day availability window",
+        "tags": ["Services"],
+        "description": "Deletes a specific weekly day availability window for the authenticated mentor's service.",
+        "operationId": "deleteDayAvailability",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID",
+            "schema": { "type": "string", "example": "svc_abc123" }
+          },
+          {
+            "name": "avId",
+            "in": "path",
+            "required": true,
+            "description": "Day availability ID (UUID)",
+            "schema": { "type": "string", "format": "uuid", "example": "2f5a0a1d-0a4c-4a54-9e09-4f6e9d6b2f11" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Day availability deleted successfully (no content)" },
+          "401": { "description": "Unauthorized - missing or invalid token" },
+          "403": { "description": "Forbidden - user is not a mentor" },
+          "404": {
+            "description": "Service not found or availability not found/belongs to another user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Day Availability with an ID of 2f5a0a1d-0a4c-4a54-9e09-4f6e9d6b2f11 was not found" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/my/{id}/availability-exceptions": {
+      "post": {
+        "summary": "Add an availability exception to your service",
+        "tags": ["Services"],
+        "description": "Creates a one-time availability window for the authenticated mentor's service. Exceptions can be on any date and may overlap regular weekly availabilities. Validates minimum duration against the service's session time and checks for conflicts with other exceptions on the same or adjacent dates.",
+        "operationId": "addAvailabilityException",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["date", "startTime", "duration"],
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "description": "Date in YYYY-MM-DD format (local to the user before conversion)",
+                    "example": "2025-09-15"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                    "description": "Start time in HH:mm format (24-hour clock)",
+                    "example": "14:00"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 360,
+                    "description": "Duration in minutes",
+                    "example": 120
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Availability Exception created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Availability Exception created successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or conflict with an existing exception",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "duration must be at least 10 minutes" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "duration value is less than the specified session time for the service" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": {
+                          "type": "string",
+                          "example": "Conflict between newly created availability on 2025-09-15 and other availability on 2025-09-14: [14:00 - 16:00] conflicts with [23:30 - 00:30]"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden - user is not a mentor" },
+          "404": {
+            "description": "Service not found or not owned by the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/my/{id}/availability-exceptions/{avId}": {
+      "patch": {
+        "summary": "Update an availability exception",
+        "tags": ["Services"],
+        "description": "Updates a specific availability exception for the authenticated mentor's service. At least one of `startTime` or `duration` must be provided. Checks for conflicts with exceptions on the same or adjacent dates.",
+        "operationId": "updateAvailabilityException",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID",
+            "schema": { "type": "string", "example": "svc_abc123" }
+          },
+          {
+            "name": "avId",
+            "in": "path",
+            "required": true,
+            "description": "Availability Exception ID (UUID)",
+            "schema": { "type": "string", "format": "uuid", "example": "f36b58d1-7487-4a74-bc25-9cfc8a6a551a" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "startTime": {
+                    "type": "string",
+                    "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                    "description": "Start time in HH:mm format (24-hour clock)",
+                    "example": "15:30"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 360,
+                    "description": "Duration in minutes",
+                    "example": 45
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Availability Exception updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Availability Exception updated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or conflict with an existing exception",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "At least 1 attribute is required to update" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "new duration value is less than the specified session time for the service" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": {
+                          "type": "string",
+                          "example": "Conflict between updated availability on 2025-09-15 and other availability on 2025-09-14: [15:30 - 16:15] conflicts with [23:30 - 00:30]"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden - user is not a mentor" },
+          "404": {
+            "description": "Service not found or exception not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Availability exception with an ID of f36b58d1-7487-4a74-bc25-9cfc8a6a551a was not found" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an availability exception",
+        "tags": ["Services"],
+        "description": "Deletes a specific availability exception for the authenticated mentor's service.",
+        "operationId": "deleteAvailabilityException",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID",
+            "schema": { "type": "string", "example": "svc_abc123" }
+          },
+          {
+            "name": "avId",
+            "in": "path",
+            "required": true,
+            "description": "Availability Exception ID (UUID)",
+            "schema": { "type": "string", "format": "uuid", "example": "f36b58d1-7487-4a74-bc25-9cfc8a6a551a" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Availability Exception deleted successfully" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden - user is not a mentor" },
+          "404": {
+            "description": "Service not found or exception not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Day Availability with an ID of f36b58d1-7487-4a74-bc25-9cfc8a6a551a was not found" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           }
         }
       }
