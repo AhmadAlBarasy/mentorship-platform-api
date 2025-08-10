@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { duration, timeHHMM } from './validate.common';
-import { validDays } from './validator.custom';
+import { validateDateKeys, validDays } from './validator.custom';
 
 const updateAvailabilitySchema = Joi.object({
   startTime: timeHHMM
@@ -56,8 +56,32 @@ const addDayAvailabilitySchema = Joi.object({
     }),
 });
 
+const addAvailabilityExceptionSchema = Joi.object({
+  date: Joi.string()
+    .required()
+    .custom(validateDateKeys)
+    .messages({
+      'any.required': 'date is required',
+      'string.pattern.base': '{{#value}} is not a valid date. Use YYYY-MM-DD format.',
+    }),
+  duration: duration
+    .required()
+    .messages({
+      'any.required': 'duration is required',
+      'number.min': 'duration must be at least 10 minutes',
+      'number.max': 'duration must be at most 360',
+    }),
+  startTime: timeHHMM
+    .required()
+    .messages({
+      'any.required': 'startTime is required',
+      'string.pattern.base': 'startTime must be in HH:mm format (24-hour)',
+    }),
+});
+
 export {
   updateAvailabilitySchema,
   availabilitySchema,
   addDayAvailabilitySchema,
+  addAvailabilityExceptionSchema,
 }

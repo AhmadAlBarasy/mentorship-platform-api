@@ -8,9 +8,10 @@ import {
   deleteDayAvailability,
   updateDayAvailability,
   updateAvailabilityException,
+  addAvailabilityException,
 } from '../../controllers/AvailabilityController';
 import requestValidator from '../../middlewares/requestValidator';
-import { addDayAvailabilitySchema, updateAvailabilitySchema } from '../../validators/validate.availability';
+import { addAvailabilityExceptionSchema, addDayAvailabilitySchema, updateAvailabilitySchema } from '../../validators/validate.availability';
 
 const { MENTOR } = Role;
 
@@ -59,6 +60,8 @@ authenticatedUserServicesAvsRouter.route('/availability-exceptions')
   .post(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTOR]),
+    requestValidator({ bodySchema: addAvailabilityExceptionSchema }),
+    addAvailabilityException,
   )
 
 export default authenticatedUserServicesAvsRouter;

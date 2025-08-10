@@ -47,6 +47,17 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
   const { id: mentorId, timezone: userTimeZone } = req.user;
   const { startTime, duration, dayOfWeek } = req.body;
 
+  const service = await prisma.services.findFirst({
+    where: {
+      id: serviceId,
+      mentorId,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
+  }
+
   const dayAvailabilityInstance = new DayAvailability(
     Time.fromString(startTime),
     duration,
@@ -327,10 +338,86 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
 
 });
 
+const addAvailabilityException = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: serviceId } = req.params;
+  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { startTime, duration, date } = req.body;
+
+  const service = await prisma.services.findFirst({
+    where: {
+      id: serviceId,
+      mentorId,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
+  }
+
+  const availabilityExceptionInstance = new AvailabilityException(
+    Time.fromString(startTime),
+    duration,
+    new Date(date),
+  );
+
+  availabilityExceptionInstance.shiftToTimezone(userTimeZone, 'Etc/UTC');
+
+  const prevDate = new Date(availabilityExceptionInstance.date);
+  prevDate.setUTCDate(prevDate.getUTCDate() - 1);
+
+  const nextDate = new Date(availabilityExceptionInstance.date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+
+  const possiblyConflictingAvailabilities = await prisma.availabilityExceptions.findMany({
+    where: {
+      mentorId,
+      serviceId,
+      date: {
+        in: [ // the ones that are would possibly conflict with the one to update is either in the same date or in an adjacent one
+          availabilityExceptionInstance.date,
+          prevDate,
+          nextDate,
+        ],
+      },
+    },
+  });
+
+  const possiblyConflictingAvailabilitiesInstances = createAvailabilityExceptionInstances(possiblyConflictingAvailabilities);
+
+  for (const availabilityInstance of possiblyConflictingAvailabilitiesInstances) {
+    if (availabilityExceptionInstance.conflictsWith(availabilityInstance)){
+      return next(new APIError(
+        400,
+        `Conflict between newly created availability on ${availabilityExceptionInstance.formatDate()} ` +
+        `and other availability on ${availabilityInstance.formatDate()}:` +
+        `[${availabilityExceptionInstance.startTime.toString()} - ${availabilityExceptionInstance.getEndTime(false).toString()}] conflicts with` +
+        `[${availabilityInstance.startTime.toString()} - ${availabilityInstance.getEndTime(false).toString()}]`,
+      ));
+    }
+  }
+
+  await prisma.availabilityExceptions.create({
+    data: {
+      serviceId,
+      mentorId,
+      duration: availabilityExceptionInstance.duration,
+      startTime: timeOnly(availabilityExceptionInstance.startTime.hour, availabilityExceptionInstance.startTime.minute),
+      date: new Date(ymdDateString(availabilityExceptionInstance.date)),
+    },
+  });
+
+  res.status(201).json({
+    status: SUCCESS,
+    message: 'Availability Exception created successfully',
+  });
+
+});
+
 export {
   deleteDayAvailability,
   updateDayAvailability,
   addDayAvailability,
   deleteAvailabilityException,
   updateAvailabilityException,
+  addAvailabilityException,
 }
