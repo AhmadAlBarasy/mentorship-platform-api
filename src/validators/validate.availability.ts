@@ -2,7 +2,7 @@ import Joi from 'joi';
 import { duration, timeHHMM } from './validate.common';
 import { validDays } from './validator.custom';
 
-const updateDayAvailabilitySchema = Joi.object({
+const updateAvailabilitySchema = Joi.object({
   startTime: timeHHMM
     .optional()
     .messages({
@@ -57,7 +57,7 @@ const addDayAvailabilitySchema = Joi.object({
 });
 
 export {
-  updateDayAvailabilitySchema,
+  updateAvailabilitySchema,
   availabilitySchema,
   addDayAvailabilitySchema,
 }

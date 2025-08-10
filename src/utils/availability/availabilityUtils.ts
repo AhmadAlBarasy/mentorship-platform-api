@@ -3,7 +3,7 @@ import { AvailabilityException } from '../../classes/services/AvailabilityExcept
 import { DayAvailability } from '../../classes/services/DayAvailability';
 import { Time } from '../../classes/services/Time';
 import { validDays } from '../../validators/validator.custom';
-import { timeOnly } from './helpers';
+import { timeOnly, ymdDateString } from './helpers';
 
 
 function createAvailabilityObjects(dayOrDate: string, availabilities: any[], sessionTime: number, userTimeZone: string) {
@@ -144,9 +144,25 @@ function createDayAvailabilityInstances(dayAvailabilities: any[]): DayAvailabili
   return result;
 }
 
+function createAvailabilityExceptionInstances(availabilityExceptions: any[]): AvailabilityException[] {
+
+  const result = availabilityExceptions.map((availability) => {
+
+    return new AvailabilityException(
+      Time.fromString(availability.startTime.toISOString().slice(11, 16)), // HH:MM
+      availability.duration,
+      new Date(ymdDateString(availability.date)),
+      availability.id,
+    );
+  });
+
+  return result;
+}
+
 export {
   createAvailabilityObjects,
   prepareDayAvailabilitiesAndCheckForConflicts,
   prepareDateAvailabilitiesAndCheckForConflicts,
   createDayAvailabilityInstances,
+  createAvailabilityExceptionInstances,
 }

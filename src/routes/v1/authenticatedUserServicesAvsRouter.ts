@@ -7,9 +7,10 @@ import {
   deleteAvailabilityException,
   deleteDayAvailability,
   updateDayAvailability,
+  updateAvailabilityException,
 } from '../../controllers/AvailabilityController';
 import requestValidator from '../../middlewares/requestValidator';
-import { addDayAvailabilitySchema, updateDayAvailabilitySchema } from '../../validators/validate.availability';
+import { addDayAvailabilitySchema, updateAvailabilitySchema } from '../../validators/validate.availability';
 
 const { MENTOR } = Role;
 
@@ -19,7 +20,7 @@ authenticatedUserServicesAvsRouter.route('/day-availabilities/:avId')
   .patch(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTOR]),
-    requestValidator({ bodySchema: updateDayAvailabilitySchema }),
+    requestValidator({ bodySchema: updateAvailabilitySchema }),
     updateDayAvailability,
   )
   .delete(
@@ -44,6 +45,8 @@ authenticatedUserServicesAvsRouter.route('/availability-exceptions/:avId')
   .patch(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTOR]),
+    requestValidator({ bodySchema: updateAvailabilitySchema }),
+    updateAvailabilityException,
   )
   .delete(
     authenticate({ access: 'full' }),

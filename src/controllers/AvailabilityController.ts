@@ -5,9 +5,10 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import { DayAvailability } from '../classes/services/DayAvailability';
 import { Time } from '../classes/services/Time';
-import { createDayAvailabilityInstances } from '../utils/availability/availabilityUtils';
+import { createAvailabilityExceptionInstances, createDayAvailabilityInstances } from '../utils/availability/availabilityUtils';
 import { validDays } from '../validators/validator.custom';
-import { timeOnly } from '../utils/availability/helpers';
+import { timeOnly, ymdDateString } from '../utils/availability/helpers';
+import { AvailabilityException } from '../classes/services/AvailabilityException';
 
 
 const deleteDayAvailability = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
@@ -224,9 +225,112 @@ const deleteAvailabilityException = errorHandler(async(req: Request, res: Respon
 
 });
 
+const updateAvailabilityException = errorHandler(async(req: Request, res: Response, next: NextFunction)=>{
+  const { id: serviceId, avId: availabilityId } = req.params;
+  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { startTime, duration } = req.body;
+
+  const service = await prisma.services.findFirst({
+    where: {
+      id: serviceId,
+      mentorId,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
+  }
+
+  const avilabilityEx = await prisma.availabilityExceptions.findFirst({
+    where: {
+      id: availabilityId,
+      mentorId,
+      serviceId,
+    },
+  });
+
+  if (!avilabilityEx){
+    return next(new APIError(404, `Availability exception with an ID of ${availabilityId} was not found`));
+  }
+
+  const availabilityExceptionInstance = new AvailabilityException(
+    Time.fromString(avilabilityEx.startTime.toISOString().slice(11, 16)), // HH:MM
+    avilabilityEx.duration,
+    new Date(ymdDateString(avilabilityEx.date)),
+    avilabilityEx.id,
+  );
+
+  availabilityExceptionInstance.shiftToTimezone('Etc/UTC', userTimeZone);
+
+  if (startTime){
+    availabilityExceptionInstance.startTime = Time.fromString(startTime);
+  }
+  if (duration){
+    availabilityExceptionInstance.duration = duration;
+  }
+
+  availabilityExceptionInstance.shiftToTimezone(userTimeZone, 'Etc/UTC');
+
+  const prevDate = new Date(availabilityExceptionInstance.date);
+  prevDate.setUTCDate(prevDate.getUTCDate() - 1);
+
+  const nextDate = new Date(availabilityExceptionInstance.date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+
+
+  const possiblyConflictingAvailabilities = await prisma.availabilityExceptions.findMany({
+    where: {
+      mentorId,
+      serviceId,
+      id: {
+        not: availabilityId,
+      },
+      date: {
+        in: [ // the ones that are would possibly conflict with the one to update is either in the same date or in an adjacent one
+          availabilityExceptionInstance.date,
+          prevDate,
+          nextDate,
+        ],
+      },
+    },
+  });
+
+  const possiblyConflictingAvailabilitiesInstances = createAvailabilityExceptionInstances(possiblyConflictingAvailabilities);
+
+  for (const availabilityInstance of possiblyConflictingAvailabilitiesInstances) {
+    if (availabilityExceptionInstance.conflictsWith(availabilityInstance)){
+      return next(new APIError(
+        400,
+        `Conflict between updated availability on ${availabilityExceptionInstance.formatDate()} ` +
+        `and other availability on ${availabilityInstance.formatDate()}:` +
+        `[${availabilityExceptionInstance.startTime.toString()} - ${availabilityExceptionInstance.getEndTime(false).toString()}] conflicts with` +
+        `[${availabilityInstance.startTime.toString()} - ${availabilityInstance.getEndTime(false).toString()}]`,
+      ));
+    }
+  }
+
+  await prisma.availabilityExceptions.update({
+    where: {
+      id: availabilityId,
+    },
+    data: {
+      startTime: timeOnly(availabilityExceptionInstance.startTime.hour, availabilityExceptionInstance.startTime.minute),
+      duration: availabilityExceptionInstance.duration,
+      date: new Date(ymdDateString(availabilityExceptionInstance.date)),
+    },
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Availability Exception updated successfully',
+  });
+
+});
+
 export {
   deleteDayAvailability,
   updateDayAvailability,
   addDayAvailability,
   deleteAvailabilityException,
+  updateAvailabilityException,
 }
