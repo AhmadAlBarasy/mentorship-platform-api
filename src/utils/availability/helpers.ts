@@ -7,7 +7,10 @@ const getDayName = (dayOfWeek: number): string => {
   return days[dayOfWeek];
 };
 
+const ymdDateString = (date: Date) => date.toISOString().slice(0, 10); // YYYY-MM-DD
+
 export {
   timeOnly,
   getDayName,
+  ymdDateString,
 }
