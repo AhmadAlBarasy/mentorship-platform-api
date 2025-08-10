@@ -131,7 +131,7 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
   // Transform availability exceptions into grouped-by-date object
   for (const ex of service.availabilityExceptions) {
 
-    const dateKey = ex.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    let dateKey = ex.date.toISOString().slice(0, 10); // "YYYY-MM-DD"
 
     const availabilityException = new AvailabilityException(
       Time.fromString(ex.startTime.toISOString().slice(11, 16)), // HH:MM
@@ -141,6 +141,8 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
     );
 
     availabilityException.shiftToTimezone('Etc/UTC', userTimeZone);
+
+    dateKey = availabilityException.formatDate(); // update the dateKey value to insert avs into the right object
 
     if (!exceptions[dateKey]) {
       exceptions[dateKey] = [];
