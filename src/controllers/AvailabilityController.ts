@@ -58,6 +58,10 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
   }
 
+  if (duration < service.sessionTime){
+    return next(new APIError(400, 'duration value is less than the specified session time for the service'));
+  }
+
   const dayAvailabilityInstance = new DayAvailability(
     Time.fromString(startTime),
     duration,
@@ -148,8 +152,10 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
   dayAvailabilityInstance.shiftToTimezone('Etc/UTC', userTimeZone);
 
   if (duration){
+    if (duration < service.sessionTime){
+      return next(new APIError(400, 'new duration value is less than the specified session time for the service'));
+    }
     dayAvailabilityInstance.duration = duration;
-
   }
   if (startTime){
     dayAvailabilityInstance.startTime = Time.fromString(startTime);
@@ -277,6 +283,9 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
     availabilityExceptionInstance.startTime = Time.fromString(startTime);
   }
   if (duration){
+    if (duration < service.sessionTime){
+      return next(new APIError(400, 'new duration value is less than the specified session time for the service'));
+    }
     availabilityExceptionInstance.duration = duration;
   }
 
@@ -352,6 +361,10 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
 
   if (!service){
     return next(new APIError(404, `You don't have a service with an ID of ${serviceId}`));
+  }
+
+  if (duration < service.sessionTime){
+    return next(new APIError(400, 'duration value is less than the specified session time for the service'));
   }
 
   const availabilityExceptionInstance = new AvailabilityException(

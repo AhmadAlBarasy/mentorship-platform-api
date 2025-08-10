@@ -32,7 +32,7 @@ authenticatedUserServicesAvsRouter.route('/day-availabilities/:avId')
   .all(notAllowedMethod);
 
 
-authenticatedUserServicesAvsRouter.route('/day-availabilities/')
+authenticatedUserServicesAvsRouter.route('/day-availabilities')
   .post(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTOR]),
