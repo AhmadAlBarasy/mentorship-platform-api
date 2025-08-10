@@ -63,5 +63,6 @@ authenticatedUserServicesAvsRouter.route('/availability-exceptions')
     requestValidator({ bodySchema: addAvailabilityExceptionSchema }),
     addAvailabilityException,
   )
+  .all(notAllowedMethod);
 
 export default authenticatedUserServicesAvsRouter;
