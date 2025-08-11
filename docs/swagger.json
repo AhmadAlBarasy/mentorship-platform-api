@@ -4561,6 +4561,177 @@
             }
           }
         }
+      },
+      "/SessionRequest": {
+        "post": {
+          "summary": "Create a new session request",
+          "tags": ["Session Requests"],
+          "description": "Allows an authenticated mentee to request a session with a mentor for a specific service and time slot. The request will only succeed if both mentee and mentor are members of the provided community, the requested time slot is available, and there are no conflicts with existing requests or availability rules. Times are interpreted in the authenticated user's timezone.",
+          "operationId": "createSessionRequest",
+          "security": [
+            {
+              "cookieAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "serviceId": {
+                      "type": "string",
+                      "example": "cv_review",
+                      "description": "ID of the service for which the session is being requested."
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "2025-08-24",
+                      "description": "Date of the requested session in YYYY-MM-DD format."
+                    },
+                    "startTime": {
+                      "type": "string",
+                      "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                      "example": "14:30",
+                      "description": "Start time for the session in HH:mm (24-hour) format."
+                    },
+                    "communityId": {
+                      "type": "string",
+                      "example": "iug",
+                      "description": "ID of the community where the session will take place. Both mentor and mentee must be members."
+                    },
+                    "agenda": {
+                      "type": "string",
+                      "example": "Discuss project progress",
+                      "description": "Optional agenda or notes for the session."
+                    }
+                  },
+                  "required": ["serviceId", "date", "startTime", "communityId"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Session request created successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "Success"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Session request created successfully"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "serviceId": {
+                            "type": "string",
+                            "example": "cv_review"
+                          },
+                          "menteeId": {
+                            "type": "string",
+                            "example": "a7a"
+                          },
+                          "mentorId": {
+                            "type": "string",
+                            "example": "maliko"
+                          },
+                          "startTime": {
+                            "type": "string",
+                            "example": "14:30:00"
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-08-24"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - invalid date/time or unavailable slot.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string", "example": "Fail" },
+                      "message": { "type": "string", "example": "Invalid date or startTime provided" }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - user not authenticated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string", "example": "Fail" },
+                      "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Forbidden - user not authorized or not in the same community as mentor",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string", "example": "Fail" },
+                      "message": { "type": "string", "example": "Both mentor and mentee must be members of the provided community" }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found - service does not exist",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string", "example": "Fail" },
+                      "message": { "type": "string", "example": "Service with id cv_review was not found" }
+                    }
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "Conflict - time slot already booked",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": { "type": "string", "example": "Fail" },
+                      "message": { "type": "string", "example": "That exact slot is already booked" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
