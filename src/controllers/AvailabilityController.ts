@@ -97,7 +97,7 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     }
   }
 
-  await prisma.dayAvailabilities.create({
+  const newRecord = await prisma.dayAvailabilities.create({
     data: {
       serviceId,
       mentorId,
@@ -107,9 +107,17 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     },
   });
 
+  dayAvailabilityInstance.shiftToTimezone('Etc/UTC', userTimeZone); // shift back to user timezone to return the newly created record
+
   res.status(201).json({
     status: SUCCESS,
     message: 'Day availability added successfully',
+    newAvailability: {
+      id: newRecord.id,
+      dayOfWeek: dayAvailabilityInstance.dayOfWeek,
+      startTime: dayAvailabilityInstance.startTime.toString(),
+      duration: dayAvailabilityInstance.duration,
+    },
   });
 
 });
@@ -409,7 +417,7 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
     }
   }
 
-  await prisma.availabilityExceptions.create({
+  const newRecord = await prisma.availabilityExceptions.create({
     data: {
       serviceId,
       mentorId,
@@ -419,9 +427,17 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
     },
   });
 
+  availabilityExceptionInstance.shiftToTimezone('Etc/UTC', userTimeZone); // shift back to user timezone to return the newly created record
+
   res.status(201).json({
     status: SUCCESS,
     message: 'Availability Exception created successfully',
+    newAvailability: {
+      id: newRecord.id,
+      date: availabilityExceptionInstance.formatDate(),
+      startTime: availabilityExceptionInstance.startTime.toString(),
+      duration: availabilityExceptionInstance.duration,
+    },
   });
 
 });
