@@ -1,22 +1,19 @@
-// classes/sessionRequests/SessionRequestAvailabilityChecker.ts
-import { DateTime } from 'luxon';
 import { Time } from '../services/Time';
 import { AvailabilityException } from '../services/AvailabilityException';
 import { DayAvailability } from '../services/DayAvailability';
+import { getDayIndexFromDate, getDayName } from '../../utils/availability/helpers';
 
-// shape of an existing SessionRequest row converted to your classes
 export type ExistingSession = {
-  date: Date;        // date-only (DB Date)
-  startTime: Time;   // Time instance from your Time class
-  duration: number;  // in minutes
+  date: Date;
+  startTime: Time;
+  duration: number;
 };
 
 export class SessionRequestAvailabilityChecker {
   constructor(
-    private exceptions: AvailabilityException[],      // all exceptions for the mentor/service
-    private dayAvailabilities: DayAvailability[],     // all day availabilities for the mentor/service
-    private existingRequests: ExistingSession[],     // existing session requests (mentor)
-    private sessionDuration: number                  // service.sessionTime (minutes)
+    private exceptions: AvailabilityException[],
+    private dayAvailabilities: DayAvailability[],
+    private sessionDuration: number
   ) {}
 
   private isSameDate(d1: Date, d2: Date) {
@@ -27,119 +24,79 @@ export class SessionRequestAvailabilityChecker {
     );
   }
 
-  /**
-   * Returns true if the given requestStart (Date) can be booked.
-   * timezone is optional (Luxon zone string). If omitted it uses system zone.
-   */
-  canBook(requestStartDate: Date, timezone?: string): boolean {
-    const zone =  'UTC';
-
-    // Request start & end DateTimes
-    const reqStart = DateTime.fromJSDate(requestStartDate, { zone }).toUTC();
-    const reqEnd = reqStart.plus({ minutes: this.sessionDuration });
+  canBook(requestStartDate: Date): boolean {
+    const reqStart = requestStartDate;
+    const reqEnd = new Date(reqStart.getTime() + this.sessionDuration * 60000);
 
 
-    // ---------- 1) check existing session requests overlap ----------
-    for (const existing of this.existingRequests) {
-      const existingStart = DateTime.fromObject(
-        {
-          year: existing.date.getFullYear(),
-          month: existing.date.getMonth() + 1,
-          day: existing.date.getDate(),
-          hour: existing.startTime.hour,
-          minute: existing.startTime.minute,
-        },
-        { zone },
-      );
-      const existingEnd = existingStart.plus({ minutes: existing.duration });
-
-      const overlap =
-        reqStart.toMillis() < existingEnd.toMillis() &&
-        existingStart.toMillis() < reqEnd.toMillis();
-
-      if (overlap) {
-        return false; // already booked or overlaps an existing session
-      }
-    }
-
-    // ---------- 2) availability exceptions (date-specific) ----------
-    // If there is any exception for the same date -> exceptions *override* day availability.
+    // 2) Check date-specific exceptions
     const exceptionsForDate = this.exceptions.filter((ex) =>
-      this.isSameDate(ex.date, requestStartDate),
+      this.isSameDate(ex.date, requestStartDate)
     );
 
     if (exceptionsForDate.length > 0) {
-      // must fit inside one of these exception intervals
       for (const ex of exceptionsForDate) {
-        const exStart = DateTime.fromObject(
-          {
-            year: ex.date.getFullYear(),
-            month: ex.date.getMonth() + 1,
-            day: ex.date.getDate(),
-            hour: ex.startTime.hour,
-            minute: ex.startTime.minute,
-          },
-          { zone },
+        const exStart = new Date(
+          ex.date.getFullYear(),
+          ex.date.getMonth(),
+          ex.date.getDate(),
+          ex.startTime.hour,
+          ex.startTime.minute
         );
-        const exEnd = exStart.plus({ minutes: ex.duration });
+        const exEnd = new Date(exStart.getTime() + ex.duration * 60000);
 
-        // request must be fully inside the exception window
-        if (
-          reqStart.toMillis() >= exStart.toMillis() &&
-          reqEnd.toMillis() <= exEnd.toMillis()
-        ) {
+        if (reqStart >= exStart && reqEnd <= exEnd) {
           return true;
         }
       }
-      // there were exceptions but none fit -> cannot book (exception overrides day availability)
       return false;
     }
 
-    // ---------- 3) no exceptions for the date -> check day availabilities ----------
-    // We need to check:
-    //  - availabilities that start the same weekday as requestDate
-    //  - availabilities that start the *previous* weekday and overflow into requestDate
-    const requestWeekday = requestStartDate.getDay(); // 0 = Sunday .. 6 = Saturday
+    // 3) Check normal day availabilities (including previous-day overflow past midnight)
+    const requestWeekday = getDayIndexFromDate(reqStart);
+
     const prevWeekday = (requestWeekday + 6) % 7;
 
     const candidates = this.dayAvailabilities.filter(
-      (d) => d.dayOfWeek === requestWeekday || d.dayOfWeek === prevWeekday,
+      (d) => d.dayOfWeek === requestWeekday || d.dayOfWeek === prevWeekday
     );
 
+
     for (const avail of candidates) {
-      // compute the actual availability start DateTime (use requestDate or requestDate - 1 day)
-      let availStartDate: DateTime;
+      let availStartDate: Date;
+
       if (avail.dayOfWeek === requestWeekday) {
-        availStartDate = DateTime.fromJSDate(requestStartDate, { zone }).set({
-          hour: avail.startTime.hour,
-          minute: avail.startTime.minute,
-          second: 0,
-          millisecond: 0,
-        });
+        availStartDate = new Date(
+          reqStart.getFullYear(),
+          reqStart.getMonth(),
+          reqStart.getDate(),
+          avail.startTime.hour,
+          avail.startTime.minute
+        );
       } else {
-        // availability started previous calendar day and may overflow into the request date
-        availStartDate = DateTime.fromJSDate(requestStartDate, { zone })
-          .minus({ days: 1 })
-          .set({
-            hour: avail.startTime.hour,
-            minute: avail.startTime.minute,
-            second: 0,
-            millisecond: 0,
-          });
+        availStartDate = new Date(
+          reqStart.getFullYear(),
+          reqStart.getMonth(),
+          reqStart.getDate() - 1,
+          avail.startTime.hour,
+          avail.startTime.minute
+        );
+
+        // Only allow if it actually passes midnight into the request date
+        const availEnd = new Date(availStartDate.getTime() + avail.duration * 60000);
+        if (availEnd.getDate() === availStartDate.getDate()) {
+          continue; // doesn't cross midnight, skip
+        }
       }
 
-      const availEndDate = availStartDate.plus({ minutes: avail.duration });
+      const availEndDate = new Date(availStartDate.getTime() + avail.duration * 60000);
 
-      // request must be fully inside the availability window
-      if (
-        reqStart.toMillis() >= availStartDate.toMillis() &&
-        reqEnd.toMillis() <= availEndDate.toMillis()
-      ) {
+      if (reqStart >= availStartDate && reqEnd <= availEndDate) {
+        
         return true;
       }
     }
 
-    // no matching availability found
     return false;
   }
 }
