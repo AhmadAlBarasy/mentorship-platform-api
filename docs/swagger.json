@@ -3939,7 +3939,7 @@
       "post": {
         "summary": "Add a day availability window to your service",
         "tags": ["Services"],
-        "description": "Creates a new weekly day availability window for the authenticated mentor's service. Validates minimum duration against the service's session time and checks for conflicts with existing day windows (including adjacent days for after‑midnight spillover).",
+        "description": "Creates a new weekly day availability window for the authenticated mentor's service. Validates minimum duration against the service's session time and checks for conflicts with existing day windows (including adjacent days for after-midnight spillover).",
         "operationId": "addDayAvailability",
         "security": [
           { "cookieAuth": [] }
@@ -4001,7 +4001,32 @@
                   "type": "object",
                   "properties": {
                     "status": { "type": "string", "example": "Success" },
-                    "message": { "type": "string", "example": "Day availability added successfully" }
+                    "message": { "type": "string", "example": "Day availability added successfully" },
+                    "newAvailability": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "2d4b57ec-a567-4c89-a5cc-f1c567a930a2"
+                        },
+                        "dayOfWeek": {
+                          "type": "integer",
+                          "description": "Numeric representation of day of week (0 = Sunday, 6 = Saturday) shifted back to the user's timezone",
+                          "example": 1
+                        },
+                        "startTime": {
+                          "type": "string",
+                          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                          "description": "Start time in HH:mm (shifted back to the user's timezone)",
+                          "example": "09:00"
+                        },
+                        "duration": {
+                          "type": "integer",
+                          "example": 60
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -4317,7 +4342,33 @@
                   "type": "object",
                   "properties": {
                     "status": { "type": "string", "example": "Success" },
-                    "message": { "type": "string", "example": "Availability Exception created successfully" }
+                    "message": { "type": "string", "example": "Availability Exception created successfully" },
+                    "newAvailability": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "example": "c7f0c8e4-3f0a-4b5e-9c0b-6b4f1f2a9d11"
+                        },
+                        "date": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                          "description": "Date in YYYY-MM-DD (shifted back to the user's timezone)",
+                          "example": "2025-09-15"
+                        },
+                        "startTime": {
+                          "type": "string",
+                          "pattern": "^([01]\\d|2[0-3]):([0-5]\\d)$",
+                          "description": "Start time in HH:mm (shifted back to the user's timezone)",
+                          "example": "14:00"
+                        },
+                        "duration": {
+                          "type": "integer",
+                          "example": 120
+                        }
+                      }
+                    }
                   }
                 }
               }
