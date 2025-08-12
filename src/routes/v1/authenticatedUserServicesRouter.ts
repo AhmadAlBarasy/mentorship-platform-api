@@ -6,12 +6,14 @@ import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import requestValidator from '../../middlewares/requestValidator';
 import { updateServiceSchema } from '../../validators/validate.service';
 import authenticatedUserServicesAvsRouter from './authenticatedUserServicesAvsRouter';
+import authenticatedMentorSessionRequestsRouter from './authenticatedMentorSessionRequestsRouter';
 
 const { MENTOR } = Role;
 
 const authenticatedUserServicesRouter = Router();
 
 authenticatedUserServicesRouter.use('/:id', authenticatedUserServicesAvsRouter);
+authenticatedUserServicesRouter.use('/:id', authenticatedMentorSessionRequestsRouter);
 
 authenticatedUserServicesRouter.route('/:id')
   .get(
