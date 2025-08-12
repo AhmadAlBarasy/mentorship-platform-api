@@ -4562,6 +4562,152 @@
           }
         }
       }
+    },
+    "/services/my/{id}/session-requests": {
+      "get": {
+        "summary": "Get your service's session requests (grouped by status)",
+        "tags": ["Services"],
+        "description": "Returns all session requests for the authenticated mentor's service, grouped by status. The `date` and `startTime` are returned in the authenticated user's timezone, while `createdAt` remains in UTC.",
+        "operationId": "getServiceSessionRequests",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the service to retrieve session requests for",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session requests fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "sessionRequests": {
+                      "type": "object",
+                      "description": "Object whose keys are statuses (e.g., PENDING, APPROVED, ACCEPTED, REJECTED). Each value is an array of session request objects.",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string", "example": "6cd4339d-b7e8-4f26-9858-9dfa710ff110" },
+                            "startTime": { "type": "string", "description": "HH:mm in user's timezone", "example": "14:00" },
+                            "duration": { "type": "integer", "description": "Minutes (10–360)", "example": 60 },
+                            "date": { "type": "string", "description": "YYYY-MM-DD in user's timezone", "example": "2025-08-12" },
+                            "agenda": { "type": "string", "nullable": true, "example": "I want to learn about REST APIs." },
+                            "communityId": { "type": "string", "nullable": true, "example": "community456" },
+                            "menteeId": { "type": "string", "example": "ahmadanas" },
+                            "menteeName": { "type": "string", "example": "Ahmad Anas" },
+                            "createdAt": { "type": "string", "format": "date-time", "description": "UTC timestamp", "example": "2025-08-10T18:42:11.000Z" },
+                            "rejectionReason": { "type": "string", "nullable": true, "example": "Scheduling conflict" }
+                          }
+                        }
+                      },
+                      "example": {
+                        "PENDING": [
+                          {
+                            "id": "56508d44-777e-11f0-b62c-28c5c82c1ac4",
+                            "startTime": "09:30",
+                            "duration": 45,
+                            "date": "2025-08-13",
+                            "agenda": "CV review",
+                            "communityId": "community456",
+                            "menteeId": "user_456",
+                            "menteeName": "Omar Hasan",
+                            "createdAt": "2025-08-09T17:01:22.000Z",
+                            "rejectionReason": null
+                          }
+                        ],
+                        "ACCEPTED": [
+                          {
+                            "id": "56508d44-777e-11f0-b62c-28c5c82c1ac4",
+                            "startTime": "14:00",
+                            "duration": 60,
+                            "date": "2025-08-12",
+                            "agenda": "Mock interview",
+                            "communityId": null,
+                            "menteeId": "user_123",
+                            "menteeName": "Sara Ali",
+                            "createdAt": "2025-08-10T09:15:00.000Z",
+                            "rejectionReason": null
+                          }
+                        ],
+                        "REJECTED": [
+                          {
+                            "id": "56508d44-777e-11f0-b62c-28c5c82c1ac4",
+                            "startTime": "18:00",
+                            "duration": 30,
+                            "date": "2025-08-11",
+                            "agenda": "Intro call",
+                            "communityId": null,
+                            "menteeId": "user_789",
+                            "menteeName": "Lina Yousef",
+                            "createdAt": "2025-08-08T12:40:10.000Z",
+                            "rejectionReason": "Out of working hours"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found or does not belong to the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
