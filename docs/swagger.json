@@ -683,6 +683,93 @@
         }
       }
     },
+    "/auth/app-connections": {
+      "delete": {
+        "summary": "Disconnect an app connection",
+        "tags": ["Authentication"],
+        "description": "Removes the authenticated user's connection to a third‑party app. Currently supports disconnecting Google Calendar. If no matching connection exists, a 400 error is returned.",
+        "operationId": "disconnectAppConnection",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["appName"],
+                "properties": {
+                  "appName": {
+                    "type": "string",
+                    "enum": ["GoogleCalendar"],
+                    "description": "The app to disconnect",
+                    "example": "GoogleCalendar"
+                  }
+                },
+                "examples": {
+                  "googleCalendar": {
+                    "summary": "Disconnect Google Calendar",
+                    "value": { "appName": "GoogleCalendar" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "App connection disconnected successfully (no content)"
+          },
+          "400": {
+            "description": "Validation error or no existing connection found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "appName must be one of [\"GoogleCalendar\"]" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "appName is required." }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "No connections found with GoogleCalendar" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}": {
       "get": {
         "summary": "Get basic profile of a user by ID",
