@@ -44,6 +44,35 @@ export class SessionRequest {
     return new Intl.DateTimeFormat('en-CA').format(this.date);
   }
 
+  getStartDateTime(timezone: string = 'UTC'): string {
+    const dt = DateTime.fromObject(
+      {
+        year: this.date.getFullYear(),
+        month: this.date.getMonth() + 1,
+        day: this.date.getDate(),
+        hour: this.startTime.hour,
+        minute: this.startTime.minute,
+      },
+      { zone: timezone },
+    );
+    return dt.toISO()!; // ISO string with timezone offset
+  }
+
+  getEndDateTime(timezone: string = 'UTC'): string {
+    const dt = DateTime.fromObject(
+      {
+        year: this.date.getFullYear(),
+        month: this.date.getMonth() + 1,
+        day: this.date.getDate(),
+        hour: this.startTime.hour,
+        minute: this.startTime.minute,
+      },
+      { zone: timezone },
+    ).plus({ minutes: this.duration });
+
+    return dt.toISO()!;
+  }
+
   timeInMinutes(): number {
     return this.duration;
   }

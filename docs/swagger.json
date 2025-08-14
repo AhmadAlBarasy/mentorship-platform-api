@@ -4759,6 +4759,257 @@
           }
         }
       }
+    },
+    "/services/my/{id}/session-requests/{requestId}": {
+      "patch": {
+        "summary": "Update a session request (status or agenda)",
+        "tags": ["Services"],
+        "description": "Updates a session request that belongs to the authenticated mentor. You can update the agenda only while the request is PENDING. Status transitions are restricted: PENDING → ACCEPTED or REJECTED, and ACCEPTED → CANCELLED. When changing to ACCEPTED, a Google Calendar event is created; when changing to CANCELLED, the event is deleted. Cancellation is not allowed if there are less than 6 hours left before the session start.",
+        "operationId": "updateSessionRequest",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Service ID (must belong to the authenticated mentor)",
+            "schema": { "type": "string", "example": "svc_abc123" }
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "description": "Session request ID",
+            "schema": { "type": "string", "example": "6cd4339d-b7e8-4f26-9858-9dfa710ff110" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "description": "New status for the session request",
+                    "enum": ["accepted", "rejected", "cancelled"],
+                    "example": "accepted"
+                  },
+                  "agenda": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "Short agenda/notes from the mentee; only editable while request is PENDING",
+                    "example": "Mock interview focusing on system design basics."
+                  },
+                  "rejectionReason": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "Reason for rejection or cancellation (if applicable)",
+                    "example": "Scheduling conflict"
+                  }
+                },
+                "examples": {
+                  "accept": {
+                    "summary": "Accept a pending request",
+                    "value": { "status": "accepted" }
+                  },
+                  "reject": {
+                    "summary": "Reject a pending request with a reason",
+                    "value": { "status": "rejected", "rejectionReason": "Out of scope" }
+                  },
+                  "cancel": {
+                    "summary": "Cancel an accepted request (>= 6 hours left)",
+                    "value": { "status": "cancelled", "rejectionReason": "Unexpected conflict" }
+                  },
+                  "editAgenda": {
+                    "summary": "Edit agenda while pending",
+                    "value": { "agenda": "Please review my latest CV and portfolio." }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session request updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "Session request has been updated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid state transition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "At least 1 attribute is required to update" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "agenda can be at most 1000 characters" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "rejectionReason can be at most 100 characters" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You are not allowed update a session agenda unless its status is PENDING" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You can't change the state to ACCEPTED" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You can't change the state to REJECTED" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You can't change the state to CANCELLED" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You cannot cancel a session less than 6 hours before it starts" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You should connect your calendar before accepting a session request" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You should connect your calendar before canceling a session request" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found, or session request not found/belongs to another user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "You don't have a service with an ID of svc_abc123" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Session request not found" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Calendar integration failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Failed to create an event on Google Calendar" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string", "example": "Fail" },
+                        "message": { "type": "string", "example": "Failed to cancel the event on Google Calendar" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

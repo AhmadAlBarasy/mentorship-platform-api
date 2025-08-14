@@ -11,7 +11,7 @@ import {
 } from '../services/userService';
 import APIError from '../classes/APIError';
 import bcrypt from 'bcrypt';
-import { Role } from '@prisma/client';
+import { Role, TokenType } from '@prisma/client';
 import { emailVerficationLinkTemplate, resetPasswordTemplate } from '../utils/mail/mailTemplates';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -19,6 +19,8 @@ import sendEmail from '../utils/mail/mailSender';
 import axios from 'axios';
 import prisma from '../db';
 // import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
+
+const { ACCESS, REFRESH } = TokenType;
 
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
@@ -296,18 +298,60 @@ export const connectToCalendarAPI = errorHandler(async(req: Request, res: Respon
     access_token,
     refresh_token,
     expires_in,
+    id_token,
   } = data;
+
+  const { email } = (jwt.decode(id_token)) as any;
 
   const userId = req.user.id;
 
-  await prisma.authCredentials.update({
-    where: { userId },
-    data: {
-      googleRefreshToken: refresh_token,
-      googleAccessToken: access_token,
-      googleTokenExpiry: new Date(Date.now() + expires_in * 1000),
+  const appTokens = await prisma.appTokens.findMany({
+    where: {
+      userId,
+      name: 'GoogleCalendar',
+      type: REFRESH,
+      emailOrId: email,
     },
   });
+
+  // if old refresh token exist, replace it
+  if (appTokens.length !== 0){
+
+    await prisma.appTokens.updateMany({
+      where: {
+        userId,
+        type: REFRESH,
+        name: 'GoogleCalendar',
+        emailOrId: email,
+      },
+      data: {
+        token: refresh_token,
+      },
+    });
+
+  } else {
+
+    await prisma.appTokens.createMany({
+      data: [
+        {
+          userId,
+          name: 'GoogleCalendar',
+          type: ACCESS,
+          token: access_token,
+          emailOrId: email,
+          expiresIn: new Date(Date.now() + expires_in * 1000),
+        },
+        {
+          userId,
+          name: 'GoogleCalendar',
+          type: REFRESH,
+          token: refresh_token,
+          emailOrId: email,
+        },
+      ],
+    });
+  }
+
   res.redirect(`${FRONTEND_URL}/my/settings`);
 });
 
@@ -315,19 +359,21 @@ export const getAppConnectionsState = errorHandler(async(req: Request, res: Resp
 
   const { id: userId } = req.user;
 
-  const authCredentials = await prisma.authCredentials.findFirst({
+  const googleRefreshToken = await prisma.appTokens.findFirst({
     where: {
       userId,
-    },
-    select: {
-      googleRefreshToken: true,
+      name: 'GoogleCalendar',
+      type: REFRESH,
     },
   });
 
   res.status(200).json({
     status: SUCCESS,
     appConnections: {
-      GoogleCalendar: authCredentials?.googleRefreshToken === null ? false : true,
+      GoogleCalendar: {
+        connected: googleRefreshToken === null ? false : true,
+        email: googleRefreshToken?.emailOrId,
+      },
     },
   });
 
@@ -338,16 +384,16 @@ export const disconnectApp = errorHandler(async(req: Request, res: Response, nex
   const { id: userId } = req.user;
 
   if (appName === 'GoogleCalendar'){
-    await prisma.authCredentials.update({
+    const deletionCount = await prisma.appTokens.deleteMany({
       where: {
         userId,
-      },
-      data: {
-        googleAccessToken: null,
-        googleRefreshToken: null,
-        googleTokenExpiry: null,
+        name: 'GoogleCalendar',
       },
     });
+
+    if (deletionCount.count === 0){
+      return next(new APIError(400, 'No connections found with GoogleCalendar'));
+    }
   }
 
   res.status(204).json({});

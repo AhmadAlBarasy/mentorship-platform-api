@@ -28,6 +28,7 @@ model Users {
   services Services[]
   sessionRequests SessionRequests[]
   reports UserReports[]
+  appTokens AppTokens[]
   authCredentials AuthCredentials?
   bannedUsers BannedUsers?
   links UserLinks[]
@@ -123,6 +124,18 @@ model UserReports {
 
 }
 
+model AppTokens {
+  @@map("app_tokens")
+  id String @id @db.VarChar(36) @default(uuid())
+  userId String @db.VarChar(32) @map("user_id")
+  name String @db.VarChar(50)
+  type TokenType
+  token String @db.VarChar(512)
+  emailOrId String? @db.VarChar(320) @map("email_or_id")
+  expiresIn DateTime? @map("expires_in")
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
 model AuthCredentials {
   @@map("auth_credentials")
 
@@ -131,9 +144,6 @@ model AuthCredentials {
   resetExpiry DateTime? @map("reset_expiry")
   emailVerified Boolean @default(false) @map("email_verified")
   emailVerificationCode String? @db.VarChar(16) @map("email_verification_code")
-  googleAccessToken String? @db.VarChar(512) @map("google_access_token")
-  googleRefreshToken String? @db.VarChar(512) @map("google_refresh_token")
-  googleTokenExpiry DateTime? @map("google_token_expiry")
   twoFactorOTP String? @db.VarChar(6) @map("2fa_otp")
   twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
   user Users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -170,8 +180,9 @@ model SessionRequests {
   communityId String? @db.VarChar(32) @map("community_id")
   date DateTime @db.Date 
   status SessionStatus @default(PENDING)
-  agenda String? @db.VarChar(5000)
+  agenda String? @db.VarChar(1000)
   rejectionReason String? @db.VarChar(100) @map("rejection_reason")
+  eventId String? @db.VarChar(1024) @map("event_id")
   createdAt DateTime @default(now())
   service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Restrict, onUpdate: Cascade)
   mentee Users @relation(fields: [menteeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -209,6 +220,11 @@ enum Role {
   MENTOR
   ADMIN
   COMMUNITY_MANAGER
+}
+
+enum TokenType {
+  REFRESH
+  ACCESS
 }
 
 enum SessionStatus {
