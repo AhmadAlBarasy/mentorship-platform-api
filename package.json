@@ -42,6 +42,7 @@
         "prisma": "^6.4.1",
         "swagger-jsdoc": "^6.2.8",
         "typescript": "^5.6.3",
+        "uuid": "^11.1.0",
         "winston": "^3.15.0",
         "yaml": "^2.7.0"
     },
@@ -52,6 +53,7 @@
         "@types/cors": "^2.8.17",
         "@types/express": "^5.0.0",
         "@types/jsonwebtoken": "^9.0.9",
+        "@types/luxon": "^3.7.1",
         "@types/mime-types": "^3.0.1",
         "@types/morgan": "^1.9.9",
         "@types/multer": "^2.0.0",
