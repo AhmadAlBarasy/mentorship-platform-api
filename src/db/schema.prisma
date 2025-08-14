@@ -182,6 +182,7 @@ model SessionRequests {
   status SessionStatus @default(PENDING)
   agenda String? @db.VarChar(1000)
   rejectionReason String? @db.VarChar(100) @map("rejection_reason")
+  eventId String? @db.VarChar(1024) @map("event_id")
   createdAt DateTime @default(now())
   service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Restrict, onUpdate: Cascade)
   mentee Users @relation(fields: [menteeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
