@@ -93,7 +93,29 @@ const updateServiceSchema = Joi.object({
 
 }).min(1).message('Stop wasting our resources, these don\'t grow on trees :)');
 
+const updateSessionRequestSchema = Joi.object({
+  status: Joi.string()
+    .valid('accepted', 'rejected', 'cancelled')
+    .optional(),
+
+  agenda: Joi.string()
+    .max(1000)
+    .optional()
+    .messages({
+      'string.max': 'agenda can be at most 1000 characters',
+    }),
+
+  rejectionReason: Joi.string()
+    .max(100)
+    .optional()
+    .messages({
+      'string.max': 'rejectionReason can be at most 100 characters',
+    }),
+
+}).min(1).message('At least 1 attribute is required to update');
+
 export {
   createServiceSchema,
   updateServiceSchema,
+  updateSessionRequestSchema,
 };
