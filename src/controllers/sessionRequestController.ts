@@ -288,8 +288,38 @@ const getMenteeSessionRequests = errorHandler(async(req: Request, res: Response,
 
 });
 
+const withDrawSessionRequest = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  const { id: menteeId } = req.user;
+
+  const sessionRequest = await prisma.sessionRequests.findFirst({
+    where: {
+      id,
+      menteeId,
+    },
+  });
+
+  if (!sessionRequest){
+    return next(new APIError(404, `No session request was found with an ID of ${id}`));
+  }
+
+  if (sessionRequest.status !== PENDING){
+    return next(new APIError(400, `You can't withdraw a session request with status other than ${PENDING}`));
+  }
+
+  await prisma.sessionRequests.deleteMany({
+    where: {
+      id,
+    },
+  });
+
+  res.status(204).json({});
+
+});
+
 export {
   getServiceSessionRequests,
   updateSessionRequest,
   getMenteeSessionRequests,
+  withDrawSessionRequest,
 };
