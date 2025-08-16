@@ -240,7 +240,56 @@ const updateSessionRequest = errorHandler(async(req: Request, res: Response, nex
   });
 });
 
+const getMenteeSessionRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: menteeId, timezone: userTimeZone } = req.user;
+
+  const result = await prisma.sessionRequests.findMany({
+    where: {
+      menteeId,
+    },
+  });
+
+  const sessionRequests: Record<string, any[]> = {};
+
+  for (const request of result){
+
+    const sessionRequest = new SessionRequest(
+      Time.fromString(request.startTime.toISOString().slice(11, 16)), // HH:MM
+      request.duration,
+      new Date(ymdDateString(request.date)),
+      request.id,
+    );
+
+    const sessionStatus = request.status;
+
+    sessionRequest.shiftToTimezone('Etc/UTC', userTimeZone);
+
+    if (!sessionRequests[sessionStatus]){
+      sessionRequests[sessionStatus] = [];
+    }
+
+    sessionRequests[sessionStatus].push({
+      id: request.id,
+      startTime: sessionRequest.startTime.toString(),
+      duration: sessionRequest.duration,
+      date: sessionRequest.formatDate(),
+      agenda: request.agenda,
+      serviceId: request.serviceId,
+      communityId: request.communityId,
+      createdAt: request.createdAt,
+      rejectionReason: request.rejectionReason,
+    });
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    sessionRequests,
+  });
+
+});
+
 export {
   getServiceSessionRequests,
   updateSessionRequest,
+  getMenteeSessionRequests,
 };
