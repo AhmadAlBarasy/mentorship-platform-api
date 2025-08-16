@@ -1851,6 +1851,148 @@
         }
       }
     },
+    "/users/me/session-requests": {
+      "get": {
+        "summary": "Get all your session requests grouped by status",
+        "tags": ["Users"],
+        "description": "Returns all session requests made by the authenticated mentee, grouped into arrays based on their status (PENDING, ACCEPTED, REJECTED, CANCELLED). Timezones are automatically shifted to match the user's timezone.",
+        "operationId": "getMenteeSessionRequests",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of session requests grouped by status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "sessionRequests": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "req_abc123"
+                            },
+                            "startTime": {
+                              "type": "string",
+                              "description": "Start time of the session in HH:MM format",
+                              "example": "10:30"
+                            },
+                            "duration": {
+                              "type": "integer",
+                              "description": "Session duration in minutes",
+                              "example": 60
+                            },
+                            "date": {
+                              "type": "string",
+                              "description": "Date of the session in YYYY-MM-DD format",
+                              "example": "2025-08-20"
+                            },
+                            "agenda": {
+                              "type": "string",
+                              "description": "Agenda or notes submitted by the mentee",
+                              "example": "I'd like to review my portfolio."
+                            },
+                            "serviceId": {
+                              "type": "string",
+                              "example": "svc_abc123"
+                            },
+                            "communityId": {
+                              "type": ["string", "null"],
+                              "example": null
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2025-08-15T12:00:00.000Z"
+                            },
+                            "rejectionReason": {
+                              "type": ["string", "null"],
+                              "example": "Mentor unavailable"
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "PENDING": [
+                          {
+                            "id": "f7b2bb8d-7a15-11f0-b36d-28c5c82c1ac4",
+                            "startTime": "09:30",
+                            "duration": 45,
+                            "date": "2025-08-21",
+                            "agenda": "Need help with Django models",
+                            "serviceId": "svc_xyz456",
+                            "communityId": null,
+                            "createdAt": "2025-08-15T10:00:00.000Z",
+                            "rejectionReason": null
+                          }
+                        ],
+                        "REJECTED": [
+                          {
+                            "id": "f7b2bb8d-7a15-11f0-b36d-28c5c82c1ac4",
+                            "startTime": "14:00",
+                            "duration": 60,
+                            "date": "2025-08-18",
+                            "agenda": "Talk about internships",
+                            "serviceId": "svc_xyz456",
+                            "communityId": null,
+                            "createdAt": "2025-08-14T13:20:00.000Z",
+                            "rejectionReason": "Time conflict"
+                          }
+                        ],
+                        "ACCEPTED": [
+                          {
+                            "id": "f7b2bb8d-7a15-11f0-b36d-28c5c82c1ac4",
+                            "startTime": "16:00",
+                            "duration": 90,
+                            "date": "2025-08-19",
+                            "agenda": "Mock interview session",
+                            "serviceId": "svc_xyz456",
+                            "communityId": "community_123",
+                            "createdAt": "2025-08-12T09:45:00.000Z",
+                            "rejectionReason": null
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{id}/report": {
       "post": {
         "summary": "Report a user",
@@ -1995,7 +2137,8 @@
           }
         }
       }
-    },"/communities": {
+    },
+    "/communities": {
       "post": {
         "summary": "Create a new community",
         "tags": [
