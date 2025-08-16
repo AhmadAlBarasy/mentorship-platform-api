@@ -19,6 +19,11 @@ import { addUserLinkSchema, updateUserLinkSchema } from '../../validators/valida
 import upload from '../../utils/fileUpload';
 import { Role } from '@prisma/client';
 import { getAuthenticatedUserJoinRequests } from '../../controllers/communityJoinRequestsController';
+import {
+  getMenteeSessionRequests,
+  withDrawSessionRequest,
+
+} from '../../controllers/sessionRequestController';
 
 const authenticatedUserRouter = Router();
 
@@ -65,6 +70,22 @@ authenticatedUserRouter.route('/join-requests')
     authenticate({ access: 'full' }),
     authorizedRoles([MENTEE, MENTOR]),
     getAuthenticatedUserJoinRequests,
+  )
+  .all(notAllowedMethod);
+
+authenticatedUserRouter.route('/session-requests/:id')
+  .delete(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE]),
+    withDrawSessionRequest,
+  )
+  .all(notAllowedMethod);
+
+authenticatedUserRouter.route('/session-requests')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE]),
+    getMenteeSessionRequests,
   )
   .all(notAllowedMethod);
 
