@@ -219,6 +219,14 @@ const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Req
     where: {
       communityId: community.id,
     },
+    include: {
+      user: {
+        select: {
+          name: true,
+          headline: true,
+        },
+      },
+    },
   });
 
   res.status(200).json({
