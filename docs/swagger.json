@@ -2722,9 +2722,7 @@
     "/communities/my/join-requests": {
       "get": {
         "summary": "Get join requests for the manager's community",
-        "tags": [
-          "Communities"
-        ],
+        "tags": ["Communities"],
         "description": "Retrieves all pending join requests submitted by users who wish to join the authenticated community manager's community.",
         "operationId": "getAuthenticatedManagerCommunityJoinRequests",
         "security": [
@@ -2751,11 +2749,20 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "example": "clwovwdd70000z5bpv6p5ehhx"
+                            "example": "a81bc81b-dead-4e5d-abff-90865d1e13b1"
                           },
-                          "userId": {
-                            "type": "string",
-                            "example": "clwovd9qj00002n5bm6zhebn7"
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "example": "Jane Doe"
+                              },
+                              "headline": {
+                                "type": "string",
+                                "example": "Software Engineering Student @ MIT"
+                              }
+                            }
                           },
                           "communityId": {
                             "type": "string",
