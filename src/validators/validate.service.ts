@@ -114,8 +114,19 @@ const updateSessionRequestSchema = Joi.object({
 
 }).min(1).message('At least 1 attribute is required to update');
 
+const updateSessionAgendaSchema = Joi.object({
+  agenda: Joi.string()
+    .max(1000)
+    .required()
+    .messages({
+      'string.max': 'agenda can be at most 1000 characters',
+      'any.required': 'agenda is required',
+    }),
+});
+
 export {
   createServiceSchema,
   updateServiceSchema,
   updateSessionRequestSchema,
+  updateSessionAgendaSchema,
 };

@@ -21,9 +21,11 @@ import { Role } from '@prisma/client';
 import { getAuthenticatedUserJoinRequests } from '../../controllers/communityJoinRequestsController';
 import {
   getMenteeSessionRequests,
+  updateSessionAgenda,
   withDrawSessionRequest,
 
 } from '../../controllers/sessionRequestController';
+import { updateSessionAgendaSchema } from '../../validators/validate.service';
 
 const authenticatedUserRouter = Router();
 
@@ -74,6 +76,12 @@ authenticatedUserRouter.route('/join-requests')
   .all(notAllowedMethod);
 
 authenticatedUserRouter.route('/session-requests/:id')
+  .patch(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE]),
+    requestValidator({ bodySchema: updateSessionAgendaSchema }),
+    updateSessionAgenda,
+  )
   .delete(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTEE]),
