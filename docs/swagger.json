@@ -1903,9 +1903,24 @@
                               "description": "Agenda or notes submitted by the mentee",
                               "example": "I'd like to review my portfolio."
                             },
+                            "mentorId": {
+                              "type": "string",
+                              "description": "ID of the mentor providing the session",
+                              "example": "usr_mentor123"
+                            },
+                            "mentorName": {
+                              "type": "string",
+                              "description": "Full name of the mentor",
+                              "example": "Alaa Hussein"
+                            },
                             "serviceId": {
                               "type": "string",
                               "example": "svc_abc123"
+                            },
+                            "serviceType": {
+                              "type": "string",
+                              "description": "Type of service associated with the session",
+                              "example": "career_guidance"
                             },
                             "communityId": {
                               "type": ["string", "null"],
@@ -1926,12 +1941,15 @@
                       "example": {
                         "PENDING": [
                           {
-                            "id": "f7b2bb8d-7a15-11f0-b36d-28c5c82c1ac4",
+                            "id": "faf58951-777d-11f0-b62c-28c5c82c1ac4",
                             "startTime": "09:30",
                             "duration": 45,
                             "date": "2025-08-21",
                             "agenda": "Need help with Django models",
-                            "serviceId": "svc_xyz456",
+                            "mentorId": "usr_mentor123",
+                            "mentorName": "Alaa Hussein",
+                            "serviceId": "mock_interview",
+                            "serviceType": "Mock Interview",
                             "communityId": null,
                             "createdAt": "2025-08-15T10:00:00.000Z",
                             "rejectionReason": null
@@ -1939,12 +1957,15 @@
                         ],
                         "REJECTED": [
                           {
-                            "id": "f7b2bb8d-7a15-11f0-b36d-28c5c82c1ac4",
+                            "id": "faf58951-777d-11f0-b62c-28c5c82c1ac4",
                             "startTime": "14:00",
                             "duration": 60,
                             "date": "2025-08-18",
                             "agenda": "Talk about internships",
-                            "serviceId": "svc_xyz456",
+                            "mentorId": "usr_mentor456",
+                            "mentorName": "Sarah Naji",
+                            "serviceId": "career_guidance",
+                            "serviceType": "Career Guidance",
                             "communityId": null,
                             "createdAt": "2025-08-14T13:20:00.000Z",
                             "rejectionReason": "Time conflict"
@@ -1952,12 +1973,15 @@
                         ],
                         "ACCEPTED": [
                           {
-                            "id": "f7b2bb8d-7a15-11f0-b36d-28c5c82c1ac4",
+                            "id": "faf58951-777d-11f0-b62c-28c5c82c1ac4",
                             "startTime": "16:00",
                             "duration": 90,
                             "date": "2025-08-19",
                             "agenda": "Mock interview session",
-                            "serviceId": "svc_xyz456",
+                            "mentorId": "usr_mentor123",
+                            "mentorName": "Alaa Hussein",
+                            "serviceId": "mock_interview",
+                            "serviceType": "Mock Interview",
                             "communityId": "community_123",
                             "createdAt": "2025-08-12T09:45:00.000Z",
                             "rejectionReason": null

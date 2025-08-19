@@ -247,6 +247,17 @@ const getMenteeSessionRequests = errorHandler(async(req: Request, res: Response,
     where: {
       menteeId,
     },
+    include: {
+      service: {
+        include: {
+          mentor: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   const sessionRequests: Record<string, any[]> = {};
@@ -274,7 +285,10 @@ const getMenteeSessionRequests = errorHandler(async(req: Request, res: Response,
       duration: sessionRequest.duration,
       date: sessionRequest.formatDate(),
       agenda: request.agenda,
+      mentorName: request.service.mentor.name,
+      mentorId: request.service.mentorId,
       serviceId: request.serviceId,
+      serviceType: request.service.type,
       communityId: request.communityId,
       createdAt: request.createdAt,
       rejectionReason: request.rejectionReason,
