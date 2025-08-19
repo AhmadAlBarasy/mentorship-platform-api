@@ -2975,9 +2975,112 @@
             }
           }
         }
+      },
+      "patch": {
+        "summary": "Update agenda of a pending session request",
+        "tags": ["Users"],
+        "description": "Allows a mentee to update the agenda of one of their session requests if and only if it is still in the PENDING state.",
+        "operationId": "updateSessionRequestAgenda",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The session request ID",
+            "schema": {
+              "type": "string",
+              "example": "faf58951-777d-11f0-b62c-28c5c82c1ac4"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["agenda"],
+                "properties": {
+                  "agenda": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "The updated agenda of the session request",
+                    "example": "I'd like to discuss open source contribution strategies"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Agenda updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Session request details has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Session request is not pending",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You can't update the agenda of this session request"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session request not found or doesn't belong to the mentee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Session request was not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
-
     "/communities/my/memberships": {
       "get": {
         "summary": "Get communities where the user is a member",

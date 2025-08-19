@@ -317,9 +317,46 @@ const withDrawSessionRequest = errorHandler(async(req: Request, res: Response, n
 
 });
 
+const updateSessionAgenda = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: menteeId } = req.user;
+  const { agenda } = req.body;
+  const { id } = req.params;
+
+  const sessionRequest = await prisma.sessionRequests.findFirst({
+    where: {
+      id,
+      menteeId,
+    },
+  });
+
+  if (!sessionRequest){
+    return next(new APIError(404, 'Session request was not found'));
+  }
+
+  if (sessionRequest.status !== PENDING){
+    return next(new APIError(400, 'You can\'t update the agenda of this session request'));
+  }
+
+  await prisma.sessionRequests.updateMany({
+    where: {
+      id,
+    },
+    data: {
+      agenda,
+    },
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'Session request details has been updated successfully',
+  });
+
+});
+
 export {
   getServiceSessionRequests,
   updateSessionRequest,
   getMenteeSessionRequests,
   withDrawSessionRequest,
+  updateSessionAgenda,
 };
