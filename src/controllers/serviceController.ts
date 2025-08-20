@@ -5,13 +5,15 @@ import APIError from '../classes/APIError';
 import prisma from '../db';
 import {
   createAvailabilityObjects,
+  getAvailableSlotsForDate,
   prepareDateAvailabilitiesAndCheckForConflicts,
   prepareDayAvailabilitiesAndCheckForConflicts,
 } from '../utils/availability/availabilityUtils';
-import { getDayName } from '../utils/availability/helpers';
+import { getDayName, ymdDateString } from '../utils/availability/helpers';
 import { DayAvailability } from '../classes/services/DayAvailability';
 import { Time } from '../classes/services/Time';
 import { AvailabilityException } from '../classes/services/AvailabilityException';
+import { DateTime } from 'luxon';
 
 const createService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
@@ -292,10 +294,116 @@ const updateService = errorHandler(async(req: Request, res: Response, next: Next
 
 });
 
+const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: mentorId, serviceId } = req.params;
+  const { id: menteeId, timezone: userTimeZone } = req.user;
+
+  const daysHorizon = 30;
+
+  // 1. check if both mentee and mentor are members of a common community
+  const result: any[] = await prisma.$queryRaw`SELECT 1
+  FROM participations p1
+  JOIN participations p2
+    ON p1.community_id = p2.community_id
+  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+
+  // if the result is an empty array, there are no common community between the mentee and the mentor
+  if (result.length === 0){
+    return next(new APIError(403, 'You are not allowed to perform this action'));
+  }
+
+  // 2. find the service
+  const service = await prisma.services.findFirst({
+    where: {
+      id: serviceId,
+      mentorId,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, 'Service not found'));
+  }
+
+
+  const today = DateTime.now();
+  const oneMonthLater = today.plus({ days: 30 });
+
+  const todayDateNoTimePart = new Date(ymdDateString(today.toJSDate()));
+  const oneMonthLaterDateNoTimePart = new Date(ymdDateString(oneMonthLater.toJSDate()));
+
+  // 3. Find the available slots for the upcoming 30 days, keeping in mind pending and accepted sessions for both the mentee
+  // and the mentor, and reserved slots on both parties calendars
+  const availabilityExceptions = await prisma.availabilityExceptions.findMany({
+    where: {
+      serviceId,
+      mentorId,
+      date: {
+        gte: todayDateNoTimePart,
+        lte: oneMonthLaterDateNoTimePart,
+      },
+    },
+  });
+
+  const exceptionDateSet = new Set(
+    availabilityExceptions.map((ex) => ymdDateString(ex.date)), // "YYYY-MM-DD"
+  );
+
+  const dayAvailabilites = await prisma.dayAvailabilities.findMany({
+    where: {
+      serviceId,
+      mentorId,
+    },
+  });
+
+  const slotsForEachDate: Record<string, string[]> = {};
+
+  for (let i = 0; i <= daysHorizon; i++) {
+    const currentDate = (DateTime.fromJSDate(todayDateNoTimePart)).plus({ days: i });
+    const currentDateString = ymdDateString(currentDate.toJSDate());
+
+    let relevantAvailabilities;
+
+    if (exceptionDateSet.has(currentDateString)) {
+      relevantAvailabilities = availabilityExceptions.filter(
+        (ex) => ymdDateString(ex.date) === currentDateString,
+      );
+    } else {
+      const weekday = (currentDate.weekday - 1) % 7; // Monday = 0
+      relevantAvailabilities = dayAvailabilites.filter(
+        (a) => a.dayOfWeek === weekday,
+      );
+    }
+
+    const slotsByDate = await getAvailableSlotsForDate(
+      menteeId,
+      mentorId,
+      service,
+      userTimeZone,
+      currentDate,
+      relevantAvailabilities,
+    );
+
+    for (const [dateStr, slotList] of Object.entries(slotsByDate)) {
+      if (!slotsForEachDate[dateStr]) {
+        slotsForEachDate[dateStr] = [];
+      }
+      slotsForEachDate[dateStr].push(...slotList);
+    }
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    service,
+    slots: slotsForEachDate,
+  });
+
+});
+
 export {
   createService,
   getServiceById,
   getMentorServices,
   updateService,
+  getServiceDetailsAndSlots,
 };
 

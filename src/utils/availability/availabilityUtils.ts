@@ -1,10 +1,16 @@
+import { DateTime } from 'luxon';
 import APIError from '../../classes/APIError';
 import { AvailabilityException } from '../../classes/services/AvailabilityException';
 import { DayAvailability } from '../../classes/services/DayAvailability';
 import { Time } from '../../classes/services/Time';
+import prisma from '../../db';
 import { validDays } from '../../validators/validator.custom';
 import { timeOnly, ymdDateString } from './helpers';
 
+import { SessionStatus } from '@prisma/client';
+
+
+const { PENDING, ACCEPTED } = SessionStatus;
 
 function createAvailabilityObjects(dayOrDate: string, availabilities: any[], sessionTime: number, userTimeZone: string) {
 
@@ -159,10 +165,121 @@ function createAvailabilityExceptionInstances(availabilityExceptions: any[]): Av
   return result;
 }
 
+async function getAvailableSlotsForDate(
+  menteeId: string,
+  mentorId: string,
+  service: any,
+  userTimeZone: string,
+  currentDate: DateTime,
+  availabilities: any[],
+): Promise<Record<string, string[]>> {
+
+  const previousDate = currentDate.minus({ days: 1 });
+  const nextDate = currentDate.plus({ days: 1 });
+
+  const currentDateString = currentDate.toJSDate();
+
+  const sessionRequests = await prisma.sessionRequests.findMany({
+    where: {
+      status: { in: [PENDING, ACCEPTED] },
+      date: {
+        in: [
+          previousDate.toJSDate(),
+          currentDateString,
+          nextDate.toJSDate(),
+        ],
+      },
+      OR: [{ menteeId }, { mentorId }],
+    },
+  });
+
+  const busyIntervals = sessionRequests.map((req) => {
+
+    const time = Time.fromString(req.startTime.toISOString().slice(11, 16));
+
+    const start = DateTime.fromJSDate(req.date).set({
+      hour: time.hour,
+      minute: time.minute,
+    });
+
+    return {
+      start,
+      end: start.plus({ minutes: req.duration }),
+    };
+
+  });
+
+  const windows = availabilities.map((a) => {
+
+    const time = Time.fromString(a.startTime.toISOString().slice(11, 16));
+
+    const start = currentDate.set({
+      hour: time.hour,
+      minute: time.minute,
+      second: 0,
+      millisecond: 0,
+    });
+
+    return { start, end: start.plus({ minutes: a.duration }) };
+  });
+
+  // Remove busy overlaps from windows
+  let remainingWindows = windows;
+  for (const { start: busyStart, end: busyEnd } of busyIntervals) {
+    const updated: typeof remainingWindows = [];
+
+    for (const window of remainingWindows) {
+      if (busyEnd <= window.start || busyStart >= window.end) {
+        updated.push(window);
+      } else if (busyStart <= window.start && busyEnd >= window.end) {
+        continue;
+      } else if (busyStart > window.start && busyEnd < window.end) {
+        updated.push(
+          { start: window.start, end: busyStart },
+          { start: busyEnd, end: window.end },
+        );
+      } else if (busyStart <= window.start) {
+        updated.push({ start: busyEnd, end: window.end });
+      } else {
+        updated.push({ start: window.start, end: busyStart });
+      }
+    }
+
+    remainingWindows = updated;
+  }
+
+  // Slice remaining availability windows into slots
+  const step = 5;
+  const duration = service.sessionTime;
+  const slotsByDate: Record<string, string[]> = {};
+
+  for (const { start, end } of remainingWindows) {
+    let cursor = start;
+
+    while (cursor.plus({ minutes: duration }) <= end) {
+      const local = cursor.setZone(userTimeZone);
+
+      const localDate = local.toISODate()!; // e.g. "2025-08-20"
+      const localTime = local.toFormat('HH:mm'); // e.g. "01:30"
+
+      if (!slotsByDate[localDate]) {
+        slotsByDate[localDate] = [];
+      }
+
+      slotsByDate[localDate].push(localTime);
+      cursor = cursor.plus({ minutes: step });
+    }
+  }
+
+  return slotsByDate;
+}
+
+
 export {
   createAvailabilityObjects,
   prepareDayAvailabilitiesAndCheckForConflicts,
   prepareDateAvailabilitiesAndCheckForConflicts,
   createDayAvailabilityInstances,
   createAvailabilityExceptionInstances,
+  getAvailableSlotsForDate,
 }

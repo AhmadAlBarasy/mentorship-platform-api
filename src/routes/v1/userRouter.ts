@@ -8,6 +8,7 @@ import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares
 import requestValidator from '../../middlewares/requestValidator';
 import authenticatedUserRouter from './authenticatedUserRouter';
 import { reportUserSchema } from '../../validators/validate.user';
+import mentorServicesRouter from './mentorServicesRouter';
 
 const userRouter = Router();
 
@@ -21,6 +22,8 @@ userRouter.route('/:id/report')
     reportUser,
   )
   .all(notAllowedMethod);
+
+userRouter.use('/:id/services', mentorServicesRouter);
 
 userRouter.route('/:id')
   .get(
