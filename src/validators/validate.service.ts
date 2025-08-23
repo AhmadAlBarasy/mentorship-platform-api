@@ -1,6 +1,7 @@
 import Joi from 'joi';
 import { validateDateKeys, validateSessionTime, validDays } from './validator.custom';
 import { availabilitySchema } from './validate.availability';
+import { timeHHMM, ymdDate } from './validate.common';
 
 const daysAvailabilitiesSchema = Joi.object()
   .pattern(
@@ -124,9 +125,32 @@ const updateSessionAgendaSchema = Joi.object({
     }),
 });
 
+const serviceBookingSchema = Joi.object({
+  date: ymdDate
+    .required()
+    .messages({
+      'any.required': 'date is required',
+    }),
+  startTime: timeHHMM
+    .required()
+    .messages({
+      'string.pattern.base': 'startTime must be in HH:mm format (24-hour)',
+      'any.required': 'startTime is required',
+    }),
+
+  agenda: Joi.string()
+    .max(1000)
+    .required()
+    .messages({
+      'string.max': 'agenda can be at most 1000 characters long',
+      'any.required': 'agenda is required',
+    }),
+});
+
 export {
   createServiceSchema,
   updateServiceSchema,
   updateSessionRequestSchema,
   updateSessionAgendaSchema,
+  serviceBookingSchema,
 };
