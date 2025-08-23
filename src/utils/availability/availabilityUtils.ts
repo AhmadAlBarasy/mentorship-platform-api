@@ -8,6 +8,7 @@ import { validDays } from '../../validators/validator.custom';
 import { timeOnly, ymdDateString } from './helpers';
 
 import { SessionStatus } from '@prisma/client';
+import { TimeSlot } from '../../classes/services/TimeSlot';
 
 
 const { PENDING, ACCEPTED } = SessionStatus;
@@ -274,6 +275,29 @@ async function getAvailableSlotsForDate(
   return slotsByDate;
 }
 
+function checkIfSlotLiesWithinAvailabilities(slot: TimeSlot, availabilites: (DayAvailability | AvailabilityException)[]): boolean{
+  for (const availability of availabilites){
+    if (slot.liesWithin(availability)){
+      return true;
+    }
+  }
+  return false;
+}
+
+function createTimeSlotInstances(timeslots: any[]): TimeSlot[]{
+
+  const result = timeslots.map((timeslot) => {
+
+    return new TimeSlot(
+      Time.fromString(timeslot.startTime.toISOString().slice(11, 16)),
+      timeslot.duration,
+      new Date(ymdDateString(timeslot.date)),
+      timeslot.id,
+    );
+  });
+
+  return result;
+}
 
 export {
   createAvailabilityObjects,
@@ -282,4 +306,6 @@ export {
   createDayAvailabilityInstances,
   createAvailabilityExceptionInstances,
   getAvailableSlotsForDate,
+  checkIfSlotLiesWithinAvailabilities,
+  createTimeSlotInstances,
 }

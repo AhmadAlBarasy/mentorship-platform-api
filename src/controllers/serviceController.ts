@@ -4,16 +4,25 @@ import errorHandler from '../utils/asyncErrorHandler';
 import APIError from '../classes/APIError';
 import prisma from '../db';
 import {
+  checkIfSlotLiesWithinAvailabilities,
+  createAvailabilityExceptionInstances,
   createAvailabilityObjects,
+  createDayAvailabilityInstances,
+  createTimeSlotInstances,
   getAvailableSlotsForDate,
   prepareDateAvailabilitiesAndCheckForConflicts,
   prepareDayAvailabilitiesAndCheckForConflicts,
 } from '../utils/availability/availabilityUtils';
-import { getDayName, ymdDateString } from '../utils/availability/helpers';
+import { getDayName, timeOnly, ymdDateString } from '../utils/availability/helpers';
 import { DayAvailability } from '../classes/services/DayAvailability';
 import { Time } from '../classes/services/Time';
 import { AvailabilityException } from '../classes/services/AvailabilityException';
 import { DateTime } from 'luxon';
+import { TimeSlot } from '../classes/services/TimeSlot';
+import { SessionStatus } from '@prisma/client';
+
+
+const { PENDING, ACCEPTED } = SessionStatus;
 
 const createService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
@@ -399,11 +408,186 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
 
 });
 
+const bookSlotFromService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: menteeId, timezone: userTimeZone } = req.user;
+  const { id: mentorId, serviceId } = req.params;
+  const { communityId } = req.query;
+  const { startTime, date, agenda } = req.body;
+
+  // check if both mentee and mentor are members of a common community
+  const result: any[] = await prisma.$queryRaw`SELECT 1
+  FROM participations p1
+  JOIN participations p2
+    ON p1.community_id = p2.community_id
+  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+
+  // if the result is an empty array, there are no common community between the mentee and the mentor
+  if (result.length === 0){
+    return next(new APIError(403, 'You are not allowed to perform this action'));
+  }
+
+  const bookDate = new Date(date);
+
+  const service = await prisma.services.findFirst({
+    where: {
+      id: serviceId,
+      mentorId,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, 'Service not found'));
+  }
+
+  const slot = new TimeSlot(
+    Time.fromString(startTime),
+    service.sessionTime,
+    bookDate,
+  );
+
+  slot.shiftToTimezone(userTimeZone, 'Etc/UTC'); // shift the slot to UTC for comparison
+
+  const bookDateTime = DateTime.fromJSDate(bookDate);
+  const previousBookDateTime = bookDateTime.minus({ days: 1 });
+  const dayOfWeek = ((bookDateTime.weekday - 1) % 7);
+  const previousDay = (((bookDateTime.weekday - 1) + 6) % 7);
+
+  const slotDateAvailabilities = await prisma.availabilityExceptions.findMany({
+    where: {
+      date: {
+        in: [
+          bookDateTime.toJSDate(),
+          previousBookDateTime.toJSDate(),
+        ],
+      },
+      serviceId,
+      mentorId,
+    },
+  });
+
+  const slotDayAvailabilities = await prisma.dayAvailabilities.findMany({
+    where: {
+      dayOfWeek: {
+        in: [dayOfWeek, previousDay],
+      },
+      serviceId,
+      mentorId,
+    },
+  });
+
+  if (slotDateAvailabilities.length === 0 && slotDayAvailabilities.length === 0){
+    return next(new APIError(400, `No available slots found for ${date}`));
+  }
+
+  if (slotDateAvailabilities.length > 0){
+    const availabilityExceptionInstances = createAvailabilityExceptionInstances(slotDateAvailabilities);
+    const withinAvailableWindows = checkIfSlotLiesWithinAvailabilities(slot, availabilityExceptionInstances);
+
+    if (!withinAvailableWindows){
+      return next(new APIError(400, 'Invalid time slot: Slot doesn\'t lie within any of the available windows'));
+    }
+
+    const currentDate = DateTime.fromJSDate(bookDate);
+    const previousDate = currentDate.minus({ days: 1 });
+    const nextDate = currentDate.plus({ days: 1 });
+
+    const existingTimeSlots = await prisma.sessionRequests.findMany({
+      where: {
+        status: { in: [PENDING, ACCEPTED] },
+        date: {
+          in: [
+            previousDate.toJSDate(),
+            currentDate.toJSDate(),
+            nextDate.toJSDate(),
+          ],
+        },
+        OR: [{ menteeId }, { mentorId }],
+      },
+    });
+
+    const timeSlotInstances = createTimeSlotInstances(existingTimeSlots);
+
+    for (const ts of timeSlotInstances){
+      if (ts.conflictsWith(slot)){
+        return next(new APIError(400, 'Unable to book a session: Slot conflicts with another slot'));
+      }
+    }
+
+    await prisma.sessionRequests.create({
+      data: {
+        serviceId,
+        menteeId,
+        mentorId,
+        status: PENDING,
+        date: currentDate.toJSDate(),
+        agenda,
+        communityId: communityId !== null ? communityId?.toString() : null,
+        startTime: timeOnly(slot.startTime.hour, slot.startTime.minute),
+        duration: slot.duration,
+      },
+    });
+
+  } else if (slotDayAvailabilities.length > 0){
+    const dayAvailabilityInstances = createDayAvailabilityInstances(slotDayAvailabilities);
+    const withinAvailableWindows = checkIfSlotLiesWithinAvailabilities(slot, dayAvailabilityInstances);
+
+    if (!withinAvailableWindows){
+      return next(new APIError(400, 'Invalid time slot: Slot doesn\'t lie within any of the available windows'));
+    }
+
+    const currentDate = DateTime.fromJSDate(bookDate);
+    const previousDate = currentDate.minus({ days: 1 });
+    const nextDate = currentDate.plus({ days: 1 });
+
+    const existingTimeSlots = await prisma.sessionRequests.findMany({
+      where: {
+        status: { in: [PENDING, ACCEPTED] },
+        date: {
+          in: [
+            previousDate.toJSDate(),
+            currentDate.toJSDate(),
+            nextDate.toJSDate(),
+          ],
+        },
+        OR: [{ menteeId }, { mentorId }],
+      },
+    });
+
+    const timeSlotInstances = createTimeSlotInstances(existingTimeSlots);
+
+    for (const ts of timeSlotInstances){
+      if (ts.conflictsWith(slot)){
+        return next(new APIError(400, 'Unable to book a session: Slot conflicts with another slot'));
+      }
+    }
+
+    await prisma.sessionRequests.create({
+      data: {
+        serviceId,
+        menteeId,
+        mentorId,
+        status: PENDING,
+        date: currentDate.toJSDate(),
+        agenda,
+        communityId: communityId !== null ? communityId?.toString() : null,
+        startTime: timeOnly(slot.startTime.hour, slot.startTime.minute),
+        duration: slot.duration,
+      },
+    });
+  }
+
+  res.status(201).json({
+    status: SUCCESS,
+    message: 'Slot booked successfully',
+  });
+
+});
+
 export {
   createService,
   getServiceById,
   getMentorServices,
   updateService,
   getServiceDetailsAndSlots,
+  bookSlotFromService,
 };
-
