@@ -2283,6 +2283,180 @@
         }
       }
     },
+    "/users/{id}/services/{serviceId}/book": {
+      "post": {
+        "summary": "Book a session with a mentor",
+        "tags": ["Users"],
+        "description": "Allows a mentee to book a session with a mentor's service. The mentee must be in a shared community with the mentor, and the selected time slot must lie within the mentor's available windows (whether from availability exceptions or weekly schedules) and not conflict with existing bookings. The request will fail if the time is unavailable, overlaps with existing sessions, or lies outside valid availability.",
+        "operationId": "bookSlotFromService",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Mentor ID",
+            "schema": {
+              "type": "string",
+              "example": "usr_mentor123"
+            }
+          },
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "description": "Service ID being booked",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          },
+          {
+            "name": "communityId",
+            "in": "query",
+            "required": false,
+            "description": "Community ID (optional) to associate with the session",
+            "schema": {
+              "type": "string",
+              "example": "community_xyz456"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["date", "startTime", "agenda"],
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "description": "Date of the session in YYYY-MM-DD format",
+                    "example": "2025-08-21"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "description": "Start time of the session in 24-hour HH:mm format",
+                    "example": "10:30"
+                  },
+                  "agenda": {
+                    "type": "string",
+                    "description": "Agenda or notes provided by the mentee (max 1000 characters)",
+                    "maxLength": 1000,
+                    "example": "I'd like to discuss internship strategies and resume optimization."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Session booked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Slot booked successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or conflicting slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Invalid time slot: Slot doesn't lie within any of the available windows"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Mentee is not in any shared community with the mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not allowed to perform this action"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Service not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/communities": {
       "post": {
         "summary": "Create a new community",
