@@ -64,6 +64,10 @@ export class Time {
     return this.hour === other.hour && this.minute === other.minute;
   }
 
+  isAfter(other: Time): boolean {
+    return !this.isBefore(other) && !this.isEqual(other);
+  }
+
   toString(): string {
     return `${this.hour.toString().padStart(2, '0')}:${this.minute
       .toString()
