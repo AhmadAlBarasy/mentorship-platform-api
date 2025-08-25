@@ -12,6 +12,9 @@ import { getDayName } from '../utils/availability/helpers';
 import { DayAvailability } from '../classes/services/DayAvailability';
 import { Time } from '../classes/services/Time';
 import { AvailabilityException } from '../classes/services/AvailabilityException';
+import { SessionStatus } from '@prisma/client';
+
+const { PENDING } = SessionStatus;
 
 const createService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
@@ -292,10 +295,40 @@ const updateService = errorHandler(async(req: Request, res: Response, next: Next
 
 });
 
+const deleteService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  const { id: mentorId } = req.user;
+
+  const service = await prisma.services.findFirst({
+    where: {
+      mentorId,
+      id,
+    },
+  });
+
+  if (!service){
+    return next(new APIError(404, `You don't have a service with an ID of ${id}`));
+  }
+
+  const pendingSessionRequests = await prisma.sessionRequests.findMany({
+    where: {
+      serviceId: id,
+      mentorId,
+      status: PENDING,
+    },
+  });
+
+  if (pendingSessionRequests.length !== 0){
+    return next(new APIError(400, 'Pending session requests must be resolved before deleting the service'));
+  }
+
+});
+
 export {
   createService,
   getServiceById,
   getMentorServices,
   updateService,
+  deleteService,
 };
 
