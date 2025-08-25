@@ -99,6 +99,7 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
     where: {
       id,
       mentorId,
+      deletedAt: null,
     },
     include: {
       dayAvailabilites: true,
@@ -250,6 +251,7 @@ const updateService = errorHandler(async(req: Request, res: Response, next: Next
     where: {
       mentorId,
       id,
+      deletedAt: null,
     },
   });
 
@@ -326,6 +328,7 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -432,6 +435,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -591,6 +595,7 @@ const deleteService = errorHandler(async(req: Request, res: Response, next: Next
     where: {
       mentorId,
       id,
+      deletedAt: null,
     },
   });
 
@@ -609,6 +614,20 @@ const deleteService = errorHandler(async(req: Request, res: Response, next: Next
   if (pendingSessionRequests.length !== 0){
     return next(new APIError(400, 'Pending session requests must be resolved before deleting the service'));
   }
+
+  await prisma.services.updateMany({
+    where: {
+      id,
+      mentorId,
+    },
+    data: {
+      id: `${mentorId}-del-${Date.now()}`,
+      deletedId: service.id,
+      deletedAt: DateTime.now().toJSDate(),
+    },
+  });
+
+  res.status(204).json({});
 
 });
 

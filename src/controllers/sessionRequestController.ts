@@ -20,6 +20,7 @@ const getServiceSessionRequests = errorHandler(async(req: Request, res: Response
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -92,6 +93,7 @@ const updateSessionRequest = errorHandler(async(req: Request, res: Response, nex
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -287,7 +289,7 @@ const getMenteeSessionRequests = errorHandler(async(req: Request, res: Response,
       agenda: request.agenda,
       mentorName: request.service.mentor.name,
       mentorId: request.service.mentorId,
-      serviceId: request.serviceId,
+      serviceId: (request.service.deletedAt === null) ? request.serviceId : request.service.deletedId, // the correct id for the deleted service
       serviceType: request.service.type,
       communityId: request.communityId,
       createdAt: request.createdAt,
