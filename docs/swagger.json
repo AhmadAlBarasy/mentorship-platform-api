@@ -4681,6 +4681,92 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Delete a service (mentor only)",
+        "tags": ["Services"],
+        "description": "Allows a mentor to delete their own service. This operation is only permitted if the service has no pending session requests. Deletion is performed softly by marking the service as deleted and modifying its ID to preserve uniqueness.",
+        "operationId": "deleteService",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the service to delete",
+            "schema": {
+              "type": "string",
+              "example": "svc_abc123"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Service deleted successfully (no content)"
+          },
+          "400": {
+            "description": "Cannot delete service due to pending session requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Pending session requests must be resolved before deleting the service"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found or not owned by the authenticated mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a service with an ID of svc_abc123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/services/my/{id}/day-availabilities": {
