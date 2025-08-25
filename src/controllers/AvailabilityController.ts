@@ -19,6 +19,7 @@ const deleteDayAvailability = errorHandler(async(req: Request, res: Response, ne
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -51,6 +52,7 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -131,6 +133,7 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -227,6 +230,7 @@ const deleteAvailabilityException = errorHandler(async(req: Request, res: Respon
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -259,6 +263,7 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 
@@ -364,6 +369,7 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
     where: {
       id: serviceId,
       mentorId,
+      deletedAt: null,
     },
   });
 

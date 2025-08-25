@@ -153,11 +153,12 @@ model AuthCredentials {
 model Services {
   @@map("services")
 
-  id String @db.VarChar(32) @map("id")
+  id String @db.VarChar(64) @map("id")
   type String @db.VarChar(50)
   description String @db.VarChar(300)
   sessionTime Int @map("session_time")
-  deletedAt DateTime? @db.Date @map("deleted_at")
+  deletedAt DateTime? @map("deleted_at")
+  deletedId String? @db.VarChar(32) @map("deleted_id")
   mentorId String @db.VarChar(32) @map("mentor_id")
   createdAt DateTime @default(now()) @map("created_at")
   @@id(fields: [mentorId, id], name: "service")
@@ -172,7 +173,7 @@ model SessionRequests {
   @@map("session_requests")
 
   id String @db.VarChar(36) @id @default(uuid())
-  serviceId String @db.VarChar(32) @map("service_id")
+  serviceId String @db.VarChar(64) @map("service_id")
   menteeId String @db.VarChar(32) @map("mentee_id")
   mentorId String @db.VarChar(32) @map("mentor_id")
   startTime DateTime @db.Time() @map("start_time")
@@ -197,7 +198,7 @@ model DayAvailabilities {
   startTime DateTime @db.Time() @map("start_time")
   duration Int @map("duration")
   mentorId String @db.VarChar(32) @map("mentor_id")
-  serviceId String @db.VarChar(32) @map("service_id")
+  serviceId String @db.VarChar(64) @map("service_id")
   service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Cascade, onUpdate: Cascade)
 
 }
@@ -210,7 +211,7 @@ model AvailabilityExceptions {
   startTime DateTime @db.Time() @map("start_time")
   duration Int @map("duration")
   mentorId String @db.VarChar(32) @map("mentor_id")
-  serviceId String @db.VarChar(32) @map("service_id")
+  serviceId String @db.VarChar(64) @map("service_id")
   service Services @relation(fields: [mentorId, serviceId], references: [mentorId, id], onDelete: Cascade, onUpdate: Cascade)
 
 }

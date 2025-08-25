@@ -1,7 +1,7 @@
 import { Role } from '@prisma/client';
 import { Router } from 'express';
 import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
-import { getMentorServices, getServiceById, updateService } from '../../controllers/serviceController';
+import { deleteService, getMentorServices, getServiceById, updateService } from '../../controllers/serviceController';
 import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import requestValidator from '../../middlewares/requestValidator';
 import { updateServiceSchema } from '../../validators/validate.service';
@@ -26,6 +26,11 @@ authenticatedUserServicesRouter.route('/:id')
     authorizedRoles([MENTOR]),
     requestValidator({ bodySchema: updateServiceSchema }),
     updateService,
+  )
+  .delete(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTOR]),
+    deleteService,
   )
   .all(notAllowedMethod);
 
