@@ -158,6 +158,7 @@ model Services {
   description String @db.VarChar(300)
   sessionTime Int @map("session_time")
   deletedAt DateTime? @db.Date @map("deleted_at")
+  deletedId String @db.VarChar(32) @map("deleted_id")
   mentorId String @db.VarChar(32) @map("mentor_id")
   createdAt DateTime @default(now()) @map("created_at")
   @@id(fields: [mentorId, id], name: "service")
