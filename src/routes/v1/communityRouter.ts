@@ -4,10 +4,10 @@ import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares
 import requestValidator from '../../middlewares/requestValidator';
 import { Role } from '@prisma/client';
 import { createCommunitySchema } from '../../validators/validate.community';
-import { createCommunity, getCommunity, getCommunityMembers } from '../../controllers/communityController';
+import { createCommunity, getCommunity, getCommunityMembers, getCommunityServices } from '../../controllers/communityController';
 import authenticatedUserCommunityRouter from './authenticatedUserCommunityRouter';
 import { requestToJoinCommunity, withdrawCommunityJoinRequest } from '../../controllers/communityJoinRequestsController';
-import { authorizeCommunityMembersAccess } from '../../middlewares/communityMiddlewares';
+import { authorizeCommunityDetailsAccess } from '../../middlewares/communityMiddlewares';
 
 const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
@@ -28,10 +28,18 @@ communityRouter.route('/:id/join-requests')
   )
   .all(notAllowedMethod);
 
+communityRouter.route('/:id/services')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizeCommunityDetailsAccess,
+    getCommunityServices,
+  )
+  .all(notAllowedMethod);
+
 communityRouter.route('/:id/members')
   .get(
     authenticate({ access: 'full' }),
-    authorizeCommunityMembersAccess,
+    authorizeCommunityDetailsAccess,
     getCommunityMembers,
   )
   .all(notAllowedMethod);
