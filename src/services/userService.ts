@@ -34,6 +34,17 @@ const getUserService = async(options: {
     include: {
       authCredentials: includeAuth,
       links: includeUserLinks,
+      services: {
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          type: true,
+          description: true,
+          sessionTime: true,
+        },
+      },
     },
     omit: {
       password: !includePassword, // don't omit the password if true

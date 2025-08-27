@@ -896,6 +896,41 @@
                               "url": "https://johndoe.dev"
                             }
                           ]
+                        },
+                        "services": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "example": "cv_review"
+                              },
+                              "type": {
+                                "type": "string",
+                                "example": "CV Review"
+                              },
+                              "description": {
+                                "type": "string",
+                                "example": "I'll mock your CV until you give up on your career"
+                              },
+                              "sessionTime": {
+                                "type": "integer",
+                                "example": 15
+                              }
+                            }
+                          },
+                          "example": [
+                            {
+                              "id": "cv_review",
+                              "type": "CV Review",
+                              "description": "I'll mock your CV until you give up on your career",
+                              "sessionTime": 15
+                            }
+                          ]
                         }
                       }
                     }
