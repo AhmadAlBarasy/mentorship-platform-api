@@ -3,12 +3,14 @@ import { Request, Response, NextFunction } from 'express';
 import APIError from '../classes/APIError';
 import prisma from '../db';
 
+const { ADMIN } = Role;
 
-export const authorizeCommunityMembersAccess = async(req: Request, res: Response, next: NextFunction) => {
+
+export const authorizeCommunityDetailsAccess = async(req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   const communityId = req.params.id;
 
-  if (user.role === Role.ADMIN) {
+  if (user.role === ADMIN) {
     return next();
   }
 
@@ -36,7 +38,7 @@ export const authorizeCommunityMembersAccess = async(req: Request, res: Response
 
 
   if (!participation || !['MENTOR', 'MENTEE'].includes(participation.user.role)) {
-    return next(new APIError(403, 'You are not allowed to access community members'));
+    return next(new APIError(403, 'You are not allowed to access community details'));
   }
 
   return next();

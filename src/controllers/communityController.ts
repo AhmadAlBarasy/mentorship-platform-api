@@ -14,7 +14,9 @@ import { getCommunityByFieldService,
 } from '../services/communityService';
 import { getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
+import { Role } from '@prisma/client';
 
+const { MENTOR } = Role;
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -404,6 +406,57 @@ const removeCommunityMember = errorHandler(async(req: Request, res: Response, ne
 
 });
 
+const getCommunityServices = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { communityId } = req.params;
+
+  const services: Record<string, any[]> = {};
+
+  const result = await prisma.participations.findMany({
+    where: {
+      communityId,
+      user: {
+        role: MENTOR,
+      },
+    },
+    include: {
+      user: {
+        include: {
+          services: {
+            where: {
+              deletedAt: null,
+            },
+            select: {
+              type: true,
+              id: true,
+              mentorId: true,
+              sessionTime: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  for (const participation of result){
+    for (const service of participation.user.services){
+      if (!services[participation.userId]){
+        services[participation.userId] = [];
+      }
+      services[participation.userId].push({
+        id: service.id,
+        type: service.type,
+        sessionTime: service.sessionTime,
+        mentorId: service.mentorId,
+      });
+    }
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    services,
+  });
+
+});
 
 export {
   createCommunity,
@@ -419,4 +472,5 @@ export {
   leaveCommunity,
   removeCommunityMember,
   getAuthenticatedManagerCommunityMembers,
+  getCommunityServices,
 };

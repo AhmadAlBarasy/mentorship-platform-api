@@ -4170,6 +4170,153 @@
         }
       }
     },
+    "/communities/{id}/services": {
+      "get": {
+        "summary": "Get available services from mentors in a community",
+        "tags": ["Communities"],
+        "description": "Returns the list of services offered by mentors who are members of the specified community. Only accessible by authenticated users who are either the community manager, an admin, or an accepted member of the community with a mentor or mentee role.",
+        "operationId": "getCommunityServices",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the community",
+            "schema": {
+              "type": "string",
+              "example": "community_abc123"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Services grouped by mentorId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "services": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "svc_abc123"
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "Type of the service",
+                              "example": "CV Review"
+                            },
+                            "sessionTime": {
+                              "type": "integer",
+                              "description": "Duration of each session in minutes",
+                              "example": 30
+                            },
+                            "mentorId": {
+                              "type": "string",
+                              "description": "ID of the mentor offering the service",
+                              "example": "mentor_xyz456"
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "mentor_xyz456": [
+                          {
+                            "id": "svc_abc123",
+                            "type": "CV Review",
+                            "sessionTime": 30,
+                            "mentorId": "mentor_xyz456"
+                          },
+                          {
+                            "id": "svc_def789",
+                            "type": "Mock Interview",
+                            "sessionTime": 60,
+                            "mentorId": "mentor_xyz456"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not allowed to access the community services",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You are not allowed to access community details"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Community not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/services": {
       "post": {
         "summary": "Create a new service (Mentor only)",
