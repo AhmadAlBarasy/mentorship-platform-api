@@ -40,7 +40,7 @@ authRouter.route('/login')
 
 authRouter.route('/logout')
   .post(
-    authenticate({ access: '*' }),
+    authenticate({ access: '*', allowBanned: true }),
     logout,
   )
 

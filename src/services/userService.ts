@@ -13,8 +13,15 @@ const getUserService = async(options: {
   includeAuth?: boolean,
   includeUserLinks?: boolean,
   includePassword?: boolean,
+  includeBan?: boolean,
 }) => {
-  const { searchBy, includeAuth, includeUserLinks, includePassword } = options;
+  const {
+    searchBy,
+    includeAuth,
+    includeUserLinks,
+    includePassword,
+    includeBan,
+  } = options;
 
   const filters = [];
   if (searchBy.email) {
@@ -34,6 +41,7 @@ const getUserService = async(options: {
     include: {
       authCredentials: includeAuth,
       links: includeUserLinks,
+      bannedUsers: includeBan,
       services: {
         where: {
           deletedAt: null,
@@ -132,6 +140,7 @@ const checkExistingUserReport = async(reporterId: string, reportedUserId: string
     where: {
       userId: reporterId,
       reportedUserId: reportedUserId,
+      resolvedBy: null,
     },
   });
 };

@@ -25,7 +25,13 @@ const { ACCESS, REFRESH } = TokenType;
 export const login = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
 
   const { id, email, password } = req.body;
-  const user = await getUserService({ searchBy: { id, email }, includeAuth: true, includePassword: true });
+  const user = await getUserService({
+    searchBy: { id, email },
+    includeAuth: true,
+    includePassword: true,
+    includeBan: true,
+  });
+
   if (!user) {
     return next(new APIError(401, 'Invalid id/email or password'));
   }
@@ -41,6 +47,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
       role: user.role,
       iss: process.env.JWT_ISS,
       partial: emailVerified ? undefined : true, // make the session partial if the email is not verified
+      banned: user.bannedUsers ? true : undefined,
     },
     process.env.JWT_SECRET as string,
     {
