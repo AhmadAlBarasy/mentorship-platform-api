@@ -39,6 +39,7 @@ const authenticate = (options: AuthenticationOptions) =>
           id: payload?.sub,
         },
         includePassword: false,
+        includeBan: true,
       });
 
       if (!user){
@@ -46,7 +47,9 @@ const authenticate = (options: AuthenticationOptions) =>
       }
 
       const isPartial = Boolean(payload?.partial);
-      const { access } = options;
+      const isBanned = Boolean(payload?.banned);
+
+      const { access, allowBanned } = options;
 
       if (access === 'partial' && !isPartial) {
         return next(new APIError(403, 'You are not allowed to perform this action'));
@@ -54,6 +57,21 @@ const authenticate = (options: AuthenticationOptions) =>
 
       if (access === 'full' && isPartial) {
         return next(new APIError(403, 'You are not allowed to perform this action'));
+      }
+
+      if (isBanned && !allowBanned){
+        return next(new APIError(403, 'You are banned from accessing the platform'));
+      }
+
+      // clear the token cookie if the user got banned while still having a valid token
+      if (user.bannedUsers && req.path !== '/logout'){
+        res.clearCookie('token', {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+        });
+        return next(new APIError(403, `You've been banned from accessing the platform. Reason: ${user.bannedUsers.banReason}`));
       }
 
       req.user = user;

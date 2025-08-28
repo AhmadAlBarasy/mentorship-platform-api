@@ -6026,6 +6026,215 @@
           }
         }
       }
+    },
+    "/admin/user-reports": {
+      "get": {
+        "summary": "View user reports (pending and resolved)",
+        "tags": ["Admin"],
+        "description": "Allows an admin to retrieve both pending and resolved user reports. Resolved reports include those that resulted in a ban.",
+        "operationId": "getUserReports",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "User reports grouped into pending and resolved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "userReports": {
+                      "type": "object",
+                      "properties": {
+                        "pending": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "example": "ef2dbbac-10a3-4125-a2f1-8e3617f8ec57" },
+                              "reporterId": { "type": "string", "example": "user_xyz001" },
+                              "reportedUserId": { "type": "string", "example": "user_xyz002" },
+                              "reason": { "type": "string", "example": "Spamming community posts" },
+                              "reportedAt": { "type": "string", "format": "date-time", "example": "2025-08-26T12:30:00Z" }
+                            }
+                          }
+                        },
+                        "resolved": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "string", "example": "ef2dabec-10a3-4125-a2f1-8e3617f8ec69" },
+                              "reporterId": { "type": "string", "example": "user_xyz003" },
+                              "reportedUserId": { "type": "string", "example": "user_xyz004" },
+                              "reason": { "type": "string", "example": "Harassment" },
+                              "resolvedBy": { "type": "string", "example": "admin_123" },
+                              "reportedAt": { "type": "string", "format": "date-time", "example": "2025-08-25T10:00:00Z" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Not authorized to access this route" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/user-reports/{id}": {
+      "put": {
+        "summary": "Resolve a user report",
+        "tags": ["Admin"],
+        "description": "Allows an admin to resolve a user report by either banning the reported user or discarding the report.",
+        "operationId": "resolveUserReport",
+        "security": [
+          { "cookieAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the user report to resolve",
+            "schema": {
+              "type": "string",
+              "example": "report_abc123"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["ban", "discard"],
+                    "example": "ban",
+                    "description": "Action to take on the report"
+                  },
+                  "banReason": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Repeated harassment reports",
+                    "description": "Reason for the ban (required if action is 'ban')"
+                  }
+                },
+                "required": ["action"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User report resolved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Success" },
+                    "message": { "type": "string", "example": "User report has been resolved successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid resolution (e.g. missing banReason)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "You must specify a reason for your ban" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User report not found or already resolved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "User report was not found" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Not authorized to access this route" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
