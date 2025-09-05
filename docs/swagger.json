@@ -6235,6 +6235,99 @@
           }
         }
       }
+    },
+    "/admin/banned-users": {
+      "get": {
+        "summary": "List banned users",
+        "tags": ["Admin"],
+        "description": "Retrieves all users who have been banned, along with who banned them, the reason, and the timestamp of the ban.",
+        "operationId": "getBannedUsers",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of banned users returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "bannedUsers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "user_xyz789",
+                            "description": "The ID of the banned user"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "John Doe",
+                            "description": "The name of the banned user"
+                          },
+                          "bannedBy": {
+                            "type": "string",
+                            "example": "admin_123",
+                            "description": "The ID of the admin who imposed the ban"
+                          },
+                          "banReason": {
+                            "type": "string",
+                            "example": "Repeated violation of community guidelines",
+                            "description": "The reason for the user's ban"
+                          },
+                          "bannedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-08-25T14:00:00Z",
+                            "description": "Timestamp when the user was banned"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin access required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Not authorized to access this route" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

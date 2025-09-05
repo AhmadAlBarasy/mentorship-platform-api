@@ -92,7 +92,36 @@ const resolveUserReport = errorHandler(async(req: Request, res: Response, next: 
 
 });
 
+const getBannedUsers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const result = await prisma.bannedUsers.findMany({
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  const bannedUsers = result.map((user) => {
+    return {
+      id: user.userId,
+      name: user.user.name,
+      bannedBy: user.bannedById,
+      banReason: user.banReason,
+      bannedAt: user.bannedAt,
+    }
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    bannedUsers,
+  });
+
+});
+
 export {
   getUserReports,
   resolveUserReport,
+  getBannedUsers,
 }
