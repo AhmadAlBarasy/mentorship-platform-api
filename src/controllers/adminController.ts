@@ -4,6 +4,7 @@ import prisma from '../db';
 import { SUCCESS } from '../constants/responseConstants';
 import APIError from '../classes/APIError';
 import { DateTime } from 'luxon';
+import { getUserFullInformationService } from '../services/userService';
 
 const getUserReports = errorHandler(async(req: Request, res: Response, next: NextFunction) =>{
 
@@ -137,9 +138,27 @@ const liftUserBan = errorHandler(async(req: Request, res: Response, next: NextFu
 
 });
 
+const getUserFullInformation = errorHandler(async(req: Request, res: Response, next: NextFunction) =>{
+  const { timezone } = req.user;
+  const { id } = req.params;
+
+  const user = await getUserFullInformationService(id, timezone);
+
+  if (!user){
+    return next(new APIError(404, 'User not found'));
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    user,
+  });
+
+});
+
 export {
   getUserReports,
   resolveUserReport,
   getBannedUsers,
   liftUserBan,
+  getUserFullInformation,
 }

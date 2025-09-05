@@ -6403,6 +6403,164 @@
           }
         }
       }
+    },
+    "/admin/user-preview/{id}": {
+      "get": {
+        "summary": "Get full user information",
+        "tags": ["Admin"],
+        "description": "Allows an admin to retrieve full profile, session requests, services, communities, and ban status of a specific user.",
+        "operationId": "getUserFullInformation",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "ahmadanas"
+            },
+            "description": "The ID of the user whose full profile is to be retrieved"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched full user profile",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "user": {
+                    "basicDetails": {
+                      "id": "ahmadanas",
+                      "name": "Ahmad Anas",
+                      "headline": "Communications Manager",
+                      "bio": null,
+                      "dateJoined": "2025-07-22T12:14:58.400Z",
+                      "email": "ima7mad159@gmail.com",
+                      "imageUrl": "https://vqiozpgeifcnltihssxe.supabase.co/storage/v1/object/public/growth-bucket/Ahmad-Albarasy/avatars/ahmadanas.jpg",
+                      "timezone": "Etc/UTC",
+                      "skills": ["Agile", "Team Work"],
+                      "role": "MENTEE",
+                      "country": "PSE",
+                      "verified": true,
+                      "isBanned": false
+                    },
+                    "links": [
+                      {
+                        "name": "LinkedIn",
+                        "url": "https://linkedin.com/ahmad-albarasy"
+                      }
+                    ],
+                    "communities": [
+                      {
+                        "communityId": "iug",
+                        "name": "The Islamic University of Gaza",
+                        "imageUrl": "https://vqiozpgeifcnltihssxe.supabase.co/storage/v1/object/public/growth-bucket/Ahmad-Albarasy/communities/iug.jpg"
+                      }
+                    ],
+                    "sessionRequests": {
+                      "PENDING": [
+                        {
+                          "date": "2025-08-17T00:00:00.000Z",
+                          "startTime": "00:45",
+                          "duration": 15,
+                          "agenda": "My Agenda",
+                          "serviceId": "abd2-del-1756138833195",
+                          "mentorId": "abd2",
+                          "rejectionReason": null,
+                          "communityId": null,
+                          "createdAt": "2025-08-23T16:10:15.274Z",
+                          "id": "0b151d2a-b6a5-4c02-b721-e10b80a66fb0"
+                        }
+                      ],
+                      "CANCELLED": [
+                        {
+                          "date": "2025-08-15T00:00:00.000Z",
+                          "startTime": "23:00",
+                          "duration": 60,
+                          "agenda": "I want to learn about REST APIs.",
+                          "serviceId": "cv_review",
+                          "mentorId": "abd2",
+                          "rejectionReason": null,
+                          "communityId": null,
+                          "createdAt": "2025-08-10T19:52:44.000Z",
+                          "id": "d15f33d9-7612-11f0-b62c-28c5c82c1ac4"
+                        }
+                      ]
+                    },
+                    "services": [
+                      {
+                        "id": "cv_review",
+                        "type": "CV Review",
+                        "sessionTime": 15,
+                        "dsecription": "I'll mock your CV until you give up on your career",
+                        "createdAt": "2025-07-01T09:22:14.000Z",
+                        "acceptedRequestsCount": 17
+                      }
+                    ],
+                    "community": {
+                      "id": "growthly",
+                      "name": "Growthly Core",
+                      "description": "Main growth community",
+                      "imageUrl": "https://.../growthly.jpg",
+                      "verified": true,
+                      "createdAt": "2025-01-01T10:00:00.000Z",
+                      "membersCount": 87
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - only admins can access this route",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Not authorized to access this route" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User with the specified ID was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "User not found" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
