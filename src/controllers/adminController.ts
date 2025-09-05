@@ -92,7 +92,54 @@ const resolveUserReport = errorHandler(async(req: Request, res: Response, next: 
 
 });
 
+const getBannedUsers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const result = await prisma.bannedUsers.findMany({
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  const bannedUsers = result.map((user) => {
+    return {
+      id: user.userId,
+      name: user.user.name,
+      bannedBy: user.bannedById,
+      banReason: user.banReason,
+      bannedAt: user.bannedAt,
+    }
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    bannedUsers,
+  });
+
+});
+
+const liftUserBan = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: userId } = req.params;
+
+  const deleteCount = await prisma.bannedUsers.deleteMany({
+    where: {
+      userId,
+    },
+  });
+
+  if (deleteCount.count === 0){
+    return next(new APIError(404, `No banned user was found with an ID of ${userId}`));
+  }
+
+  res.status(204).json();
+
+});
+
 export {
   getUserReports,
   resolveUserReport,
+  getBannedUsers,
+  liftUserBan,
 }
