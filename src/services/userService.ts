@@ -1,8 +1,13 @@
 import prisma from '../db';
-import { Role } from '@prisma/client';
+import { Role, SessionStatus } from '@prisma/client';
 import supabase from './supabaseClient';
+import { SessionRequest } from '../classes/services/SessionRequest';
+import { ymdDateString } from '../utils/availability/helpers';
+import { Time } from '../classes/services/Time';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
+
+const { ACCEPTED } = SessionStatus;
 
 const getUserService = async(options: {
   searchBy: {
@@ -168,6 +173,182 @@ const update2FAService = async(userId: string, enable2FA: boolean) => {
   });
 };
 
+const getUserFullInformationService = async(id: string, timezone: string) => {
+
+  const result = await prisma.users.findFirst({
+    where: {
+      id,
+    },
+    omit: {
+      password: true,
+    },
+    include: {
+      bannedUsers: true,
+      links: true,
+      authCredentials: {
+        select: {
+          emailVerified: true,
+        },
+      },
+      participations: {
+        include: {
+          community: {
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
+            },
+          },
+        },
+      },
+      sessionRequests: {
+        select: {
+          id: true,
+          date: true,
+          startTime: true,
+          duration: true,
+          agenda: true,
+          serviceId: true,
+          mentorId: true,
+          status: true,
+          rejectionReason: true,
+          communityId: true,
+          createdAt: true,
+        },
+      },
+      services: {
+        where: {
+          deletedAt: null,
+        },
+        include: {
+          _count: {
+            select: {
+              requests: {
+                where: {
+                  status: ACCEPTED,
+                },
+              },
+            },
+          },
+        },
+      },
+      community: {
+        include: {
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+
+  if (!result){
+    return null;
+  }
+
+  const links = result.links.map((link) => {
+    return {
+      name: link.linkName,
+      url: link.linkUrl,
+    }
+  });
+
+  const community = {
+    id: result.community?.id,
+    name: result.community?.name,
+    description: result.community?.description,
+    imageUrl: result.community ? (
+      result.community.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(result.community?.imageUrl).data.publicUrl : null
+    ) : undefined,
+    verified: result.community?.verified,
+    createdAt: result.community?.createdAt,
+    membersCount: result.community?._count.participants,
+  }
+
+  const communities = result.participations.map((participation) => {
+    return {
+      communityId: participation.communityId,
+      name: participation.community.name,
+      imageUrl: participation.community.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(participation.community.imageUrl).data.publicUrl : null,
+    }
+  });
+
+  const sessionRequests: Record<string, any[]> = {};
+
+  for (const request of result.sessionRequests){
+
+    const sessionRequest = new SessionRequest(
+      Time.fromString(request.startTime.toISOString().slice(11, 16)), // HH:MM
+      request.duration,
+      new Date(ymdDateString(request.date)),
+    );
+
+    const sessionStatus = request.status;
+
+    sessionRequest.shiftToTimezone('Etc/UTC', timezone);
+
+    if (!sessionRequests[sessionStatus]){
+      sessionRequests[sessionStatus] = [];
+    }
+
+    sessionRequests[sessionStatus].push({
+      date: sessionRequest.date,
+      startTime: sessionRequest.startTime.toString(),
+      duration: sessionRequest.duration,
+      agenda: request.agenda,
+      serviceId: request.serviceId,
+      mentorId: request.mentorId,
+      rejectionReason: request.rejectionReason,
+      communityId: request.communityId,
+      createdAt: request.createdAt,
+      id: request.id,
+    });
+
+  }
+
+  const services = result.services.map((service) => {
+    return {
+      id: service.id,
+      type: service.type,
+      sessionTime: service.sessionTime,
+      dsecription: service.description,
+      createdAt: service.createdAt,
+      acceptedRequestsCount: service._count.requests,
+    }
+  });
+
+  const user = {
+    basicDetails: {
+      id: result.id,
+      name: result.name,
+      headline: result.headline,
+      bio: result.bio,
+      dateJoined: result.dateJoined,
+      email: result.email,
+      imageUrl: result.imageUrl ?
+        supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(result.imageUrl).data.publicUrl : null,
+      timezone: result.timezone,
+      skills: result.skills,
+      role: result.role,
+      country: result.country,
+      verified: result.authCredentials?.emailVerified,
+      isBanned: result.bannedUsers !== null,
+    },
+    links,
+    communities: communities.length === 0 ? undefined : communities,
+    sessionRequests,
+    services: services.length === 0 ? undefined : services,
+    community,
+  }
+
+  return user;
+};
+
 export {
   getUserService,
   createUserService,
@@ -177,4 +358,5 @@ export {
   checkExistingUserReport,
   createUserReport,
   update2FAService,
+  getUserFullInformationService,
 };
