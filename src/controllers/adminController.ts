@@ -120,8 +120,26 @@ const getBannedUsers = errorHandler(async(req: Request, res: Response, next: Nex
 
 });
 
+const liftUserBan = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: userId } = req.params;
+
+  const deleteCount = await prisma.bannedUsers.deleteMany({
+    where: {
+      userId,
+    },
+  });
+
+  if (deleteCount.count === 0){
+    return next(new APIError(404, `No banned user was found with an ID of ${userId}`));
+  }
+
+  res.status(204).json();
+
+});
+
 export {
   getUserReports,
   resolveUserReport,
   getBannedUsers,
+  liftUserBan,
 }
