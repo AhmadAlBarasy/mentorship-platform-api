@@ -138,6 +138,38 @@ const liftUserBan = errorHandler(async(req: Request, res: Response, next: NextFu
 
 });
 
+const banUser = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: userId } = req.params;
+  const { banReason } = req.body;
+  const { id: adminId } = req.user;
+
+  const banRecord = await prisma.bannedUsers.findFirst({
+    where: {
+      userId,
+    },
+  });
+
+  if (banRecord){
+    return next(new APIError(409, 'This user is already banned'));
+  }
+
+  await prisma.bannedUsers.create({
+    data: {
+      userId,
+      bannedById: adminId,
+      banReason,
+      bannedAt: DateTime.now().toJSDate(),
+    },
+  });
+
+  res.status(200).json({
+    status: SUCCESS,
+    message: 'User banned successfully',
+  });
+
+
+});
+
 const getUserFullInformation = errorHandler(async(req: Request, res: Response, next: NextFunction) =>{
   const { timezone } = req.user;
   const { id } = req.params;
@@ -160,5 +192,6 @@ export {
   resolveUserReport,
   getBannedUsers,
   liftUserBan,
+  banUser,
   getUserFullInformation,
 }
