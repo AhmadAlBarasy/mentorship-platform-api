@@ -2,9 +2,9 @@ import { Router } from 'express';
 import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
 import { Role } from '@prisma/client';
-import { getBannedUsers, getUserReports, liftUserBan, resolveUserReport, getUserFullInformation } from '../../controllers/adminController';
+import { getBannedUsers, getUserReports, liftUserBan, resolveUserReport, getUserFullInformation, banUser } from '../../controllers/adminController';
 import requestValidator from '../../middlewares/requestValidator';
-import { resolveUserReportSchema } from '../../validators/validate.admin';
+import { banUserSchema, resolveUserReportSchema } from '../../validators/validate.admin';
 
 const { ADMIN } = Role;
 
@@ -36,6 +36,12 @@ adminRouter.route('/user-preview/:id')
   .all(notAllowedMethod);
 
 adminRouter.route('/banned-users/:id')
+  .post(
+    authenticate({ access: 'full' }),
+    authorizedRoles([ADMIN]),
+    requestValidator({ bodySchema: banUserSchema }),
+    banUser,
+  )
   .delete(
     authenticate({ access: 'full' }),
     authorizedRoles([ADMIN]),

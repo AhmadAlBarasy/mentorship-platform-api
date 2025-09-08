@@ -6330,6 +6330,112 @@
       }
     },
     "/admin/banned-users/{id}": {
+      "post": {
+        "summary": "Ban a user",
+        "tags": ["Admin"],
+        "description": "Allows an admin to ban a user on the platform. A ban reason can optionally be provided.",
+        "operationId": "banUser",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "user123"
+            },
+            "description": "The ID of the user to ban"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "banReason": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Repeated violations of community guidelines"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User was banned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "message": "User banned successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or missing fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "banReason can be at most 100 characters" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - only admins can access this route",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Not authorized to access this route" }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - user is already banned",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "This user is already banned"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "summary": "Lift user ban",
         "tags": ["Admin"],
