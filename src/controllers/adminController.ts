@@ -5,6 +5,9 @@ import { SUCCESS } from '../constants/responseConstants';
 import APIError from '../classes/APIError';
 import { DateTime } from 'luxon';
 import { getUserFullInformationService } from '../services/userService';
+import { Role } from '@prisma/client';
+
+const { ADMIN } = Role;
 
 const getUserReports = errorHandler(async(req: Request, res: Response, next: NextFunction) =>{
 
@@ -143,14 +146,25 @@ const banUser = errorHandler(async(req: Request, res: Response, next: NextFuncti
   const { banReason } = req.body;
   const { id: adminId } = req.user;
 
-  const banRecord = await prisma.bannedUsers.findFirst({
+  const user = await prisma.users.findFirst({
     where: {
-      userId,
+      id: userId,
+    },
+    include: {
+      bannedUsers: true,
     },
   });
 
-  if (banRecord){
+  if (!user){
+    return next(new APIError(404, 'User not found'));
+  }
+
+  if (user.bannedUsers){
     return next(new APIError(409, 'This user is already banned'));
+  }
+
+  if (user.role === ADMIN){
+    return next(new APIError(403, 'You can\'t ban an admin'));
   }
 
   await prisma.bannedUsers.create({
