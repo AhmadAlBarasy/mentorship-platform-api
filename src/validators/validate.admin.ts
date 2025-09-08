@@ -19,7 +19,7 @@ const resolveUserReportSchema = Joi.object({
 const banUserSchema = Joi.object({
   banReason: Joi.string()
     .max(100)
-    .optional()
+    .required()
     .messages({
       'string.max': 'banReason can be at most 100 characters',
     }),
