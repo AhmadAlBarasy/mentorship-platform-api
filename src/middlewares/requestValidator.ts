@@ -6,7 +6,7 @@ import { RequestProperties } from '../interfaces/RequestProperties';
 
 export default function requestValidator(options: RequestValidationSchemas) {
 
-  const { bodySchema, paramsSchema } = options;
+  const { bodySchema, paramsSchema, querySchema } = options;
 
   return (req: Request, res: Response, next: NextFunction) => {
 
@@ -25,6 +25,10 @@ export default function requestValidator(options: RequestValidationSchemas) {
     if (paramsSchema && req.params){
       validate(req.params, paramsSchema);
     }
+    if (querySchema && req.query){
+      validate(req.query, querySchema);
+    }
+
     next();
   }
 };
