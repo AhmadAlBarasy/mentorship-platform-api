@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { authenticate, authorizedRoles } from "../../middlewares/authMiddlewares";
-import { getDashboardMenteeSessionRequests } from "../../controllers/dashboardController";
-import { notAllowedMethod } from "../../middlewares/notAllowedHandler";
-import { Role } from "@prisma/client";
+import { Router } from 'express';
+import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
+import { getDashboardMenteeSessionRequests } from '../../controllers/dashboardController';
+import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
+import { Role } from '@prisma/client';
 
 const dashboardRouter = Router();
 const { MENTEE } = Role;

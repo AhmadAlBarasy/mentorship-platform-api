@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { SessionRequest } from "../classes/services/SessionRequest";
-import { Time } from "../classes/services/Time";
-import { SUCCESS } from "../constants/responseConstants";
-import prisma from "../db";
-import errorHandler from "../utils/asyncErrorHandler";
-import { ymdDateString } from "../utils/availability/helpers";
+import { SessionRequest } from '../classes/services/SessionRequest';
+import { Time } from '../classes/services/Time';
+import { SUCCESS } from '../constants/responseConstants';
+import prisma from '../db';
+import errorHandler from '../utils/asyncErrorHandler';
+import { ymdDateString } from '../utils/availability/helpers';
 
-const getDashboardMenteeSessionRequests = errorHandler(async (req: Request, res: Response, next: NextFunction) => {
+const getDashboardMenteeSessionRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id: menteeId, timezone: userTimeZone } = req.user;
 
   // only PENDING
