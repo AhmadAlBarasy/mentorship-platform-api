@@ -6667,6 +6667,84 @@
           }
         }
       }
+    },"/dashboard/mentee/session-requests": {
+      "get": {
+        "summary": "Get latest pending session requests (mentee dashboard)",
+        "tags": ["Dashboard"],
+        "description": "Retrieves the most recent 5 session requests for the authenticated mentee that are still in **PENDING** status. Results are ordered by creation date (newest first).",
+        "operationId": "getDashboardMenteeSessionRequests",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of latest 5 pending session requests for the mentee.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "sessionRequests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "example": "req_12345" },
+                          "startTime": { "type": "string", "example": "15:00" },
+                          "duration": { "type": "integer", "example": 60 },
+                          "date": { "type": "string", "format": "date", "example": "2025-09-15" },
+                          "agenda": { "type": "string", "example": "Discuss thesis draft" },
+                          "mentorName": { "type": "string", "example": "Dr. John Smith" },
+                          "mentorId": { "type": "string", "example": "mentor_001" },
+                          "serviceId": { "type": "string", "example": "service_abc" },
+                          "serviceType": { "type": "string", "example": "Career Coaching" },
+                          "communityId": { "type": "string", "example": "community_123" },
+                          "createdAt": { "type": "string", "format": "date-time", "example": "2025-09-10T12:34:56.000Z" },
+                          "status": { "type": "string", "example": "PENDING" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - user not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Unauthorized, No token provided" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - only mentees can access this endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Fail" },
+                    "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
