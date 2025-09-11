@@ -210,6 +210,7 @@ const getAuthenticatedUserCommunity = errorHandler(async(req: Request, res: Resp
 
 const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { user } = req;
+  const { limit } = req.query;
 
   const community = await getCommunityByFieldService({ searchBy: { managerId: user.id } });
 
@@ -217,10 +218,13 @@ const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Req
     return next(new APIError(404, 'You don\'t have a community'));
   }
 
+  const take = (limit) ? Number(limit) : undefined;
+
   const joinRequests = await prisma.communityJoinRequests.findMany({
     where: {
       communityId: community.id,
     },
+    take,
     include: {
       user: {
         select: {
@@ -326,8 +330,12 @@ const getAuthenticatedManagerCommunityMembers = errorHandler(async(req: Request,
 
 
 const getAuthenticatedUserCommunities = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { limit } = req.query;
   const { user } = req;
-  const participations = await getAuthenticatedUserCommunitiesService(user.id);
+
+  const take = (limit) ? Number(limit) : undefined;
+
+  const participations = await getAuthenticatedUserCommunitiesService(user.id, take);
 
   const structuredMemberships = participations.length === 0 ? [] :
     participations.map((participation) => ({

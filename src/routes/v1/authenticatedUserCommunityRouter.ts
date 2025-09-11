@@ -22,6 +22,7 @@ import {
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 import { userIdSchema } from '../../validators/validate.user';
+import { limitResultsSchema } from '../../validators/validate.common';
 
 const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
 
@@ -31,6 +32,7 @@ authenticatedUserCommunityRouter.route('/join-requests')
   .get(
     authenticate({ access: 'full' }),
     authorizedRoles([COMMUNITY_MANAGER]),
+    requestValidator({ querySchema: limitResultsSchema(5, 20) }),
     getAuthenticatedManagerCommunityJoinRequests,
   )
   .put(
@@ -60,6 +62,7 @@ authenticatedUserCommunityRouter.route('/memberships')
   .get(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTEE, MENTOR]),
+    requestValidator({ querySchema: limitResultsSchema(5, 20) }),
     getAuthenticatedUserCommunities,
   )
   .delete(

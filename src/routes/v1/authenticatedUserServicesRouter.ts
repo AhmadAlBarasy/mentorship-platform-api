@@ -7,6 +7,7 @@ import requestValidator from '../../middlewares/requestValidator';
 import { updateServiceSchema } from '../../validators/validate.service';
 import authenticatedUserServicesAvsRouter from './authenticatedUserServicesAvsRouter';
 import authenticatedMentorSessionRequestsRouter from './authenticatedMentorSessionRequestsRouter';
+import { limitResultsSchema } from '../../validators/validate.common';
 
 const { MENTOR } = Role;
 
@@ -38,6 +39,7 @@ authenticatedUserServicesRouter.route('/')
   .get(
     authenticate({ access: 'full' }),
     authorizedRoles([MENTOR]),
+    requestValidator({ querySchema: limitResultsSchema(5, 20) }),
     getMentorServices,
   )
   .all(notAllowedMethod);

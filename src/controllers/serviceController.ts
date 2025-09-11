@@ -183,10 +183,13 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
 });
 
 const getMentorServices = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
-
+  const { limit } = req.query;
   const { id: mentorId } = req.user;
 
+  const take = (limit) ? Number(limit) : undefined;
+
   const services = await prisma.services.findMany({
+    take,
     where: {
       mentorId,
       deletedAt: null, // Exclude deleted services

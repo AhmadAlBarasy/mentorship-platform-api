@@ -72,8 +72,10 @@ const getCommunityMembersService = async(communityId: string) => {
   });
 };
 
-const getAuthenticatedUserCommunitiesService = async(userId: string) => {
+const getAuthenticatedUserCommunitiesService = async(userId: string, take?: number | undefined) => {
+
   return prisma.participations.findMany({
+    take,
     where: { userId },
     include: {
       community: {
