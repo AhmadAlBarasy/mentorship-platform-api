@@ -5,6 +5,10 @@ import { SUCCESS } from '../constants/responseConstants';
 import prisma from '../db';
 import errorHandler from '../utils/asyncErrorHandler';
 import { ymdDateString } from '../utils/availability/helpers';
+import supabase from '../services/supabaseClient';
+import APIError from '../classes/APIError';
+
+const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
 const getDashboardMenteeSessionRequests = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id: menteeId, timezone: userTimeZone } = req.user;
@@ -66,4 +70,82 @@ const getDashboardMenteeSessionRequests = errorHandler(async(req: Request, res: 
   });
 });
 
-export { getDashboardMenteeSessionRequests };
+const searchUsersAndCommunities = errorHandler(async(req: Request, res: Response, next: NextFunction) =>{
+  const { query: searchTerm } = req.query;
+
+  const query = searchTerm as string;
+
+  const [users, communities] = await Promise.all([
+    prisma.users.findMany({
+      where: {
+        OR: [
+          { id: { equals: query } },
+          { id: { contains: query } },
+          { name: { equals: query } },
+          { name: { contains: query } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        headline: true,
+      },
+      take: 10,
+    }),
+
+    prisma.communities.findMany({
+      where: {
+        OR: [
+          { id: { equals: query } },
+          { id: { contains: query } },
+          { name: { equals: query } },
+          { name: { contains: query } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        verified: true,
+      },
+      take: 10,
+    }),
+  ]);
+
+  const preparedUsers = users.map((user) => {
+    return {
+      id: user.id,
+      name: user.name,
+      headline: user.headline,
+      imageUrl: user.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(user.imageUrl).data.publicUrl :
+        null,
+    }
+  });
+
+  const preparedCommunities = communities.map((community) => {
+    return {
+      id: community.id,
+      name: community.name,
+      verified: community.verified,
+      imageUrl: community.imageUrl ? supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(community.imageUrl).data.publicUrl :
+        null,
+    }
+  });
+
+  if (preparedUsers.length === 0 && preparedCommunities.length === 0){
+    return next(new APIError(404, 'No results found'));
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    users: preparedUsers,
+    communities: preparedCommunities,
+  });
+
+});
+
+export {
+  getDashboardMenteeSessionRequests,
+  searchUsersAndCommunities,
+};

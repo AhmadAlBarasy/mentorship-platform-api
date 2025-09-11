@@ -13,6 +13,12 @@ const ymdDate = Joi.string()
 
 const duration = Joi.number().integer().min(10).max(360);
 
+const searchQuerySchema = Joi.object({
+  query: Joi.string()
+    .max(50)
+    .required(),
+});
+
 const limitResultsSchema = (min: number, max: number) => Joi.object({
   limit: Joi.number()
     .min(min)
@@ -25,5 +31,6 @@ export {
   ymdDate,
   timeHHMM,
   duration,
+  searchQuerySchema,
   limitResultsSchema,
 }

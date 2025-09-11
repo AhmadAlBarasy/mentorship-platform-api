@@ -6667,7 +6667,8 @@
           }
         }
       }
-    },"/dashboard/mentee/session-requests": {
+    },
+    "/dashboard/mentee/session-requests": {
       "get": {
         "summary": "Get latest pending session requests (mentee dashboard)",
         "tags": ["Dashboard"],
@@ -6739,6 +6740,93 @@
                     "status": { "type": "string", "example": "Fail" },
                     "message": { "type": "string", "example": "Forbidden: You are not authorized to do this action" }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/search": {
+      "get": {
+        "summary": "Search users and communities",
+        "tags": ["Dashboard"],
+        "description": "Search the platform for users or communities whose name or ID fully or partially matches the given query string.",
+        "operationId": "searchUsersAndCommunities",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 50,
+              "example": "ahmad"
+            },
+            "description": "Search string to match against user or community names or IDs"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results returned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "users": [
+                    {
+                      "id": "ahmadanas",
+                      "name": "Ahmad Anas",
+                      "headline": "Communications Manager",
+                      "imageUrl": "https://supabase.storage/avatars/ahmadanas.jpg"
+                    }
+                  ],
+                  "communities": [
+                    {
+                      "id": "iug",
+                      "name": "The Islamic University of Gaza",
+                      "verified": true,
+                      "imageUrl": "https://supabase.storage/communities/iug.jpg"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search input",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "\"query\" is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "Unauthorized, No token provided"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No matching users or communities found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "No results found"
                 }
               }
             }
