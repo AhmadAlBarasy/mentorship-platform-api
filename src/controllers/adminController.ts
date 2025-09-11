@@ -10,8 +10,12 @@ import { Role } from '@prisma/client';
 const { ADMIN } = Role;
 
 const getUserReports = errorHandler(async(req: Request, res: Response, next: NextFunction) =>{
+  const { limit } = req.query;
+
+  const take = (limit) ? Number(limit) : undefined;
 
   const pendingUserReports = await prisma.userReports.findMany({
+    take,
     where: {
       resolvedBy: null,
     },
@@ -21,6 +25,7 @@ const getUserReports = errorHandler(async(req: Request, res: Response, next: Nex
   });
 
   const resolvedUserReports = await prisma.userReports.findMany({
+    take,
     where: {
       resolvedBy: {
         not: null,
@@ -97,7 +102,12 @@ const resolveUserReport = errorHandler(async(req: Request, res: Response, next: 
 });
 
 const getBannedUsers = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { limit } = req.query;
+
+  const take = (limit) ? Number(limit) : undefined;
+
   const result = await prisma.bannedUsers.findMany({
+    take,
     include: {
       user: {
         select: {

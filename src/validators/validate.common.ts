@@ -13,10 +13,17 @@ const ymdDate = Joi.string()
 
 const duration = Joi.number().integer().min(10).max(360);
 
+const limitResultsSchema = (min: number, max: number) => Joi.object({
+  limit: Joi.number()
+    .min(min)
+    .max(max)
+    .optional(),
+});
+
 export {
   uuid,
   ymdDate,
   timeHHMM,
   duration,
-
+  limitResultsSchema,
 }

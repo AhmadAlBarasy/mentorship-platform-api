@@ -5,6 +5,7 @@ import { Role } from '@prisma/client';
 import { getBannedUsers, getUserReports, liftUserBan, resolveUserReport, getUserFullInformation, banUser } from '../../controllers/adminController';
 import requestValidator from '../../middlewares/requestValidator';
 import { banUserSchema, resolveUserReportSchema } from '../../validators/validate.admin';
+import { limitResultsSchema } from '../../validators/validate.common';
 
 const { ADMIN } = Role;
 
@@ -23,6 +24,7 @@ adminRouter.route('/user-reports')
   .get(
     authenticate({ access: 'full' }),
     authorizedRoles([ADMIN]),
+    requestValidator({ querySchema: limitResultsSchema(5, 20) }),
     getUserReports,
   )
   .all(notAllowedMethod);
@@ -53,6 +55,7 @@ adminRouter.route('/banned-users')
   .get(
     authenticate({ access: 'full' }),
     authorizedRoles([ADMIN]),
+    requestValidator({ querySchema: limitResultsSchema(5, 20) }),
     getBannedUsers,
   )
   .all(notAllowedMethod);
