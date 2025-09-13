@@ -92,9 +92,8 @@ async function createCalendarEvent(
     console.log('TOKEN EXPIRED');
     try {
       accessToken = await refreshAccessToken(refreshTokenRow.token);
-
     } catch (e){
-      throw new APIError(500, 'Failed to create an event on Google Calendar');
+      throw new APIError(500, 'Failed to create an event on Google Calendar. Please try reconnecting your calendar with the platform');
     }
 
     await prisma.appTokens.updateMany({
@@ -145,12 +144,62 @@ async function createCalendarEvent(
       },
     );
   } catch (e){
+    console.log(e)
     throw new APIError(500, 'Failed to create an event on Google Calendar');
   }
   return res.data; // Google returns the created event object
 }
 
+async function getMeetingLink(eventId: string, userId: string) {
+
+  const accessTokenRow = await prisma.appTokens.findFirst({
+    where: { userId, name: 'GoogleCalendar', type: 'ACCESS' },
+  });
+  const refreshTokenRow = await prisma.appTokens.findFirst({
+    where: { userId, name: 'GoogleCalendar', type: 'REFRESH' },
+  });
+
+  let accessToken = accessTokenRow?.token;
+
+  // Refresh if expired or missing
+  if (!accessTokenRow || (accessTokenRow.expiresIn && new Date() > accessTokenRow.expiresIn)) {
+    try {
+      accessToken = await refreshAccessToken(refreshTokenRow!.token);
+    } catch (e){
+      throw new APIError(500, 'Failed to retrieve meeting link. Please try reconnecting your calendar with the platform');
+    }
+
+    await prisma.appTokens.updateMany({
+      where: { userId, name: 'GoogleCalendar', type: 'ACCESS' },
+      data: {
+        token: accessToken,
+        expiresIn: new Date(Date.now() + 3600 * 1000),
+      },
+    });
+  }
+
+  const { data } = await axios.get(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      params: {
+        conferenceDataVersion: 1,
+      },
+    },
+  );
+
+  const meetLink = data.conferenceData?.entryPoints?.find(
+    (entry: any) => entry.entryPointType === 'video',
+  )?.uri;
+
+  return meetLink;
+
+}
+
 export {
   createCalendarEvent,
   cancelCalendarEvent,
+  getMeetingLink,
 }
