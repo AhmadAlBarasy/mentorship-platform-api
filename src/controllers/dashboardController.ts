@@ -155,7 +155,7 @@ const searchUsersAndCommunities = errorHandler(async(req: Request, res: Response
 const getTodayEvents = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { role, id, timezone: userTimezone } = req.user;
 
-  const UTCNow = DateTime.now().plus({ days: 5 });
+  const UTCNow = DateTime.now();
   const userTimeNow = UTCNow.setZone(userTimezone).startOf('day');
 
   const filters: any = {
