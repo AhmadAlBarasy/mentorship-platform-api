@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorizedRoles } from '../../middlewares/authMiddlewares';
-import { getDashboardMenteeSessionRequests, searchUsersAndCommunities } from '../../controllers/dashboardController';
+import { getDashboardMenteeSessionRequests, getTodayEvents, searchUsersAndCommunities } from '../../controllers/dashboardController';
 import { notAllowedMethod } from '../../middlewares/notAllowedHandler';
 import { Role } from '@prisma/client';
 import requestValidator from '../../middlewares/requestValidator';
@@ -8,7 +8,7 @@ import { searchQuerySchema } from '../../validators/validate.common';
 import rateLimit from 'express-rate-limit';
 
 const dashboardRouter = Router();
-const { MENTEE } = Role;
+const { MENTEE, MENTOR } = Role;
 
 dashboardRouter.route('/search')
   .get(
@@ -29,4 +29,13 @@ dashboardRouter.route('/mentee/session-requests')
     getDashboardMenteeSessionRequests,
   )
   .all(notAllowedMethod);
+
+dashboardRouter.route('/today-events')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([MENTEE, MENTOR]),
+    getTodayEvents,
+  )
+  .all(notAllowedMethod);
+
 export default dashboardRouter;

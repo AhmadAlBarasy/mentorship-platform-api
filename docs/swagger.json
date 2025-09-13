@@ -6833,6 +6833,78 @@
           }
         }
       }
+    },
+    "/dashboard/today-events": {
+      "get": {
+        "summary": "Get today's scheduled session events",
+        "tags": ["Dashboard"],
+        "description": "Returns the list of accepted session events scheduled for today for the authenticated user (mentor or mentee). The date is adjusted to the user's timezone and includes Google Meet links if available.",
+        "operationId": "getTodayEvents",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of today's events retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Success",
+                  "events": [
+                    {
+                      "startTime": "10:00",
+                      "duration": 30,
+                      "meetTitle": "Ahmad Anas and Feras Jamal - CV Review",
+                      "meetLink": "https://meet.google.com/xyz-abcd-pqr"
+                    },
+                    {
+                      "startTime": "17:15",
+                      "duration": 60,
+                      "meetTitle": "Feras Jamal and Rania Sami - Mock Interview",
+                      "meetLink": "https://meet.google.com/uvw-defg-hij"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "Unauthorized, No token provided"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not a mentor or mentee",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "Forbidden access to today's events"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve Google Meet link",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "Fail",
+                  "message": "Failed to retrieve meeting link. Please try reconnecting your calendar with the platform"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -7,6 +7,13 @@ import errorHandler from '../utils/asyncErrorHandler';
 import { ymdDateString } from '../utils/availability/helpers';
 import supabase from '../services/supabaseClient';
 import APIError from '../classes/APIError';
+import { DateTime } from 'luxon';
+import { Role, SessionStatus } from '@prisma/client';
+import { createTimeSlotInstances } from '../utils/availability/availabilityUtils';
+import { getMeetingLink } from '../services/sessionRequestService';
+
+const { MENTEE } = Role;
+const { ACCEPTED } = SessionStatus;
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -145,7 +152,84 @@ const searchUsersAndCommunities = errorHandler(async(req: Request, res: Response
 
 });
 
+const getTodayEvents = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { role, id, timezone: userTimezone } = req.user;
+
+  const UTCNow = DateTime.now();
+  const userTimeNow = UTCNow.setZone(userTimezone).startOf('day');
+
+  const filters: any = {
+    date: {
+      in: [
+        UTCNow.startOf('day').toJSDate(),
+        UTCNow.startOf('day').minus({ day: 1 }).toJSDate(),
+        UTCNow.startOf('day').plus({ day: 1 }).toJSDate(),
+      ],
+    },
+    status: ACCEPTED,
+  };
+
+  if (role === MENTEE){
+    filters.menteeId = id;
+  } else {
+    filters.mentorId = id;
+  }
+
+  const eventRecords = await prisma.sessionRequests.findMany({
+    where: filters,
+    include: {
+      service: {
+        include: {
+          mentor: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      mentee: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  const eventsInstances = createTimeSlotInstances(eventRecords);
+
+  for (const event of eventsInstances){
+    event.shiftToTimezone('Etc/UTC', userTimezone);
+  }
+
+  const todayEventsInstances = eventsInstances.filter((event) => {
+    return event.formatDate() === userTimeNow.toISODate();
+  });
+
+  const events = [];
+
+  for (const event of todayEventsInstances) {
+
+    const eventRecord = eventRecords.find((record) => record.id === event.id);
+
+    const meetLink = await getMeetingLink(eventRecord!.eventId!, eventRecord!.mentorId);
+
+    events.push({
+      startTime: event.startTime.toString(),
+      duration: event.duration,
+      meetTitle: `${eventRecord?.service.mentor.name} and ${eventRecord?.mentee.name} - ${eventRecord?.service.type}`,
+      meetLink,
+    });
+  };
+
+  res.status(200).json({
+    status: SUCCESS,
+    events,
+  });
+
+});
+
 export {
   getDashboardMenteeSessionRequests,
   searchUsersAndCommunities,
+  getTodayEvents,
 };
