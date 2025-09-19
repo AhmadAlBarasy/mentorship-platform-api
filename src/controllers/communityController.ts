@@ -220,7 +220,7 @@ const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Req
 
   const take = (limit) ? Number(limit) : undefined;
 
-  const joinRequests = await prisma.communityJoinRequests.findMany({
+  const result = await prisma.communityJoinRequests.findMany({
     where: {
       communityId: community.id,
     },
@@ -230,9 +230,26 @@ const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Req
         select: {
           name: true,
           headline: true,
+          imageUrl: true,
         },
       },
     },
+  });
+
+  const joinRequests = result.map((joinRequest) => {
+    return {
+      id: joinRequest.id,
+      userId: joinRequest.userId,
+      communityId: joinRequest.communityId,
+      createdAt: joinRequest.createdAt,
+      user: {
+        name: joinRequest.user.name,
+        headline: joinRequest.user.headline,
+        imageUrl: joinRequest.user.imageUrl ?
+          supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(joinRequest.user.imageUrl).data.publicUrl :
+          null,
+      },
+    }
   });
 
   res.status(200).json({
@@ -414,14 +431,78 @@ const removeCommunityMember = errorHandler(async(req: Request, res: Response, ne
 
 });
 
-const getCommunityServices = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
-  const { communityId } = req.params;
+const getCommunityServicesForManager = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id: managerId } = req.user;
+
+  const community = await prisma.communities.findFirst({
+    where: {
+      managerId,
+    },
+  });
+
+  if (!community){
+    return next(new APIError(404, 'You don\'t have a community'));
+  }
+
+  const { id: communityId } = community;
+
 
   const services: Record<string, any[]> = {};
 
   const result = await prisma.participations.findMany({
     where: {
       communityId,
+      user: {
+        role: MENTOR,
+      },
+    },
+    include: {
+      user: {
+        include: {
+          services: {
+            where: {
+              deletedAt: null,
+            },
+            select: {
+              type: true,
+              id: true,
+              mentorId: true,
+              sessionTime: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  for (const participation of result){
+    for (const service of participation.user.services){
+      if (!services[participation.userId]){
+        services[participation.userId] = [];
+      }
+      services[participation.userId].push({
+        id: service.id,
+        type: service.type,
+        sessionTime: service.sessionTime,
+        mentorId: service.mentorId,
+      });
+    }
+  }
+
+  res.status(200).json({
+    status: SUCCESS,
+    services,
+  });
+});
+
+const getCommunityServices = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+
+  const services: Record<string, any[]> = {};
+
+  const result = await prisma.participations.findMany({
+    where: {
+      communityId: id,
       user: {
         role: MENTOR,
       },
@@ -481,4 +562,5 @@ export {
   removeCommunityMember,
   getAuthenticatedManagerCommunityMembers,
   getCommunityServices,
+  getCommunityServicesForManager,
 };
