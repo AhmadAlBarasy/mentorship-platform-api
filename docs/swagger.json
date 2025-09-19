@@ -4317,6 +4317,152 @@
         }
       }
     },
+    "/communities/my/services": {
+      "get": {
+        "summary": "Get available services in manager's community",
+        "tags": ["Communities"],
+        "description": "Returns the list of non-deleted services offered by mentors who are members of the community managed by the authenticated community manager.",
+        "operationId": "getCommunityServicesForManager",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Services grouped by mentorId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "services": {
+                      "type": "object",
+                      "description": "Keyed by mentorId, each containing an array of their available services",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "cv_review"
+                            },
+                            "type": {
+                              "type": "string",
+                              "description": "Type of the service",
+                              "example": "CV Review"
+                            },
+                            "sessionTime": {
+                              "type": "integer",
+                              "description": "Duration of the session in minutes",
+                              "example": 15
+                            },
+                            "mentorId": {
+                              "type": "string",
+                              "description": "ID of the mentor offering the service",
+                              "example": "abd2"
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "abd2": [
+                          {
+                            "id": "cv_review",
+                            "type": "CV Review",
+                            "sessionTime": 15,
+                            "mentorId": "abd2"
+                          },
+                          {
+                            "id": "mock_interview",
+                            "type": "Mock Interview",
+                            "sessionTime": 30,
+                            "mentorId": "abd2"
+                          }
+                        ],
+                        "salma": [
+                          {
+                            "id": "linkedin_help",
+                            "type": "LinkedIn Optimization",
+                            "sessionTime": 20,
+                            "mentorId": "salma"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Unauthorized, No token provided"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User is not allowed to access community services",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Only community managers can access this resource"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Community not found for the current manager",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "Fail"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "You don't have a community"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/services": {
       "post": {
         "summary": "Create a new service (Mentor only)",

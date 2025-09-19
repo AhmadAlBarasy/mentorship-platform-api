@@ -19,6 +19,7 @@ import {
   leaveCommunity,
   removeCommunityMember,
   getAuthenticatedManagerCommunityMembers,
+  getCommunityServicesForManager,
 } from '../../controllers/communityController';
 import upload from '../../utils/fileUpload';
 import { userIdSchema } from '../../validators/validate.user';
@@ -84,6 +85,14 @@ authenticatedUserCommunityRouter.route('/members')
     authorizedRoles([COMMUNITY_MANAGER]),
     requestValidator({ bodySchema: userIdSchema }),
     removeCommunityMember,
+  )
+  .all(notAllowedMethod);
+
+authenticatedUserCommunityRouter.route('/services')
+  .get(
+    authenticate({ access: 'full' }),
+    authorizedRoles([COMMUNITY_MANAGER]),
+    getCommunityServicesForManager,
   )
   .all(notAllowedMethod);
 
