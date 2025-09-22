@@ -285,7 +285,7 @@ export const connectToCalendarAPI = errorHandler(async(req: Request, res: Respon
   const code = req.query.code as string;
 
   if (!code) {
-    return next(new APIError(400, 'Missing authorization code'));
+    return res.redirect(`${FRONTEND_URL}/my/settings/connections`);
   }
 
   const { data } = await axios.post('https://oauth2.googleapis.com/token', null, {
@@ -359,7 +359,7 @@ export const connectToCalendarAPI = errorHandler(async(req: Request, res: Respon
     });
   }
 
-  res.redirect(`${FRONTEND_URL}/my/settings`);
+  res.redirect(`${FRONTEND_URL}/my/settings/connections`);
 });
 
 export const getAppConnectionsState = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
