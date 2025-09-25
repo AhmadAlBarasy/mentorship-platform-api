@@ -27,7 +27,7 @@ const exceptionsAvailabilitySchema = Joi.object()
 
 const createServiceSchema = Joi.object({
   id: Joi.string()
-    .pattern(/^[a-zA-Z0-9_]+$/)
+    .pattern(/^[a-zA-Z0-9-]+$/)
     .min(3)
     .max(32)
     .required(),
