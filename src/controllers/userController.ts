@@ -70,6 +70,7 @@ const reportUser = errorHandler(async(req: Request, res: Response, next: NextFun
     includeAuth: false,
     includeUserLinks: false,
     includePassword: false,
+    includeBan: true,
   });
 
 
@@ -84,6 +85,10 @@ const reportUser = errorHandler(async(req: Request, res: Response, next: NextFun
 
   if (await checkExistingUserReport(reporterId, reportedUserId)) {
     return next(new APIError(409, 'You have already reported this user'));
+  }
+
+  if (reportedUser.bannedUsers){
+    return next(new APIError(400, 'This user is already banned'));
   }
 
   await createUserReport({ userId: reporterId, reportedUserId, violation, additionalDetails });
