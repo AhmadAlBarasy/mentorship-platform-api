@@ -18,6 +18,8 @@ const getUser = errorHandler(async(req: Request, res: Response, next: NextFuncti
     searchBy: { id },
     includeUserLinks: true,
     includePassword: false,
+    includeServices: true,
+    currentUserId: req.user.id,
   });
 
   if (!user){

@@ -19,6 +19,8 @@ const getUserService = async(options: {
   includeUserLinks?: boolean,
   includePassword?: boolean,
   includeBan?: boolean,
+  includeServices?: boolean,
+  currentUserId?: string,
 }) => {
   const {
     searchBy,
@@ -26,6 +28,8 @@ const getUserService = async(options: {
     includeUserLinks,
     includePassword,
     includeBan,
+    includeServices,
+    currentUserId,
   } = options;
 
   const filters = [];
@@ -39,6 +43,21 @@ const getUserService = async(options: {
     filters.push({ authCredentials: { resetToken: searchBy.resetToken } });
   }
 
+  let allowedToAccessServices = false;
+
+  if (includeServices && currentUserId && searchBy.id){
+
+    const result: any[] = await prisma.$queryRaw`SELECT 1
+      FROM participations p1
+      JOIN participations p2
+      ON p1.community_id = p2.community_id
+      WHERE p1.user_id = ${searchBy.id} AND p2.user_id = ${currentUserId}`;
+
+    if (result.length !== 0){
+      allowedToAccessServices = true;
+    }
+  }
+
   const user = await prisma.users.findFirst({
     where: {
       OR: filters,
@@ -47,7 +66,7 @@ const getUserService = async(options: {
       authCredentials: includeAuth,
       links: includeUserLinks,
       bannedUsers: includeBan,
-      services: {
+      services: (includeServices && allowedToAccessServices) ? {
         where: {
           deletedAt: null,
         },
@@ -57,7 +76,7 @@ const getUserService = async(options: {
           description: true,
           sessionTime: true,
         },
-      },
+      } : false,
     },
     omit: {
       password: !includePassword, // don't omit the password if true
