@@ -250,7 +250,7 @@ async function getAvailableSlotsForDate(
   }
 
   // Slice remaining availability windows into slots
-  const step = 5;
+  const step = service.sessionTime;
   const duration = service.sessionTime;
   const slotsByDate: Record<string, string[]> = {};
 
