@@ -11,6 +11,8 @@ import cors from 'cors';
 
 const app = express();
 
+const NODE_ENV: string = process.env.NODE_ENV || 'production';
+
 app.use(httpLog); // to log HTTP requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,18 +20,20 @@ app.use(cookieParser());
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
-})); // temporarily, CORS will be disabled during development
+}));
 
 /* security middlewares */
 app.use(helmet());
 app.use(rateLimit({
   windowMs: 60 * 1000,
-  limit: 50,
+  limit: 250,
 }));
 
 app.use('/api/v1', v1Router);
 
-setupSwagger(app);
+if (NODE_ENV === 'development'){
+  setupSwagger(app);
+}
 
 app.all('*', notFoundEndpoint); // handle requests to endpoints that are not implemented
 
