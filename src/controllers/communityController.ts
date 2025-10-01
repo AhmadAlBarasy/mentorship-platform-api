@@ -231,6 +231,7 @@ const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Req
           name: true,
           headline: true,
           imageUrl: true,
+          role: true,
         },
       },
     },
@@ -245,6 +246,7 @@ const getAuthenticatedManagerCommunityJoinRequests = errorHandler(async(req: Req
       user: {
         name: joinRequest.user.name,
         headline: joinRequest.user.headline,
+        role: joinRequest.user.role,
         imageUrl: joinRequest.user.imageUrl ?
           supabase.storage.from(SUPABASE_BUCKET_NAME).getPublicUrl(joinRequest.user.imageUrl).data.publicUrl :
           null,
