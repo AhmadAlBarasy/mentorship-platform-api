@@ -3,10 +3,11 @@
     "version": "1.0.0",
     "main": "server.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && npm install",
         "dev": "nodemon ./src/server.ts",
         "typescript": "tsc --init",
         "migrate:dev": "prisma migrate dev",
+        "start": "node ./dist/server.js",
         "db:push": "prisma db push",
         "lint": "eslint **/*.{js,mjs,cjs,ts}",
         "lint:fix": "eslint  **/*.{js,mjs,cjs,ts} --fix"
