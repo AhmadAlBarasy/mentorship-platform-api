@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "main": "server.ts",
     "scripts": {
-        "build": "npm install && tsc",
+        "build": "tsc",
+        "postinstall": "prisma generate",
         "dev": "nodemon ./src/server.ts",
         "typescript": "tsc --init",
         "migrate:dev": "prisma migrate dev",
