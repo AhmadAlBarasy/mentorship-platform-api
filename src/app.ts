@@ -18,8 +18,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://malik-272.github.io',
-  credentials: true,
+  origin: (origin, callback) => {
+    callback(null, true); // allow all origins
+  },
+  credentials: true, // only if you send cookies/authorization headers
 }));
 
 /* security middlewares */
