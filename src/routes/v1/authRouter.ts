@@ -12,7 +12,6 @@ import {
   connectToCalendarAPI,
   getAppConnectionsState,
   disconnectApp,
-  // googleAuth
 } from '../../controllers/authController';
 import requestValidator from '../../middlewares/requestValidator';
 import {
@@ -24,7 +23,6 @@ import {
   updatePasswordSchema,
   update2faSchema,
   disconnectAppSchema,
-  // googleAuthSchema,
 } from '../../validators/validate.auth';
 import { rateLimiter } from '../../utils/rateLimiter';
 import { authenticate } from '../../middlewares/authMiddlewares';

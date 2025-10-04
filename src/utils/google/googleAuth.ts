@@ -1,11 +1,7 @@
-// import { OAuth2Client } from 'google-auth-library';
 import axios from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: './config/.env' });
-
-
-// const client = new OAuth2Client();
 
 const getGoogleUserData = async(idToken: string) => {
   const path = `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`;
