@@ -59,7 +59,8 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
   res.cookie('token', token, {
     path: '/',
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
+    secure: false,
+    // process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
     sameSite: 'none',
     maxAge: emailVerified ? cookieExpiry * 24 : cookieExpiry, // expires after 1 day if the user is verified. Otherwise, after 1 hour
 
@@ -75,7 +76,8 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
 export const logout = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   res.clearCookie('token', {
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
+    // process.env.NODE_ENV === 'production',
     sameSite: 'none',
     path: '/',
   });
@@ -153,7 +155,8 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
   res.cookie('token', token, {
     path: '/',
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
+    secure: false,
+    // process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
     sameSite: 'none',
     maxAge: 60 * 60 * 1000, // 1h
 
@@ -196,7 +199,8 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
   res.cookie('token', token, {
     path: '/',
     httpOnly: false,
-    secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
+    secure: false,
+    // process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
     sameSite: 'none',
     maxAge: 24 * 60 * 60 * 1000, // 1d
 
