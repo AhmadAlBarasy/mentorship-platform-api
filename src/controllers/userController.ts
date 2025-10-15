@@ -8,7 +8,7 @@ import path from 'path';
 import mime from 'mime-types';
 import { checkExistingUserReport, createUserReport, getUserService } from '../services/userService';
 import { Role } from '@prisma/client';
-import { getSupabasePathFromURL } from '../utils/supabaseUtils';
+import { constructSupabasePath, getSupabasePathFromURL } from '../utils/supabaseUtils';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -109,20 +109,18 @@ const updateAuthenticatedUserImage = errorHandler(async(req: Request, res: Respo
     return next(new APIError(400, 'No image provided'));
   }
 
-  const UPLOAD_TESTER = process.env.UPLOAD_TESTER;
-
-  // Create the path for Supabase
-  const TESTER = UPLOAD_TESTER ? `${UPLOAD_TESTER}/` : ''; // if UPLOAD_TESTER exists, add its value as a base path
   const fileBuffer = req.file.buffer;
   const fileExt = path.extname(req.file.originalname);
-  const fileName = `${user.id}${fileExt}`;
-  const supabasePath = `${TESTER}avatars/${fileName}`;
+  const supabasePath = constructSupabasePath(req.file, id, 'avatars');
   const contentType = mime.lookup(fileExt) || 'application/octet-stream';
 
   // Delete previous avatar if it exists
   if (user.imageUrl){
     const deletionPath = getSupabasePathFromURL(imageUrl, SUPABASE_BUCKET_NAME);
-    await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([deletionPath]);
+    const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([deletionPath]);
+    if (error){
+      return next(new APIError(500, 'Failed to update image'));
+    }
   }
   // Upload new avatar
   const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).upload(

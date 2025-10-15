@@ -12,7 +12,7 @@ import { getCommunityByFieldService,
   structureMembers,
   getUserCommunityMembershipStatusService,
 } from '../services/communityService';
-import { getSupabasePathFromURL } from '../utils/supabaseUtils';
+import { constructSupabasePath, getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
 import { Role } from '@prisma/client';
 
@@ -88,20 +88,18 @@ const updateAuthenticatedUserCommunityImage = errorHandler(async(req: Request, r
 
   const { imageUrl, id } = community;
 
-  const UPLOAD_TESTER = process.env.UPLOAD_TESTER;
-
-  // Create the path for Supabase
-  const TESTER = UPLOAD_TESTER ? `${UPLOAD_TESTER}/` : ''; // if UPLOAD_TESTER exists, add its value as a base path
   const fileBuffer = req.file.buffer;
   const fileExt = path.extname(req.file.originalname);
-  const fileName = `${id}${fileExt}`;
-  const supabasePath = `${TESTER}communities/${fileName}`;
+  const supabasePath = constructSupabasePath(req.file, id, 'communities');
   const contentType = mime.lookup(fileExt) || 'application/octet-stream';
 
   // Delete previous image if it exists
   if (imageUrl){
     const deletionPath = getSupabasePathFromURL(imageUrl, SUPABASE_BUCKET_NAME);
-    await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([deletionPath]);
+    const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).remove([deletionPath]);
+    if (error){
+      return next(new APIError(500, 'Failed to update image'));
+    }
   }
   // Upload new image
   const { error } = await supabase.storage.from(SUPABASE_BUCKET_NAME).upload(
