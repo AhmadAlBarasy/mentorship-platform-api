@@ -68,7 +68,7 @@ const authenticate = (options: AuthenticationOptions) =>
         res.clearCookie('token', {
           httpOnly: false,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'none',
+          sameSite: 'lax',
           path: '/',
         });
         return next(new APIError(403, `You've been banned from accessing the platform. Reason: ${user.bannedUsers.banReason}`));
