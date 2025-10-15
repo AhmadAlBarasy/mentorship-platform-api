@@ -195,6 +195,18 @@ const getUserCommunityMembershipStatusService = async(user: Users, community: Co
   return status;
 };
 
+const checkIfMutalCommunityExists = async(mentorId: string, menteeId: string): Promise<boolean> => {
+
+  const result: any[] = await prisma.$queryRaw`SELECT 1
+  FROM participations p1
+  JOIN participations p2
+    ON p1.community_id = p2.community_id
+  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+
+  return result.length !== 0;
+
+};
+
 export {
   getCommunityByFieldService,
   getCommunityMembersService,
@@ -203,4 +215,5 @@ export {
   structureMembers,
   getUserJoinRequestsService,
   getUserCommunityMembershipStatusService,
+  checkIfMutalCommunityExists,
 };

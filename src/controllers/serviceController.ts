@@ -20,6 +20,7 @@ import { AvailabilityException } from '../classes/services/AvailabilityException
 import { DateTime } from 'luxon';
 import { TimeSlot } from '../classes/services/TimeSlot';
 import { SessionStatus } from '@prisma/client';
+import { checkIfMutalCommunityExists } from '../services/communityService';
 
 
 const { PENDING, ACCEPTED } = SessionStatus;
@@ -315,14 +316,10 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
   const daysHorizon = 30;
 
   // 1. check if both mentee and mentor are members of a common community
-  const result: any[] = await prisma.$queryRaw`SELECT 1
-  FROM participations p1
-  JOIN participations p2
-    ON p1.community_id = p2.community_id
-  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+  const mutalCommunityExists = await checkIfMutalCommunityExists(mentorId, menteeId);
 
   // if the result is an empty array, there are no common community between the mentee and the mentor
-  if (result.length === 0){
+  if (!mutalCommunityExists){
     return next(new APIError(403, 'You are not allowed to perform this action'));
   }
 
@@ -421,14 +418,10 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
   const { startTime, date, agenda } = req.body;
 
   // check if both mentee and mentor are members of a common community
-  const result: any[] = await prisma.$queryRaw`SELECT 1
-  FROM participations p1
-  JOIN participations p2
-    ON p1.community_id = p2.community_id
-  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+  const mutalCommunityExists = await checkIfMutalCommunityExists(mentorId, menteeId);
 
   // if the result is an empty array, there are no common community between the mentee and the mentor
-  if (result.length === 0){
+  if (!mutalCommunityExists){
     return next(new APIError(403, 'You are not allowed to perform this action'));
   }
 

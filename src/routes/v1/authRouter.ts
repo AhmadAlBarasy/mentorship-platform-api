@@ -109,13 +109,6 @@ authRouter.route('/app-connections')
   )
   .all(notAllowedMethod);
 
-// authRouter.route("/google-auth")
-//   .post(
-//     // requestValidator({ bodySchema: googleAuthSchema }),
-//     googleAuth,
-//   )
-//   .all(notAllowedMethod);
-
 authRouter.route('*').all(notFoundEndpoint);
 
 export default authRouter;
