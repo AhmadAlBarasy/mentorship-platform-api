@@ -13,20 +13,26 @@ const app = express();
 
 const NODE_ENV: string = process.env.NODE_ENV || 'production';
 
-app.use(httpLog); // to log HTTP requests
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(cors({
-  origin: (origin, callback) => {
-    callback(null, true); // allow all origins
+const corsOptions = {
+  origin: (origin: any, callback: any) => {
+    if (origin === process.env.FRONTEND_URL) {
+      callback(null, true);
+    } else {
+      callback(new Error('Blocked by CORS policy'));
+    }
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-}));
+}
 
-app.options('*', cors());
+app.use(httpLog); // to log HTTP requests
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(cors(corsOptions));
+
+app.options('*', cors(corsOptions));
 
 /* security middlewares */
 app.use(helmet());
