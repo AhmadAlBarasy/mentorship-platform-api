@@ -59,7 +59,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     path: '/',
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: emailVerified ? cookieExpiry * 24 : cookieExpiry, // expires after 1 day if the user is verified. Otherwise, after 1 hour
 
   });
@@ -75,7 +75,7 @@ export const logout = errorHandler(async(req: Request, res: Response, next: Next
   res.clearCookie('token', {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
   });
 
@@ -153,7 +153,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     path: '/',
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 60 * 60 * 1000, // 1h
 
   });
@@ -197,7 +197,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
     path: '/',
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 1d
 
   });
