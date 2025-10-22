@@ -95,7 +95,7 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
 
 const getServiceById = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
 
   const service = await prisma.services.findFirst({
     where: {

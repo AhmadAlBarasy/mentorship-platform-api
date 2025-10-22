@@ -98,4 +98,15 @@ export class AvailabilityException extends Availability {
     this.startTime = new Time(shifted.hour, shifted.minute);
   }
 
+  /*  This method checks if the availability overflows to the next day
+      given that the maximum allowed duration for an availability is 6 hours
+      this guarntees that if the availability overflows to the next day
+      it would never reach the point where the end time goes after the start time
+      Edge case example: startTime: 23:59, duration: 360 -> endTime: 5:59
+  */
+  overflowsToNextDay(): boolean {
+    const endTime = this.getEndTime(false);
+    return endTime.isBefore(this.startTime);
+  }
+
 };

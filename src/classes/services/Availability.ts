@@ -18,9 +18,6 @@ export abstract class Availability {
 
   abstract shiftToTimezone(currentTimezone: string, targetTimezone: string): void;
 
-  // abstract equalTo(availability: Availability): boolean;
-
-
   timeInMinutes(): number {
     return this.duration;
   }
