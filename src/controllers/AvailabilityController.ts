@@ -70,6 +70,10 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     validDays.indexOf(dayOfWeek),
   );
 
+  if (dayAvailabilityInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
+
   const possiblyConflictingAvailabilities = await prisma.dayAvailabilities.findMany({
     where: {
       mentorId,
@@ -161,6 +165,10 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
   }
   if (startTime){
     dayAvailabilityInstance.startTime = Time.fromString(startTime);
+  }
+
+  if (dayAvailabilityInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
   }
 
   const possiblyConflictingAvailabilities = await prisma.dayAvailabilities.findMany({
@@ -286,6 +294,10 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
     availabilityExceptionInstance.duration = duration;
   }
 
+  if (availabilityExceptionInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
+
   const possiblyConflictingAvailabilities = await prisma.availabilityExceptions.findMany({
     where: {
       mentorId,
@@ -357,6 +369,10 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
     duration,
     new Date(date),
   );
+
+  if (availabilityExceptionInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
 
   const possiblyConflictingAvailabilities = await prisma.availabilityExceptions.findMany({
     where: {

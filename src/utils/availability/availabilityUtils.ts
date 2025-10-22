@@ -36,6 +36,10 @@ function createAvailabilityObjects(dayOrDate: string, availabilities: any[], ses
       );
     }
 
+    if (newAvailability.overflowsToNextDay()){
+      throw new APIError(400, 'The start time must be less than end time for all specified availabilities');
+    }
+
     // check if the session time is greater than the new availability time window
     if (sessionTime > newAvailability.timeInMinutes()){
       throw new APIError(
