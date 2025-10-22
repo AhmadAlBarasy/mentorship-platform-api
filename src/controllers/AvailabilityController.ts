@@ -45,7 +45,7 @@ const deleteDayAvailability = errorHandler(async(req: Request, res: Response, ne
 
 const addDayAvailability = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id: serviceId } = req.params;
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
   const { startTime, duration, dayOfWeek } = req.body;
 
   const service = await prisma.services.findFirst({
@@ -70,17 +70,16 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     validDays.indexOf(dayOfWeek),
   );
 
-  dayAvailabilityInstance.shiftToTimezone(userTimeZone, 'Etc/UTC');
+  if (dayAvailabilityInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
 
   const possiblyConflictingAvailabilities = await prisma.dayAvailabilities.findMany({
     where: {
       mentorId,
       serviceId,
       dayOfWeek: {
-        in: [ // possibly conflicting ones are the ones in the same day or in adjacent days
-          dayAvailabilityInstance.dayOfWeek,
-          (dayAvailabilityInstance.dayOfWeek - 1 % 7),
-          (dayAvailabilityInstance.dayOfWeek + 1 % 7)],
+        in: [dayAvailabilityInstance.dayOfWeek],
       },
     },
   });
@@ -109,8 +108,6 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
     },
   });
 
-  dayAvailabilityInstance.shiftToTimezone('Etc/UTC', userTimeZone); // shift back to user timezone to return the newly created record
-
   res.status(201).json({
     status: SUCCESS,
     message: 'Day availability added successfully',
@@ -126,7 +123,7 @@ const addDayAvailability = errorHandler(async(req: Request, res: Response, next:
 
 const updateDayAvailability = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id: serviceId, avId: availabilityId } = req.params;
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
   const { startTime, duration } = req.body;
 
   const service = await prisma.services.findFirst({
@@ -160,8 +157,6 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
     dayAv.id,
   );
 
-  dayAvailabilityInstance.shiftToTimezone('Etc/UTC', userTimeZone);
-
   if (duration){
     if (duration < service.sessionTime){
       return next(new APIError(400, 'new duration value is less than the specified session time for the service'));
@@ -172,7 +167,9 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
     dayAvailabilityInstance.startTime = Time.fromString(startTime);
   }
 
-  dayAvailabilityInstance.shiftToTimezone(userTimeZone, 'Etc/UTC');
+  if (dayAvailabilityInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
 
   const possiblyConflictingAvailabilities = await prisma.dayAvailabilities.findMany({
     where: {
@@ -182,10 +179,7 @@ const updateDayAvailability = errorHandler(async(req: Request, res: Response, ne
       mentorId,
       serviceId,
       dayOfWeek: {
-        in: [ // possibly conflicting ones are the ones in the same day or in adjacent days
-          dayAvailabilityInstance.dayOfWeek,
-          (dayAvailabilityInstance.dayOfWeek - 1 % 7),
-          (dayAvailabilityInstance.dayOfWeek + 1 % 7)],
+        in: [dayAvailabilityInstance.dayOfWeek],
       },
     },
   });
@@ -256,7 +250,7 @@ const deleteAvailabilityException = errorHandler(async(req: Request, res: Respon
 
 const updateAvailabilityException = errorHandler(async(req: Request, res: Response, next: NextFunction)=>{
   const { id: serviceId, avId: availabilityId } = req.params;
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
   const { startTime, duration } = req.body;
 
   const service = await prisma.services.findFirst({
@@ -290,8 +284,6 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
     avilabilityEx.id,
   );
 
-  availabilityExceptionInstance.shiftToTimezone('Etc/UTC', userTimeZone);
-
   if (startTime){
     availabilityExceptionInstance.startTime = Time.fromString(startTime);
   }
@@ -302,14 +294,9 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
     availabilityExceptionInstance.duration = duration;
   }
 
-  availabilityExceptionInstance.shiftToTimezone(userTimeZone, 'Etc/UTC');
-
-  const prevDate = new Date(availabilityExceptionInstance.date);
-  prevDate.setUTCDate(prevDate.getUTCDate() - 1);
-
-  const nextDate = new Date(availabilityExceptionInstance.date);
-  nextDate.setUTCDate(nextDate.getUTCDate() + 1);
-
+  if (availabilityExceptionInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
 
   const possiblyConflictingAvailabilities = await prisma.availabilityExceptions.findMany({
     where: {
@@ -319,11 +306,7 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
         not: availabilityId,
       },
       date: {
-        in: [ // the ones that are would possibly conflict with the one to update is either in the same date or in an adjacent one
-          availabilityExceptionInstance.date,
-          prevDate,
-          nextDate,
-        ],
+        in: [availabilityExceptionInstance.date],
       },
     },
   });
@@ -362,7 +345,7 @@ const updateAvailabilityException = errorHandler(async(req: Request, res: Respon
 
 const addAvailabilityException = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id: serviceId } = req.params;
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
   const { startTime, duration, date } = req.body;
 
   const service = await prisma.services.findFirst({
@@ -387,24 +370,16 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
     new Date(date),
   );
 
-  availabilityExceptionInstance.shiftToTimezone(userTimeZone, 'Etc/UTC');
-
-  const prevDate = new Date(availabilityExceptionInstance.date);
-  prevDate.setUTCDate(prevDate.getUTCDate() - 1);
-
-  const nextDate = new Date(availabilityExceptionInstance.date);
-  nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+  if (availabilityExceptionInstance.overflowsToNextDay()){
+    return next(new APIError(400, 'Start time should be less than end time'));
+  }
 
   const possiblyConflictingAvailabilities = await prisma.availabilityExceptions.findMany({
     where: {
       mentorId,
       serviceId,
       date: {
-        in: [ // the ones that are would possibly conflict with the one to update is either in the same date or in an adjacent one
-          availabilityExceptionInstance.date,
-          prevDate,
-          nextDate,
-        ],
+        in: [availabilityExceptionInstance.date],
       },
     },
   });
@@ -432,8 +407,6 @@ const addAvailabilityException = errorHandler(async(req: Request, res: Response,
       date: new Date(ymdDateString(availabilityExceptionInstance.date)),
     },
   });
-
-  availabilityExceptionInstance.shiftToTimezone('Etc/UTC', userTimeZone); // shift back to user timezone to return the newly created record
 
   res.status(201).json({
     status: SUCCESS,

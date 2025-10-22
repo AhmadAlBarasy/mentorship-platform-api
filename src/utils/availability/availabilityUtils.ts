@@ -14,7 +14,7 @@ import { Availability } from '../../classes/services/Availability';
 
 const { PENDING, ACCEPTED } = SessionStatus;
 
-function createAvailabilityObjects(dayOrDate: string, availabilities: any[], sessionTime: number, userTimeZone: string) {
+function createAvailabilityObjects(dayOrDate: string, availabilities: any[], sessionTime: number) {
 
   const result: any[] = [];
 
@@ -28,14 +28,16 @@ function createAvailabilityObjects(dayOrDate: string, availabilities: any[], ses
         availability.duration,
         validDays.indexOf(dayOrDate),
       );
-      newAvailability.shiftToTimezone(userTimeZone, 'Etc/UTC'); // shift window time zone to UTC before proceeding
     } else {
       newAvailability = new AvailabilityException(
         Time.fromString(availability.startTime),
         availability.duration,
         new Date(dayOrDate),
       );
-      newAvailability.shiftToTimezone(userTimeZone, 'Etc/UTC'); // shift window time zone to UTC before proceeding
+    }
+
+    if (newAvailability.overflowsToNextDay()){
+      throw new APIError(400, 'The start time must be less than end time for all specified availabilities');
     }
 
     // check if the session time is greater than the new availability time window
@@ -61,76 +63,42 @@ function createAvailabilityObjects(dayOrDate: string, availabilities: any[], ses
   return result;
 };
 
-function prepareDayAvailabilitiesAndCheckForConflicts(
+function prepareDayAvailabilitiesForCreation(
   mentorId: string,
   serviceId: string,
-  availabilities: DayAvailability[][],
+  availabilities: DayAvailability[],
 ) {
-  const availabilityInstances: DayAvailability[] = []; // For conflict checking
   const dayAvailabilitiesToInsert: any[] = []; // For DB insertion
 
-  availabilities.forEach((oneDayAvailability) => {
-    oneDayAvailability.forEach((availability) => {
-      // Check against existing availability instances
-      availabilityInstances.forEach((av) => {
-        if (av.conflictsWith(availability)) {
-          throw new APIError(
-            400,
-            `Conflict between ${validDays[av.dayOfWeek]} and ${validDays[availability.dayOfWeek]}: [${availability.startTime.toString()} - ` +
-            `${availability.getEndTime().toString()}] overlaps with [${av.startTime.toString()} - ${av.getEndTime().toString()}]`,
-          );
-        }
-      });
-
-      // Keep the original object for future conflict checks
-      availabilityInstances.push(availability);
-
-      // Add the plain object for DB insert
-      dayAvailabilitiesToInsert.push({
-        mentorId,
-        serviceId,
-        startTime: timeOnly(availability.startTime.hour, availability.startTime.minute),
-        duration: availability.duration,
-        dayOfWeek: availability.dayOfWeek,
-      });
+  availabilities.forEach((availability) => {
+    // Add the plain object for DB insert
+    dayAvailabilitiesToInsert.push({
+      mentorId,
+      serviceId,
+      startTime: timeOnly(availability.startTime.hour, availability.startTime.minute),
+      duration: availability.duration,
+      dayOfWeek: availability.dayOfWeek,
     });
   });
 
   return dayAvailabilitiesToInsert;
 }
 
-function prepareDateAvailabilitiesAndCheckForConflicts(
+function prepareDateAvailabilitiesForCreation(
   mentorId: string,
   serviceId: string,
-  availabilities: AvailabilityException[][],
+  availabilities: AvailabilityException[],
 ) {
-  const availabilityInstances: AvailabilityException[] = []; // For conflict checking
   const dateAvailabilitiesToInsert: any[] = []; // For DB insertion
 
-  availabilities.forEach((oneDayAvailability) => {
-    oneDayAvailability.forEach((availability) => {
-      // Check against existing availability instances
-      availabilityInstances.forEach((av) => {
-        if (av.conflictsWith(availability)) {
-          throw new APIError(
-            400,
-            `Conflict between ${av.formatDate()} and ${availability.formatDate()}: [${availability.startTime.toString()} - ` +
-            `${availability.getEndTime().toString()}] overlaps with [${av.startTime.toString()} - ${av.getEndTime().toString()}]`,
-          );
-        }
-      });
-
-      // Keep the instance for future checks
-      availabilityInstances.push(availability);
-
-      // Push plain object for DB insert
-      dateAvailabilitiesToInsert.push({
-        mentorId,
-        serviceId,
-        startTime: timeOnly(availability.startTime.hour, availability.startTime.minute),
-        duration: availability.duration,
-        date: availability.date,
-      });
+  availabilities.forEach((availability) => {
+    // Push plain object for DB insert
+    dateAvailabilitiesToInsert.push({
+      mentorId,
+      serviceId,
+      startTime: timeOnly(availability.startTime.hour, availability.startTime.minute),
+      duration: availability.duration,
+      date: availability.date,
     });
   });
 
@@ -344,8 +312,8 @@ function createTimeSlotInstances(timeslots: any[]): TimeSlot[]{
 
 export {
   createAvailabilityObjects,
-  prepareDayAvailabilitiesAndCheckForConflicts,
-  prepareDateAvailabilitiesAndCheckForConflicts,
+  prepareDayAvailabilitiesForCreation,
+  prepareDateAvailabilitiesForCreation,
   createDayAvailabilityInstances,
   createAvailabilityExceptionInstances,
   getAvailableSlotsForDate,

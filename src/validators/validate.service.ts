@@ -9,7 +9,8 @@ const daysAvailabilitiesSchema = Joi.object()
       .valid(...validDays),
     Joi.array()
       .items(availabilitySchema)
-      .min(1),
+      .min(1)
+      .max(144), // the maximum amount of windows you can slice the day into if the session time is 10 minutes
   );
 
 const exceptionsAvailabilitySchema = Joi.object()
@@ -19,7 +20,8 @@ const exceptionsAvailabilitySchema = Joi.object()
       .custom(validateDateKeys),
     Joi.array()
       .items(availabilitySchema)
-      .min(1),
+      .min(1)
+      .max(144), // the maximum amount of windows you can slice the day into if the session time is 10 minutes
   )
   .messages({
     'string.pattern.base': '{{#value}} is not a valid date. Use YYYY-MM-DD format.',

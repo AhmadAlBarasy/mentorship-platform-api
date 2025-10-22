@@ -10,8 +10,8 @@ import {
   createDayAvailabilityInstances,
   createTimeSlotInstances,
   getAvailableSlotsForDate,
-  prepareDateAvailabilitiesAndCheckForConflicts,
-  prepareDayAvailabilitiesAndCheckForConflicts,
+  prepareDateAvailabilitiesForCreation,
+  prepareDayAvailabilitiesForCreation,
 } from '../utils/availability/availabilityUtils';
 import { getDayName, timeOnly, ymdDateString } from '../utils/availability/helpers';
 import { DayAvailability } from '../classes/services/DayAvailability';
@@ -31,7 +31,7 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
   const dayAvailabilities = [];
   const availabilityExceptions = [];
 
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
   const {
     id,
     type,
@@ -55,36 +55,36 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
 
   // 2. Check for conflicts in the day availabilities for each day (overlapping time windows)
   for (const day of Object.keys(days)){
-    const oneDayAvailability = createAvailabilityObjects(day, days[day], sessionTime, userTimeZone);
-    dayAvailabilities.push(oneDayAvailability);
+    const oneDayAvailability = createAvailabilityObjects(day, days[day], sessionTime);
+    dayAvailabilities.push(...oneDayAvailability);
   }
   // 3. Check for conflicts in the availability exceptions for each date (overlapping time windows)
   for (const date of Object.keys(exceptions)){
-    const oneDateAvailability = createAvailabilityObjects(date, exceptions[date], sessionTime, userTimeZone);
-    availabilityExceptions.push(oneDateAvailability);
+    const oneDateAvailability = createAvailabilityObjects(date, exceptions[date], sessionTime);
+    availabilityExceptions.push(...oneDateAvailability);
   }
 
-  // 5. create the service and structure the availabilites for insertion in the database
-  const dayAvailabilitiesToInsert = prepareDayAvailabilitiesAndCheckForConflicts(mentorId, id, dayAvailabilities);
-  const availabilityExceptionsToInsert = prepareDateAvailabilitiesAndCheckForConflicts(mentorId, id, availabilityExceptions);
+  const dayAvailabilitiesToInsert = prepareDayAvailabilitiesForCreation(mentorId, id, dayAvailabilities);
+  const availabilityExceptionsToInsert = prepareDateAvailabilitiesForCreation(mentorId, id, availabilityExceptions);
 
-  await prisma.services.create({
-    data: {
-      id,
-      type,
-      description,
-      mentorId,
-      sessionTime,
-    },
-  });
-
-  await prisma.dayAvailabilities.createMany({
-    data: dayAvailabilitiesToInsert,
-  });
-
-  await prisma.availabilityExceptions.createMany({
-    data: availabilityExceptionsToInsert,
-  });
+  // group all 3 operations into 1 transcation because they are tightly coupled
+  await prisma.$transaction([
+    prisma.services.create({
+      data: {
+        id,
+        type,
+        description,
+        mentorId,
+        sessionTime,
+      },
+    }),
+    prisma.dayAvailabilities.createMany({
+      data: dayAvailabilitiesToInsert,
+    }),
+    prisma.availabilityExceptions.createMany({
+      data: availabilityExceptionsToInsert,
+    }),
+  ]);
 
   res.status(201).json({
     status: SUCCESS,
@@ -95,7 +95,7 @@ const createService = errorHandler(async(req: Request, res: Response, next: Next
 
 const getServiceById = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
-  const { id: mentorId, timezone: userTimeZone } = req.user;
+  const { id: mentorId } = req.user;
 
   const service = await prisma.services.findFirst({
     where: {
@@ -126,8 +126,6 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
       avail.id,
     );
 
-    dayAvailability.shiftToTimezone('Etc/UTC', userTimeZone); // shift the window back to the user time zone
-
     const day = getDayName(dayAvailability.dayOfWeek); // 0 = Monday, 6 = Sunday
 
     if (!days[day]) {
@@ -153,8 +151,6 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
       new Date(dateKey),
       ex.id,
     );
-
-    availabilityException.shiftToTimezone('Etc/UTC', userTimeZone);
 
     dateKey = availabilityException.formatDate(); // update the dateKey value to insert avs into the right object
 
