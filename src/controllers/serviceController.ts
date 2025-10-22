@@ -126,8 +126,6 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
       avail.id,
     );
 
-    dayAvailability.shiftToTimezone('Etc/UTC', userTimeZone); // shift the window back to the user time zone
-
     const day = getDayName(dayAvailability.dayOfWeek); // 0 = Monday, 6 = Sunday
 
     if (!days[day]) {
@@ -153,8 +151,6 @@ const getServiceById = errorHandler(async(req: Request, res: Response, next: Nex
       new Date(dateKey),
       ex.id,
     );
-
-    availabilityException.shiftToTimezone('Etc/UTC', userTimeZone);
 
     dateKey = availabilityException.formatDate(); // update the dateKey value to insert avs into the right object
 
