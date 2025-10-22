@@ -18,7 +18,6 @@ import crypto from 'crypto';
 import sendEmail from '../utils/mail/mailSender';
 import axios from 'axios';
 import prisma from '../db';
-// import { getGoogleTokens, getGoogleUserData } from '../utils/google/googleAuth';
 
 const { ACCESS, REFRESH } = TokenType;
 
@@ -60,7 +59,7 @@ export const login = errorHandler(async(req: Request, res: Response, next: NextF
     path: '/',
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: emailVerified ? cookieExpiry * 24 : cookieExpiry, // expires after 1 day if the user is verified. Otherwise, after 1 hour
 
   });
@@ -76,7 +75,7 @@ export const logout = errorHandler(async(req: Request, res: Response, next: Next
   res.clearCookie('token', {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
   });
 
@@ -154,7 +153,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
     path: '/',
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 60 * 60 * 1000, // 1h
 
   });
@@ -162,6 +161,7 @@ export const signup = errorHandler(async(req: Request, res: Response, next: Next
   res.status(201).json({
     status: SUCCESS,
     message: `Registered successfully, a verfication link has been sent to ${email}`,
+    token: process.env.NODE_ENV === 'production' ? token : null,
   });
 });
 
@@ -197,7 +197,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
     path: '/',
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production', // restrict sending the cookie only thorugh HTTPS in prod
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 1d
 
   });
@@ -205,6 +205,7 @@ export const confirmEmail = errorHandler(async(req: Request, res: Response, next
   res.status(200).json({
     status: SUCCESS,
     message: `Email ${user.email} has been verified successfully`,
+    token: process.env.NODE_ENV === 'production' ? token : null,
   });
 });
 
@@ -293,7 +294,7 @@ export const connectToCalendarAPI = errorHandler(async(req: Request, res: Respon
       code,
       client_id: process.env.GOOGLE_CLIENT_ID,
       client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: 'http://localhost:3000/api/v1/auth/google-callback',
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
       grant_type: 'authorization_code',
     },
     headers: {
@@ -406,26 +407,3 @@ export const disconnectApp = errorHandler(async(req: Request, res: Response, nex
   res.status(204).json({});
 
 });
-
-// export const googleAuth = errorHandler(async (req: Request, res: Response, next: NextFunction)=> {
-//   const { token } = req.body;
-//   // get user's id_token and access_token
-//   const tokens = await getGoogleTokens(token);
-//   // get user's data using the id_token
-//   const userData = await getGoogleUserData(tokens.id_token);
-//   if (!userData){
-//     return next(new APIError(500, "Something went wrong, please try again later"));
-//   }
-//   const user = await getUser({ searchBy: {email: userData.email} });
-//   if (!user){
-//     await createUser({
-//       name: userData.name,
-
-//     });
-//   }
-//   res.status(200).json({
-//     status: SUCCESS,
-//     message: 'User data retrieved successfully',
-//     data: userData,
-//   });
-// });

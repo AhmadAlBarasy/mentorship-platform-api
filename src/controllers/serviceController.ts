@@ -20,6 +20,8 @@ import { AvailabilityException } from '../classes/services/AvailabilityException
 import { DateTime } from 'luxon';
 import { TimeSlot } from '../classes/services/TimeSlot';
 import { SessionStatus } from '@prisma/client';
+import { checkIfMutalCommunityExists } from '../services/communityService';
+import { Availability } from '../classes/services/Availability';
 
 
 const { PENDING, ACCEPTED } = SessionStatus;
@@ -310,28 +312,31 @@ const updateService = errorHandler(async(req: Request, res: Response, next: Next
 
 const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id: mentorId, serviceId } = req.params;
-  const { id: menteeId, timezone: userTimeZone } = req.user;
+  const { id: menteeId, timezone: menteeTimeZone } = req.user;
 
   const daysHorizon = 30;
 
-  // 1. check if both mentee and mentor are members of a common community
-  const result: any[] = await prisma.$queryRaw`SELECT 1
-  FROM participations p1
-  JOIN participations p2
-    ON p1.community_id = p2.community_id
-  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+  // check if both mentee and mentor are members of a common community
+  const mutalCommunityExists = await checkIfMutalCommunityExists(mentorId, menteeId);
 
   // if the result is an empty array, there are no common community between the mentee and the mentor
-  if (result.length === 0){
+  if (!mutalCommunityExists){
     return next(new APIError(403, 'You are not allowed to perform this action'));
   }
 
-  // 2. find the service
+  // find the service
   const service = await prisma.services.findFirst({
     where: {
       id: serviceId,
       mentorId,
       deletedAt: null,
+    },
+    include: {
+      mentor: {
+        select: {
+          timezone: true,
+        },
+      },
     },
   });
 
@@ -339,6 +344,7 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
     return next(new APIError(404, 'Service not found'));
   }
 
+  const mentorTimeZone = service.mentor.timezone;
 
   const today = DateTime.now();
   const oneMonthLater = today.plus({ days: 30 });
@@ -346,8 +352,7 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
   const todayDateNoTimePart = new Date(ymdDateString(today.toJSDate()));
   const oneMonthLaterDateNoTimePart = new Date(ymdDateString(oneMonthLater.toJSDate()));
 
-  // 3. Find the available slots for the upcoming 30 days, keeping in mind pending and accepted sessions for both the mentee
-  // and the mentor, and reserved slots on both parties calendars
+  // Find the available slots for the upcoming 30 days
   const availabilityExceptions = await prisma.availabilityExceptions.findMany({
     where: {
       serviceId,
@@ -359,10 +364,6 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
     },
   });
 
-  const exceptionDateSet = new Set(
-    availabilityExceptions.map((ex) => ymdDateString(ex.date)), // "YYYY-MM-DD"
-  );
-
   const dayAvailabilites = await prisma.dayAvailabilities.findMany({
     where: {
       serviceId,
@@ -370,21 +371,39 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
     },
   });
 
+  const availabilityExceptionInstances = createAvailabilityExceptionInstances(availabilityExceptions);
+  const dayAvailabilityInstances = createDayAvailabilityInstances(dayAvailabilites);
+
+  // shift the availabilities to the mentor's time zone to avoid the issue of an exception canceling out
+  // the weekly availabilities of a pervious or a next day due to shifting
+  for (const exception of availabilityExceptionInstances){
+    exception.shiftToTimezone('Etc/UTC', mentorTimeZone);
+  }
+
+  for (const availability of dayAvailabilityInstances){
+    availability.shiftToTimezone('Etc/UTC', mentorTimeZone);
+  }
+
+  // create a set of date strings for easy checking if a date has an exception
+  const exceptionDateSet = new Set(
+    availabilityExceptionInstances.map((ex) => ymdDateString(ex.date)), // "YYYY-MM-DD"
+  );
+
   const slotsForEachDate: Record<string, string[]> = {};
 
   for (let i = 0; i <= daysHorizon; i++) {
     const currentDate = (DateTime.fromJSDate(todayDateNoTimePart)).plus({ days: i });
     const currentDateString = ymdDateString(currentDate.toJSDate());
 
-    let relevantAvailabilities;
+    let relevantAvailabilities: Availability[];
 
     if (exceptionDateSet.has(currentDateString)) {
-      relevantAvailabilities = availabilityExceptions.filter(
+      relevantAvailabilities = availabilityExceptionInstances.filter(
         (ex) => ymdDateString(ex.date) === currentDateString,
       );
     } else {
       const weekday = (currentDate.weekday - 1) % 7; // Monday = 0
-      relevantAvailabilities = dayAvailabilites.filter(
+      relevantAvailabilities = dayAvailabilityInstances.filter(
         (a) => a.dayOfWeek === weekday,
       );
     }
@@ -393,7 +412,8 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
       menteeId,
       mentorId,
       service,
-      userTimeZone,
+      menteeTimeZone,
+      mentorTimeZone,
       currentDate,
       relevantAvailabilities,
     );
@@ -415,20 +435,16 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
 });
 
 const bookSlotFromService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
-  const { id: menteeId, timezone: userTimeZone } = req.user;
+  const { id: menteeId, timezone: menteeTimeZone } = req.user;
   const { id: mentorId, serviceId } = req.params;
   const { communityId } = req.query;
   const { startTime, date, agenda } = req.body;
 
   // check if both mentee and mentor are members of a common community
-  const result: any[] = await prisma.$queryRaw`SELECT 1
-  FROM participations p1
-  JOIN participations p2
-    ON p1.community_id = p2.community_id
-  WHERE p1.user_id = ${menteeId} AND p2.user_id = ${mentorId}`;
+  const mutalCommunityExists = await checkIfMutalCommunityExists(mentorId, menteeId);
 
   // if the result is an empty array, there are no common community between the mentee and the mentor
-  if (result.length === 0){
+  if (!mutalCommunityExists){
     return next(new APIError(403, 'You are not allowed to perform this action'));
   }
 
@@ -440,11 +456,20 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
       mentorId,
       deletedAt: null,
     },
+    include: {
+      mentor: {
+        select: {
+          timezone: true,
+        },
+      },
+    },
   });
 
   if (!service){
     return next(new APIError(404, 'Service not found'));
   }
+
+  const mentorTimeZone = service.mentor.timezone;
 
   const slot = new TimeSlot(
     Time.fromString(startTime),
@@ -452,10 +477,13 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
     bookDate,
   );
 
-  slot.shiftToTimezone(userTimeZone, 'Etc/UTC'); // shift the slot to UTC for comparison
+  slot.shiftToTimezone(menteeTimeZone, mentorTimeZone); // shift the slot to the mentor time zone for comparison
 
-  const bookDateTime = DateTime.fromJSDate(bookDate);
+
+  const bookDateTime = DateTime.fromJSDate(slot.date);
+
   const previousBookDateTime = bookDateTime.minus({ days: 1 });
+
   const dayOfWeek = ((bookDateTime.weekday - 1) % 7);
   const previousDay = (((bookDateTime.weekday - 1) + 6) % 7);
 
@@ -463,7 +491,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
     where: {
       date: {
         in: [
-          bookDateTime.toJSDate(),
+          slot.date,
           previousBookDateTime.toJSDate(),
         ],
       },
@@ -488,13 +516,19 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
 
   if (slotDateAvailabilities.length > 0){
     const availabilityExceptionInstances = createAvailabilityExceptionInstances(slotDateAvailabilities);
+
+    for (const exception of availabilityExceptionInstances){
+      // shift to the mentor's comparison so we that exception instances are shifted back to the date that the mentor specified
+      exception.shiftToTimezone('Etc/UTC', mentorTimeZone);
+    }
+
     const withinAvailableWindows = checkIfSlotLiesWithinAvailabilities(slot, availabilityExceptionInstances);
 
     if (!withinAvailableWindows){
       return next(new APIError(400, 'Invalid time slot: Slot doesn\'t lie within any of the available windows'));
     }
 
-    const currentDate = DateTime.fromJSDate(bookDate);
+    const currentDate = DateTime.fromJSDate(slot.date);
     const previousDate = currentDate.minus({ days: 1 });
     const nextDate = currentDate.plus({ days: 1 });
 
@@ -504,7 +538,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
         date: {
           in: [
             previousDate.toJSDate(),
-            currentDate.toJSDate(),
+            slot.date,
             nextDate.toJSDate(),
           ],
         },
@@ -515,10 +549,13 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
     const timeSlotInstances = createTimeSlotInstances(existingTimeSlots);
 
     for (const ts of timeSlotInstances){
+      ts.shiftToTimezone('Etc/UTC', mentorTimeZone);
       if (ts.conflictsWith(slot)){
         return next(new APIError(400, 'Unable to book a session: Slot conflicts with another slot'));
       }
     }
+
+    slot.shiftToTimezone(mentorTimeZone, 'Etc/UTC'); // shift back to UTC for storage
 
     await prisma.sessionRequests.create({
       data: {
@@ -526,7 +563,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
         menteeId,
         mentorId,
         status: PENDING,
-        date: currentDate.toJSDate(),
+        date: slot.date,
         agenda,
         communityId: communityId !== null ? communityId?.toString() : null,
         startTime: timeOnly(slot.startTime.hour, slot.startTime.minute),
@@ -536,13 +573,18 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
 
   } else if (slotDayAvailabilities.length > 0){
     const dayAvailabilityInstances = createDayAvailabilityInstances(slotDayAvailabilities);
+
+    for (const availability of dayAvailabilityInstances){
+      availability.shiftToTimezone('Etc/UTC', mentorTimeZone);
+    }
+
     const withinAvailableWindows = checkIfSlotLiesWithinAvailabilities(slot, dayAvailabilityInstances);
 
     if (!withinAvailableWindows){
       return next(new APIError(400, 'Invalid time slot: Slot doesn\'t lie within any of the available windows'));
     }
 
-    const currentDate = DateTime.fromJSDate(bookDate);
+    const currentDate = DateTime.fromJSDate(slot.date);
     const previousDate = currentDate.minus({ days: 1 });
     const nextDate = currentDate.plus({ days: 1 });
 
@@ -552,7 +594,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
         date: {
           in: [
             previousDate.toJSDate(),
-            currentDate.toJSDate(),
+            slot.date,
             nextDate.toJSDate(),
           ],
         },
@@ -563,10 +605,13 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
     const timeSlotInstances = createTimeSlotInstances(existingTimeSlots);
 
     for (const ts of timeSlotInstances){
+      ts.shiftToTimezone('Etc/UTC', mentorTimeZone);
       if (ts.conflictsWith(slot)){
         return next(new APIError(400, 'Unable to book a session: Slot conflicts with another slot'));
       }
     }
+
+    slot.shiftToTimezone(mentorTimeZone, 'Etc/UTC'); // shift back to UTC for storage
 
     await prisma.sessionRequests.create({
       data: {
@@ -574,7 +619,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
         menteeId,
         mentorId,
         status: PENDING,
-        date: currentDate.toJSDate(),
+        date: slot.date,
         agenda,
         communityId: communityId !== null ? communityId?.toString() : null,
         startTime: timeOnly(slot.startTime.hour, slot.startTime.minute),

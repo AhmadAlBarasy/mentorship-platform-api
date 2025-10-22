@@ -4,9 +4,11 @@
     "main": "server.ts",
     "scripts": {
         "build": "tsc",
+        "postinstall": "prisma generate",
         "dev": "nodemon ./src/server.ts",
         "typescript": "tsc --init",
         "migrate:dev": "prisma migrate dev",
+        "start": "node ./dist/server.js",
         "db:push": "prisma db push",
         "lint": "eslint **/*.{js,mjs,cjs,ts}",
         "lint:fix": "eslint  **/*.{js,mjs,cjs,ts} --fix"

@@ -9,6 +9,7 @@ import { timeOnly, ymdDateString } from './helpers';
 
 import { SessionStatus } from '@prisma/client';
 import { TimeSlot } from '../../classes/services/TimeSlot';
+import { Availability } from '../../classes/services/Availability';
 
 
 const { PENDING, ACCEPTED } = SessionStatus;
@@ -171,9 +172,23 @@ async function getAvailableSlotsForDate(
   mentorId: string,
   service: any,
   userTimeZone: string,
+  mentorTimeZone: string,
   currentDate: DateTime,
-  availabilities: any[],
+  availabilities: Availability[],
 ): Promise<Record<string, string[]>> {
+
+  const mentorLocalDate = DateTime.fromObject(
+    {
+      year: currentDate.year,
+      month: currentDate.month,
+      day: currentDate.day,
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    },
+    { zone: mentorTimeZone },
+  );
 
   const previousDate = currentDate.minus({ days: 1 });
   const nextDate = currentDate.plus({ days: 1 });
@@ -182,6 +197,9 @@ async function getAvailableSlotsForDate(
 
   const sessionRequests = await prisma.sessionRequests.findMany({
     where: {
+      service: {
+        deletedAt: null, // exclude session requests from deleted services
+      },
       status: { in: [PENDING, ACCEPTED] },
       date: {
         in: [
@@ -192,16 +210,40 @@ async function getAvailableSlotsForDate(
       },
       OR: [{ menteeId }, { mentorId }],
     },
+    include: {
+      service: {
+        select: {
+          deletedAt: true,
+        },
+      },
+    },
   });
 
-  const busyIntervals = sessionRequests.map((req) => {
+  const sessionRequestsInstances = createTimeSlotInstances(sessionRequests);
 
-    const time = Time.fromString(req.startTime.toISOString().slice(11, 16));
+  for (const sessionRequest of sessionRequestsInstances){
+    sessionRequest.shiftToTimezone('UTC', mentorTimeZone);
+  }
 
-    const start = DateTime.fromJSDate(req.date).set({
-      hour: time.hour,
-      minute: time.minute,
-    });
+  const busyIntervals = sessionRequestsInstances.map((req) => {
+
+    // const time = Time.fromString(req.startTime.toISOString().slice(11, 16));
+    const time = req.startTime;
+
+    const date = DateTime.fromJSDate(req.date);
+
+    const start = DateTime.fromObject(
+      {
+        year: date.year,
+        month: date.month,
+        day: date.day,
+        hour: time.hour,
+        minute: time.minute,
+        second: 0,
+        millisecond: 0,
+      },
+      { zone: mentorTimeZone },
+    );
 
     return {
       start,
@@ -212,9 +254,10 @@ async function getAvailableSlotsForDate(
 
   const windows = availabilities.map((a) => {
 
-    const time = Time.fromString(a.startTime.toISOString().slice(11, 16));
+    // const time = Time.fromString(a.startTime.toISOString().slice(11, 16));
+    const time = a.startTime;
 
-    const start = currentDate.set({
+    const start = mentorLocalDate.set({
       hour: time.hour,
       minute: time.minute,
       second: 0,
@@ -258,8 +301,8 @@ async function getAvailableSlotsForDate(
     let cursor = start;
 
     while (cursor.plus({ minutes: duration }) <= end) {
-      const local = cursor.setZone(userTimeZone);
 
+      const local = cursor.setZone(userTimeZone);
       const localDate = local.toISODate()!; // e.g. "2025-08-20"
       const localTime = local.toFormat('HH:mm'); // e.g. "01:30"
 

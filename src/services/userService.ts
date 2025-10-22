@@ -4,6 +4,7 @@ import supabase from './supabaseClient';
 import { SessionRequest } from '../classes/services/SessionRequest';
 import { ymdDateString } from '../utils/availability/helpers';
 import { Time } from '../classes/services/Time';
+import { checkIfMutalCommunityExists } from './communityService';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -47,13 +48,9 @@ const getUserService = async(options: {
 
   if (includeServices && currentUserId && searchBy.id){
 
-    const result: any[] = await prisma.$queryRaw`SELECT 1
-      FROM participations p1
-      JOIN participations p2
-      ON p1.community_id = p2.community_id
-      WHERE p1.user_id = ${searchBy.id} AND p2.user_id = ${currentUserId}`;
+    const mutalCommunityExists = await checkIfMutalCommunityExists(searchBy.id, currentUserId);
 
-    if (result.length !== 0){
+    if (mutalCommunityExists){
       allowedToAccessServices = true;
     }
   }

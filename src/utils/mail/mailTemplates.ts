@@ -1,5 +1,7 @@
+const FRONTEND_URL: string = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 const emailVerficationLinkTemplate = (name: string, email: string, code: string) => {
-  const verficationLink = `http://localhost:5173/confirm-email?code=${code}`
+  const verficationLink = `${FRONTEND_URL}/confirm-email?code=${code}`
   return {
     from: process.env.GMAIL_ADDRESS,
     to: email,
@@ -9,18 +11,12 @@ const emailVerficationLinkTemplate = (name: string, email: string, code: string)
 };
 
 const resetPasswordTemplate = (name: string, email: string, code: string) => {
-  let host;
-  if (process.env.NODE_ENV === 'development') {
-    host = `localhost:${process.env.PORT}/auth/reset-password`;
-  } else if (process.env.NODE_ENV === 'production'){
-    // this is just an example, this is not the actual domain
-    host = 'https://mentorplatform.com/auth/reset-password';
-  }
+  const resetLink = `${FRONTEND_URL}/reset-password?token=${code}`;
   return {
     from: process.env.GMAIL_ADDRESS,
     to: email,
     subject: 'Reset your password',
-    text: `Hey ${name.split(' ')[0]}!\nUse the following link to reset your password: ${host}/${code}\n This link will exprire in 10 minutes.`,
+    text: `Hey ${name.split(' ')[0]}!\nUse the following link to reset your password: ${resetLink}\n This link will exprire in 10 minutes.`,
   }
 };
 export {
