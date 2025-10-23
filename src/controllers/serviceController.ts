@@ -342,11 +342,12 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
 
   const mentorTimeZone = service.mentor.timezone;
 
-  const today = DateTime.now();
-  const oneMonthLater = today.plus({ days: 30 });
+  // slots will be available for mentees starting from tomorrow from the mentor's perspictive
+  const tomorrow = DateTime.now().setZone(mentorTimeZone).plus({ days: 1 });
+  const oneMonthLater = tomorrow.plus({ days: 30 });
 
-  const todayDateNoTimePart = new Date(ymdDateString(today.toJSDate()));
-  const oneMonthLaterDateNoTimePart = new Date(ymdDateString(oneMonthLater.toJSDate()));
+  const tomorrowDateNoTimePart = new Date(tomorrow.toISODate()!);
+  const oneMonthLaterDateNoTimePart = new Date(oneMonthLater.toISODate()!);
 
   // Find the available slots for the upcoming 30 days
   const availabilityExceptions = await prisma.availabilityExceptions.findMany({
@@ -354,7 +355,7 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
       serviceId,
       mentorId,
       date: {
-        gte: todayDateNoTimePart,
+        gte: tomorrowDateNoTimePart,
         lte: oneMonthLaterDateNoTimePart,
       },
     },
@@ -372,13 +373,13 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
 
   // shift the availabilities to the mentor's time zone to avoid the issue of an exception canceling out
   // the weekly availabilities of a pervious or a next day due to shifting
-  for (const exception of availabilityExceptionInstances){
-    exception.shiftToTimezone('Etc/UTC', mentorTimeZone);
-  }
+  // for (const exception of availabilityExceptionInstances){
+  //   exception.shiftToTimezone('Etc/UTC', mentorTimeZone);
+  // }
 
-  for (const availability of dayAvailabilityInstances){
-    availability.shiftToTimezone('Etc/UTC', mentorTimeZone);
-  }
+  // for (const availability of dayAvailabilityInstances){
+  //   availability.shiftToTimezone('Etc/UTC', mentorTimeZone);
+  // }
 
   // create a set of date strings for easy checking if a date has an exception
   const exceptionDateSet = new Set(
@@ -388,7 +389,7 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
   const slotsForEachDate: Record<string, string[]> = {};
 
   for (let i = 0; i <= daysHorizon; i++) {
-    const currentDate = (DateTime.fromJSDate(todayDateNoTimePart)).plus({ days: i });
+    const currentDate = (DateTime.fromJSDate(tomorrowDateNoTimePart)).plus({ days: i });
     const currentDateString = ymdDateString(currentDate.toJSDate());
 
     let relevantAvailabilities: Availability[];
@@ -475,21 +476,13 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
 
   slot.shiftToTimezone(menteeTimeZone, mentorTimeZone); // shift the slot to the mentor time zone for comparison
 
-
   const bookDateTime = DateTime.fromJSDate(slot.date);
-
-  const previousBookDateTime = bookDateTime.minus({ days: 1 });
-
   const dayOfWeek = ((bookDateTime.weekday - 1) % 7);
-  const previousDay = (((bookDateTime.weekday - 1) + 6) % 7);
 
   const slotDateAvailabilities = await prisma.availabilityExceptions.findMany({
     where: {
       date: {
-        in: [
-          slot.date,
-          previousBookDateTime.toJSDate(),
-        ],
+        in: [slot.date],
       },
       serviceId,
       mentorId,
@@ -499,7 +492,7 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
   const slotDayAvailabilities = await prisma.dayAvailabilities.findMany({
     where: {
       dayOfWeek: {
-        in: [dayOfWeek, previousDay],
+        in: [dayOfWeek],
       },
       serviceId,
       mentorId,
@@ -512,11 +505,6 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
 
   if (slotDateAvailabilities.length > 0){
     const availabilityExceptionInstances = createAvailabilityExceptionInstances(slotDateAvailabilities);
-
-    for (const exception of availabilityExceptionInstances){
-      // shift to the mentor's comparison so we that exception instances are shifted back to the date that the mentor specified
-      exception.shiftToTimezone('Etc/UTC', mentorTimeZone);
-    }
 
     const withinAvailableWindows = checkIfSlotLiesWithinAvailabilities(slot, availabilityExceptionInstances);
 
@@ -569,10 +557,6 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
 
   } else if (slotDayAvailabilities.length > 0){
     const dayAvailabilityInstances = createDayAvailabilityInstances(slotDayAvailabilities);
-
-    for (const availability of dayAvailabilityInstances){
-      availability.shiftToTimezone('Etc/UTC', mentorTimeZone);
-    }
 
     const withinAvailableWindows = checkIfSlotLiesWithinAvailabilities(slot, dayAvailabilityInstances);
 
