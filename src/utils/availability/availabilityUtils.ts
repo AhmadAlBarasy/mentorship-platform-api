@@ -161,8 +161,6 @@ async function getAvailableSlotsForDate(
   const previousDate = currentDate.minus({ days: 1 });
   const nextDate = currentDate.plus({ days: 1 });
 
-  const currentDateString = currentDate.toJSDate();
-
   const sessionRequests = await prisma.sessionRequests.findMany({
     where: {
       service: {
@@ -172,7 +170,7 @@ async function getAvailableSlotsForDate(
       date: {
         in: [
           previousDate.toJSDate(),
-          currentDateString,
+          currentDate.toJSDate(),
           nextDate.toJSDate(),
         ],
       },
@@ -190,12 +188,11 @@ async function getAvailableSlotsForDate(
   const sessionRequestsInstances = createTimeSlotInstances(sessionRequests);
 
   for (const sessionRequest of sessionRequestsInstances){
-    sessionRequest.shiftToTimezone('UTC', mentorTimeZone);
+    sessionRequest.shiftToTimezone('Etc/UTC', mentorTimeZone);
   }
 
   const busyIntervals = sessionRequestsInstances.map((req) => {
 
-    // const time = Time.fromString(req.startTime.toISOString().slice(11, 16));
     const time = req.startTime;
 
     const date = DateTime.fromJSDate(req.date);
@@ -222,7 +219,6 @@ async function getAvailableSlotsForDate(
 
   const windows = availabilities.map((a) => {
 
-    // const time = Time.fromString(a.startTime.toISOString().slice(11, 16));
     const time = a.startTime;
 
     const start = mentorLocalDate.set({
