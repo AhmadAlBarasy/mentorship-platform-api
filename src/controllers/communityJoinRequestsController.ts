@@ -4,6 +4,8 @@ import { SUCCESS } from '../constants/responseConstants';
 import APIError from '../classes/APIError';
 import prisma from '../db';
 import { getCommunityByFieldService, getUserJoinRequestsService } from '../services/communityService';
+import { createAndPushNotification } from '../notifications';
+import { communityJoinRequestNotificationTemplate } from '../notifications/templates';
 
 const requestToJoinCommunity = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
@@ -44,6 +46,12 @@ const requestToJoinCommunity = errorHandler(async(req: Request, res: Response, n
       communityId: id,
     },
   });
+
+  createAndPushNotification(
+    community.managerId,
+    communityJoinRequestNotificationTemplate(userId),
+    '/communities/my/manage',
+  );
 
   res.status(200).json({
     status: SUCCESS,
