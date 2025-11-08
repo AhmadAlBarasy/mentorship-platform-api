@@ -49,7 +49,7 @@ async function handleReadNotification(io: Server, socket: Socket, notificationId
     }
 
     if (notification.userId !== userId) {
-      return socket.emit('error','Unauthorized operation');
+      return socket.emit('error', 'You are not allowed to perform this action');
     }
 
     // Update only if unread
@@ -62,7 +62,6 @@ async function handleReadNotification(io: Server, socket: Socket, notificationId
 
     // Compute unread count for that user
     const unreadCount = await prisma.notifications.count({
-      take: 10,
       where: { userId, isRead: false },
     });
 

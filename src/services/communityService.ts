@@ -1,9 +1,9 @@
-import { Communities, CommunityJoinRequests, Role, Users } from '@prisma/client';
+import { Communities, Role, Users } from '@prisma/client';
 import prisma from '../db';
 import supabase from './supabaseClient';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
-const { COMMUNITY_MANAGER, MENTEE, MENTOR } = Role;
+const { MENTEE, MENTOR } = Role;
 
 const getCommunityByFieldService = async(options: {
   searchBy: {
