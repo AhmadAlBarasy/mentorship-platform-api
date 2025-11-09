@@ -22,6 +22,8 @@ import { TimeSlot } from '../classes/services/TimeSlot';
 import { SessionStatus } from '@prisma/client';
 import { checkIfMutalCommunityExists } from '../services/communityService';
 import { Availability } from '../classes/services/Availability';
+import { createAndPushNotification } from '../notifications';
+import { sessionRequestReceivedNotificationTemplate } from '../notifications/templates';
 
 
 const { PENDING, ACCEPTED } = SessionStatus;
@@ -432,7 +434,7 @@ const getServiceDetailsAndSlots = errorHandler(async(req: Request, res: Response
 });
 
 const bookSlotFromService = errorHandler(async(req: Request, res: Response, next: NextFunction) => {
-  const { id: menteeId, timezone: menteeTimeZone } = req.user;
+  const { id: menteeId, name: menteeName, timezone: menteeTimeZone } = req.user;
   const { id: mentorId, serviceId } = req.params;
   const { communityId } = req.query;
   const { startTime, date, agenda } = req.body;
@@ -607,6 +609,12 @@ const bookSlotFromService = errorHandler(async(req: Request, res: Response, next
       },
     });
   }
+
+  createAndPushNotification(
+    mentorId,
+    sessionRequestReceivedNotificationTemplate(service.type, menteeName),
+    `/my/services/${serviceId}/session-requests`,
+  );
 
   res.status(201).json({
     status: SUCCESS,
