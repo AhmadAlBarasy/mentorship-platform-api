@@ -15,6 +15,8 @@ import { getCommunityByFieldService,
 import { constructSupabasePath, getSupabasePathFromURL } from '../utils/supabaseUtils';
 import supabase from '../services/supabaseClient';
 import { Role } from '@prisma/client';
+import { createAndPushNotification } from '../notifications';
+import { communityJoinRequestAcceptedNotificationTemplate } from '../notifications/templates';
 
 const { MENTOR } = Role;
 
@@ -281,18 +283,25 @@ const resolveCommunityJoinRequest = errorHandler(async(req: Request, res: Respon
 
   if (body.action === 'accept'){
 
-    await prisma.participations.create({
-      data: {
-        userId: joinRequest.userId,
-        communityId: community.id,
-      },
-    });
+    await prisma.$transaction([
+      prisma.participations.create({
+        data: {
+          userId: joinRequest.userId,
+          communityId: community.id,
+        },
+      }),
+      prisma.communityJoinRequests.delete({
+        where: {
+          id: joinRequest.id,
+        },
+      }),
+    ]);
 
-    await prisma.communityJoinRequests.delete({
-      where: {
-        id: joinRequest.id,
-      },
-    });
+    createAndPushNotification(
+      joinRequest.userId,
+      communityJoinRequestAcceptedNotificationTemplate(community.name),
+      `/communities/${community.id}`,
+    );
 
   } else {
 

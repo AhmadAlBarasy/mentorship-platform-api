@@ -9,6 +9,8 @@ import { Time } from '../classes/services/Time';
 import { ymdDateString } from '../utils/availability/helpers';
 import { DateTime } from 'luxon';
 import { cancelCalendarEvent, createCalendarEvent } from '../services/sessionRequestService';
+import { createAndPushNotification } from '../notifications';
+import { sessionRequestStatusUpdateNotification } from '../notifications/templates';
 
 const { PENDING, ACCEPTED, REJECTED, CANCELLED } = SessionStatus;
 
@@ -178,6 +180,15 @@ const updateSessionRequest = errorHandler(async(req: Request, res: Response, nex
       },
     });
 
+    createAndPushNotification(
+      menteeId,
+      sessionRequestStatusUpdateNotification(
+        service.type,
+        mentorName,
+        'accepted!',
+      ),
+    );
+
   } else if (status === REJECTED){
     if (sessionRequest.status !== PENDING){
       return next(new APIError(400, `You can't change the state to ${REJECTED}`));
@@ -191,6 +202,16 @@ const updateSessionRequest = errorHandler(async(req: Request, res: Response, nex
         rejectionReason,
       },
     });
+
+    createAndPushNotification(
+      sessionRequest.mentee.id,
+      sessionRequestStatusUpdateNotification(
+        service.type,
+        mentorName,
+        'rejected. You can check the rejection reason if the mentor specified it.',
+      ),
+    );
+
   } else if (status === CANCELLED){
     if (sessionRequest.status !== ACCEPTED){
       return next(new APIError(400, `You can't change the state to ${CANCELLED}`));
@@ -225,6 +246,15 @@ const updateSessionRequest = errorHandler(async(req: Request, res: Response, nex
         rejectionReason,
       },
     });
+
+    createAndPushNotification(
+      sessionRequest.mentee.id,
+      sessionRequestStatusUpdateNotification(
+        service.type,
+        mentorName,
+        'cancelled. You can check the reason behind that if the mentor specified it.',
+      ),
+    );
 
   } else if (sessionRequest.status === PENDING){
     await prisma.sessionRequests.updateMany({

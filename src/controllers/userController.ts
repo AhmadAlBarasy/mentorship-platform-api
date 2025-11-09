@@ -9,6 +9,8 @@ import mime from 'mime-types';
 import { checkExistingUserReport, createUserReport, getUserService } from '../services/userService';
 import { Role } from '@prisma/client';
 import { constructSupabasePath, getSupabasePathFromURL } from '../utils/supabaseUtils';
+import { createAndPushNotification } from '../notifications';
+import { userReportReceivedNotificationTemplate } from '../notifications/templates';
 
 const SUPABASE_BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME || 'growthly-storage';
 
@@ -95,6 +97,11 @@ const reportUser = errorHandler(async(req: Request, res: Response, next: NextFun
 
   await createUserReport({ userId: reporterId, reportedUserId, violation, additionalDetails });
 
+  createAndPushNotification(
+    'admin', // admins room
+    userReportReceivedNotificationTemplate(reporterId),
+    '/management/user-reports',
+  );
 
   res.status(201).json({
     status: SUCCESS,
