@@ -79,7 +79,7 @@ model Participations {
 
 model Notifications {
   id String @id @db.VarChar(36) @default(uuid())
-  content String @db.VarChar(100)
+  content String @db.VarChar(300)
   userId String @db.VarChar(32) @map("user_id")
   redirectPath String? @db.VarChar(50) @map("redirect_path")
   isRead Boolean @default(false) @map("is_read")
