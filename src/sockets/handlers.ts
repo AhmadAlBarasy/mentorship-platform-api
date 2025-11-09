@@ -14,19 +14,24 @@ export default function registerSocketHandlers(io: Server, socket: Socket) {
 
   let payload;
   try {
-    payload = jwt.verify(token, process.env.JWT_SECRET!) as { sub: string };
+    payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
   } catch (err: any) {
     logger.error(`Invalid socket token: ${err.message}`);
     return socket.disconnect();
   }
 
-  const userId = payload.sub as string;
+  const userId = payload.sub;
+  const userRole = payload.role;
   socket.data.userId = userId;
 
   socket.join(userId);
 
+  if (userRole === 'ADMIN'){
+    socket.join('admin');
+  }
+
   socket.on('readNotification', async(notificationId: string) => {
-    await handleReadNotification(io, socket, notificationId);
+    handleReadNotification(io, socket, notificationId);
   });
 
   socket.on('disconnect', () => {
